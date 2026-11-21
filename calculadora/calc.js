@@ -71,9 +71,10 @@
         artesanal: { nome: "Cerveja artesanal", nivel: "premium", marcas: [{ nome: "Cervejas artesanais", v: 72 }] },
         vinho: { nome: "Vinho ou espumante da casa (taça)", nivel: "basico", marcas: [{ nome: "Vinho ou espumante da casa", v: 48 }] },
         drink: { nome: "Drink clássico", nivel: "basico", marcas: [{ nome: "Caipirinha, Mojito, Piña Colada, Daiquiri, Margarita ou Cosmopolitan", v: 66 }] },
+        // Uma linha só, mesmo preço (Leonardo, 21/11/2026: "até 84 aparece 2 vezes. Tem que ficar uma só").
+        // ANTES: 2 linhas (drinks / destilados), cada uma com "até R$ 84".
         premium: { nome: "Drink premium ou destilado", nivel: "premium", marcas: [
-          { nome: "Mount Gay Coco Loco, Mai-Tai, Campari Negroni ou Long Island Iced Tea", v: 84, ate: true },
-          { nome: "Whisky importado, Absolut, Grey Goose ou Tanqueray", v: 84, ate: true }] },
+          { nome: "Mount Gay Coco Loco, Mai-Tai, Campari Negroni, Long Island Iced Tea, whisky importado, Absolut, Grey Goose ou Tanqueray", v: 84, ate: true }] },
       },
       niveis: {
         sem_alcool: { pacote: "Não Alcoólico", cobre: { refri: true, agua: true, cafe: true } },
