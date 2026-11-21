@@ -369,13 +369,18 @@
   /* Preço de hoje em destaque (Leonardo, 21/11/2026: "destacar mais o preço de hoje... tem que ter um fundo diferente,
      tem que chamar bem a atenção"): quadro com a cor do nível (verde baixo, amarelo média, vermelho alto), "Hoje" e o
      valor grande. ANTES: "Hoje: R$ X por pessoa" em texto simples ao lado do selo. */
-  .nivel { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px; border-radius: 12px; padding: 9px 12px; margin-bottom: 2px; border: 1px solid; }
+  .nivel { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 6px 8px; border-radius: 12px; padding: 9px 12px; margin-bottom: 2px; border: 1px solid; }
   .nivel .hoje-v small { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
   .nivel .hoje-v strong { font-size: 22px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: var(--texto); white-space: nowrap; }
   /* Preço de hoje numa linha só no celular (Leonardo, 21/11/2026). ANTES: "por pessoa" caía para a linha de baixo. */
   @media (max-width: 699px) { .nivel .hoje-v strong { font-size: 20px; } .nivel b { font-size: 12.5px; padding: 4px 9px; } }
-  .nivel .hoje-v strong em { font-style: normal; font-size: 12.5px; font-weight: 500; color: var(--suave); margin-left: 3px; letter-spacing: 0;  white-space: nowrap; }
-  .nivel b { flex: none; font-size: 13.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; color: #fff; }
+  .nivel .hoje-v strong em { display: block; font-style: normal; font-size: 12.5px; font-weight: 500; color: var(--suave); letter-spacing: 0; line-height: 1.3; white-space: nowrap; }
+  /* Quadro padronizado (Leonardo, 21/11/2026: "Isso tem que ser padronizado... O por pessoa pode ficar abaixo do valor...
+     Daí tem espaço para o preço em baixa ou preço em alta caber nesse quadrado. Daí sempre todos eles vão ter a mesma
+     altura"): "por pessoa" embaixo do valor e o selo sempre à direita, sem quebrar linha. ANTES: "por pessoa" ao lado do
+     valor; quando não cabia, o selo caía para baixo e o quadro ficava mais alto que os outros. */
+  .nivel .hoje-v { min-width: 0; }
+  .nivel b { flex: none; white-space: nowrap; font-size: 13.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; color: #fff; }
   .nivel.baixo { background: #e9f8ee; border-color: #8fd8a8; } .nivel.baixo small { color: #0f6b34; } .nivel.baixo b { background: #15803d; }
   .nivel.medio { background: #fff8e1; border-color: #f2d27a; } .nivel.medio small { color: #7a5a00; } .nivel.medio b { background: #8a6a00; }
   /* Preço alto como era, só com o selo "Preço em alta" (Leonardo, 21/11/2026: "Volte como estava antes, mas só vamos
