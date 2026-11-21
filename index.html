@@ -368,14 +368,20 @@
   /* Preço de hoje em destaque (Leonardo, 21/11/2026: "destacar mais o preço de hoje... tem que ter um fundo diferente,
      tem que chamar bem a atenção"): quadro com a cor do nível (verde baixo, amarelo média, vermelho alto), "Hoje" e o
      valor grande. ANTES: "Hoje: R$ X por pessoa" em texto simples ao lado do selo. */
-  .nivel { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-radius: 12px; padding: 9px 12px; margin-bottom: 2px; border: 1px solid; }
+  .nivel { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px; border-radius: 12px; padding: 9px 12px; margin-bottom: 2px; border: 1px solid; }
   .nivel .hoje-v small { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
-  .nivel .hoje-v strong { font-size: 22px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: var(--texto); }
+  .nivel .hoje-v strong { font-size: 22px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: var(--texto); white-space: nowrap; }
+  /* Preço de hoje numa linha só no celular (Leonardo, 21/11/2026). ANTES: "por pessoa" caía para a linha de baixo. */
+  @media (max-width: 699px) { .nivel .hoje-v strong { font-size: 20px; } .nivel b { font-size: 12.5px; padding: 4px 9px; } }
   .nivel .hoje-v strong em { font-style: normal; font-size: 12.5px; font-weight: 500; color: var(--suave); margin-left: 3px; letter-spacing: 0;  white-space: nowrap; }
   .nivel b { flex: none; font-size: 13.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; color: #fff; }
   .nivel.baixo { background: #e9f8ee; border-color: #8fd8a8; } .nivel.baixo small { color: #0f6b34; } .nivel.baixo b { background: #15803d; }
   .nivel.medio { background: #fff8e1; border-color: #f2d27a; } .nivel.medio small { color: #7a5a00; } .nivel.medio b { background: #8a6a00; }
-  .nivel.alto { background: #fdecea; border-color: #f0a79e; } .nivel.alto small { color: #a12a1d; } .nivel.alto b { background: var(--vermelho-texto); }
+  /* Preço alto sem assustar (Leonardo, 21/11/2026: "esse preço alto... assusta as pessoas a não comprarem. Pense em alguma
+     coisa"): quadro neutro, sem selo, e no lugar do alerta vermelho uma ajuda: "Quer pagar menos? Eu procuro uma data
+     parecida mais em conta". ANTES: quadro vermelho com o selo "Preço alto", "Hoje" em vermelho na barra e o alerta
+     "Preço mais caro... Vale acompanhar". */
+  .nivel.alto { background: #eef5f8; border-color: var(--linha); } .nivel.alto small { color: var(--marca); }
   .nivel.estavel, .nivel.esgotada { background: #eef3f5; border-color: var(--linha); } .nivel.estavel b, .nivel.esgotada b { background: var(--suave); }
   .faixa { position: relative; margin: 26px 4px 4px; }
   .faixa .barra-cor { display: flex; height: 8px; border-radius: 8px; overflow: hidden; }
@@ -393,15 +399,15 @@
   .faixa .marca { z-index: 2; }
   .faixa .marca.no-min span { background: #15803d; }
   .faixa .marca.no-min::after { background: #1fa855; }
-  .faixa .marca.no-max span { background: var(--vermelho-texto); }
-  .faixa .marca.no-max::after { background: #d64535; }
   .alerta-preco { display: flex; align-items: center; gap: 10px; margin: 10px 0 2px; padding: 9px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.35; }
   .alerta-preco b { display: block; font-size: 14px; }
   .alerta-preco .ico { flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font: 800 17px var(--fonte); }
   .alerta-preco.barato { background: #e9f8ee; border: 1px solid #8fd8a8; color: #0f6b34; }
   .alerta-preco.barato .ico { background: #1fa855; animation: pulso 1.8s ease-out infinite; }
-  .alerta-preco.caro { background: #fdecea; border: 1px solid #f0a8a0; color: #8f2a1f; }
-  .alerta-preco.caro .ico { background: #d64535; }
+  .alerta-preco.dica { background: var(--marca-clara); border: 1px solid #c3d9e0; color: var(--texto); }
+  .alerta-preco.dica .ico { background: var(--marca); font-size: 15px; }
+  .alerta-preco.dica a { color: var(--marca); font-weight: 700; }
+  .alerta-preco.dica > div { font-weight: 500; }
   @keyframes pulso { 0% { box-shadow: 0 0 0 0 rgba(31,168,85,.5); } 70% { box-shadow: 0 0 0 9px rgba(31,168,85,0); } 100% { box-shadow: 0 0 0 0 rgba(31,168,85,0); } }
   @media (prefers-reduced-motion: reduce) { .alerta-preco .ico { animation: none; } }
   .faixa .marca.ponta-d span { transform: translateX(-40%); }
@@ -898,7 +904,7 @@
       // Sempre SEM bebidas (Leonardo, 21/11/2026): a bebida muda pouco e foi lida poucas vezes; somada, encurtava o
       // histórico e escondia a variação da cabine. ANTES: com pacote escolhido, somava o pacote de cada dia.
       var pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(function (p) { return [p[0], p[1] === null ? null : Math.round(p[1] / a), p[2]]; });
-      var fx = MV.faixaPreco(pts);
+      var fx = MV.faixaPreco(pts); if (fx) fx.s = s;
       if (fx) fx.desde = pts[0][0];
       corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx)) + linhaPacote(s, a);
     }
@@ -936,25 +942,27 @@
   // Faixa verde/amarela/vermelha com a marca "Hoje", e o menor e o maior com o dia.
   function faixa(fx) {
     fx.desde = fx.desde || fx.min.dia;
-    var txt = { baixo: 'Preço baixo', medio: 'Na média', alto: 'Preço alto', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
+    var txt = { baixo: 'Preço baixo', medio: 'Na média', alto: '', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
     var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><small>Preço de hoje</small><strong>' + reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : '') +
-      '<b>' + txt + '</b></div>';
+      (txt ? '<b>' + txt + '</b>' : '') + '</div>';
     // Marcas na barra (Leonardo, 21/11/2026, 6ª rodada: "não é para ter a linha tracejada... é para só marcar lá em cima...
     // o mais barato, um risco ali no verde, e o mais caro no vermelho. Se o hoje for igual a qualquer um dos dois, as
     // linhas vão ficar sobrepostas. E vai ter um alerta"). ANTES: só a marca Hoje na barra e riscos tracejados no gráfico.
     if (fx.pos !== null && fx.min.v !== fx.max.v) {
       var pct = Math.max(2, Math.min(98, fx.pos * 100)), lado = pct < 15 ? ' ponta-e' : pct > 85 ? ' ponta-d' : '';
-      var ext = fx.hoje && fx.hoje.v === fx.min.v ? ' no-min' : fx.hoje && fx.hoje.v === fx.max.v ? ' no-max' : '';
+      var ext = fx.hoje && fx.hoje.v === fx.min.v ? ' no-min' : '';
       html += '<div class="faixa"><i class="risco-min" style="left:2%"></i><i class="risco-max" style="left:98%"></i>' +
         '<div class="marca' + lado + ext + '" style="left:' + pct.toFixed(1) + '%"><span>Hoje</span></div>' +
         '<div class="barra-cor"><i></i><i></i><i></i></div></div>';
     }
     var alerta = '';
-    if (fx.hoje && fx.min.v !== fx.max.v && (fx.hoje.v === fx.min.v || fx.hoje.v === fx.max.v)) {
-      var barato = fx.hoje.v === fx.min.v;
-      alerta = '<div class="alerta-preco ' + (barato ? 'barato' : 'caro') + '"><span class="ico">' + (barato ? '↓' : '↑') + '</span><div><b>' +
-        (barato ? 'Preço mais barato' : 'Preço mais caro') + '</b>' + (barato ? 'Hoje está no menor preço' : 'Hoje está no maior preço') +
-        ' desde ' + dm(fx.desde) + (barato ? '. Boa hora para garantir.' : '. Vale acompanhar: ele já esteve mais baixo.') + '</div></div>';
+    if (fx.hoje && fx.min.v !== fx.max.v && fx.hoje.v === fx.min.v) {
+      alerta = '<div class="alerta-preco barato"><span class="ico">↓</span><div><b>Preço mais barato</b>Hoje está no menor preço desde ' +
+        dm(fx.desde) + '. Boa hora para garantir.</div></div>';
+    } else if (fx.nivel === 'alto' && fx.s) {
+      var pedido = 'Oi, Leonardo! Vi na minha página o ' + fx.s.navio + ' de ' + dm(fx.s.embarque) + '. Tem uma data parecida mais em conta?';
+      alerta = '<div class="alerta-preco dica"><span class="ico">$</span><div><b>Quer pagar menos?</b>Eu procuro uma data parecida, mais em conta, para você. ' +
+        '<a href="' + linkWhats(pedido) + '" target="_blank" rel="noopener">Me chama no WhatsApp</a></div></div>';
     }
     html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>menor preço em ' + dm(fx.min.dia) + '</span>' +
       '<span class="mx"><b>' + reais(fx.max.v) + '</b>maior preço em ' + dm(fx.max.dia) + '</span></div>';
