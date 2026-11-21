@@ -48,6 +48,17 @@
   .item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--linha); }
   .grupo + .item { border-top: 0; }
   .grupo { color: var(--marca); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; margin: 10px 0 2px; }
+  /* Blocos do foco "Quero ver todos": cada pacote com a sua cor, para não confundir cerveja e drink de preços diferentes. */
+  .bloco { border-radius: 10px; padding: 8px 10px 4px; margin: 10px 0 4px; }
+  .bloco .grupo { margin-top: 0; }
+  .bloco.basico { background: var(--marca-clara); border: 1px solid #b9d3dc; }
+  .bloco.premium { background: var(--ouro-claro); border: 1px solid #f0d49a; }
+  .bloco.premium .grupo { color: var(--ouro-texto); }
+  .bloco.muda { background: #f4f1fa; border: 1px solid #d9cfee; }
+  .bloco.muda .grupo { color: #5b3f8c; }
+  .bloco .item:first-of-type { border-top: 0; }
+  .preco-item { display: block; color: #4b5f69; font-size: 12.5px; }
+  .aviso-foco { color: #4b5f69; font-size: 13px; margin: 8px 0 0; }
   .passo { display: flex; align-items: center; gap: 8px; flex: none; }
   .passo button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid #c9d5db; background: var(--marca-clara); color: var(--marca); font-size: 20px; font-weight: 700; cursor: pointer; }
   .passo output { min-width: 22px; text-align: center; font-weight: 800; }
@@ -113,6 +124,15 @@
     <div class="opcoes" id="alcool"></div>
   </section>
 
+  <!-- Foco (Leonardo, 21/11/2026): pagar menos (só o básico), bebidas de marca melhor (só o premium) ou ver todos (em
+       blocos por pacote). Só para quem bebe álcool; o resto da tela espera a resposta. Vem marcado quando a pesquisa já
+       tem o pacote (b=basico|premium). -->
+  <section id="sec-foco">
+    <h2>O que é mais importante para você a bordo?</h2>
+    <div class="opcoes tres" id="foco"></div>
+  </section>
+
+  <div id="depois-foco">
   <section>
     <h2>O que você beberia em um dia a bordo?</h2>
     <p class="dica">Já deixamos preenchido o mínimo em que o pacote vale a pena. Ajuste com − e + para o que você beberia.</p>
@@ -131,6 +151,7 @@
   <section id="sec-final" class="oculto">
     <div id="final"></div>
   </section>
+  </div>
 
   <p class="rodape">Valores aproximados: dependem da cotação do dólar no dia. Os preços avulsos já incluem a taxa de serviço de 15%. Todos os adultos da mesma cabine precisam ter o mesmo pacote.</p>
 </main>
@@ -172,9 +193,14 @@
       info.textContent = saida.navio + ' · ' + saida.embarque.slice(8, 10) + '/' + saida.embarque.slice(5, 7) + ' · ' + saida.noites + ' noites';
       info.hidden = false;
     }
-    function pessoa() { return { alcool: true, consumo: C.diaMinimo(ciaDia, true) }; }
+    // Pesquisa que a página guardou no aparelho (mv_pref): noites e pacote já vêm dela como padrão, e dá para mudar
+    // (Leonardo, 21/11/2026). Vale o link primeiro; a pesquisa só preenche o que o link não traz.
+    var pref = ler("mv_pref"), pesq = pref ? MV.lerPesquisa(pref) : null;
+    var foco0 = C.focoDaPesquisa(link.b || (pesq && pesq.b) || "");
+    function pessoa() { return { alcool: true, consumo: C.diaMinimo(ciaDia, true, foco0) }; }
     var estado = {
-      noites: link.noites || (saida && saida.noites) || 4,
+      noites: link.noites || (saida && saida.noites) || (pesq && C.noitesDaPesquisa(pesq.t)) || 4,
+      foco: foco0,         // "economia" | "qualidade" | "todos" | null (ainda não respondeu)
       adultos: link.adultos || 2,
       igual: true,
       voce: pessoa(),
@@ -214,16 +240,90 @@
       });
     }
 
+    // Nome do pacote básico/premium nas companhias da tela: "Easy" ou "Easy e My Drinks".
+    function nomesNivel(nivel) { return cias.map(function (c) { return C.CIAS[c].niveis[nivel].pacote; }).join(" / "); }
+    // Preço avulso ao lado de cada item ("R$ 48 avulso"; lado a lado: "MSC R$ 54 · Costa R$ 39 avulso").
+    function precoItem(id) {
+      if (cias.length === 1) return reais(C.CIAS[cias[0]].avulso[id]) + " avulso";
+      return cias.map(function (c) { return C.CIAS[c].nome + " " + reais(C.CIAS[c].avulso[id]); }).join(" · ") + " avulso";
+    }
+    // Item que muda de pacote de uma companhia para outra (long neck): diz onde está em cada uma.
+    function notaMuda(it) {
+      if (C.blocoDoItem(it) !== "muda") return "";
+      return cias.map(function (c) {
+        var n = it.nivelPor[c];
+        return C.CIAS[c].nome + ": " + (n === "basico" ? "no " + C.CIAS[c].niveis.basico.pacote : "só no " + C.CIAS[c].niveis.premium.pacote);
+      }).join(" · ");
+    }
+    function linhaItem(it, p) {
+      var span = el("span", { "class": "passo" }, passo(p.consumo[it.id] || 0, 0, 20, function (v) { p.consumo[it.id] = v; atualizar(); }));
+      var nota = notaMuda(it);
+      return el("div", { "class": "item" }, [el("span", {}, [it.nome, el("span", { "class": "preco-item", texto: precoItem(it.id) + (nota ? " · " + nota : "") })]), span]);
+    }
+
+    // Lista do dia conforme o foco: "economia" só os itens do básico, "qualidade" só os do premium, "todos" em blocos
+    // coloridos por pacote (básico, muda de companhia, só no premium). Sem foco (ninguém respondeu): todos, em blocos.
     function montarItens(caixa, p) {
       caixa.innerHTML = "";
-      var grupoAtual = null;
-      C.ITENS.forEach(function (it) {
-        if (it.alcool && !p.alcool) return;
-        var g = it.alcool ? "Com álcool" : "Sem álcool";
-        if (g !== grupoAtual) { caixa.appendChild(el("div", { "class": "grupo", texto: g })); grupoAtual = g; }
-        var span = el("span", { "class": "passo" }, passo(p.consumo[it.id], 0, 20, function (v) { p.consumo[it.id] = v; atualizar(); }));
-        caixa.appendChild(el("div", { "class": "item" }, [el("span", { texto: it.nome }), span]));
+      var itens = C.itensDoFoco(cias, estado.foco);
+      caixa.appendChild(el("div", { "class": "grupo", texto: "Sem álcool" }));
+      itens.forEach(function (it) { if (!it.alcool) caixa.appendChild(linhaItem(it, p)); });
+      if (!p.alcool) return;
+      var com = itens.filter(function (it) { return it.alcool; });
+      if (estado.foco === "economia" || estado.foco === "qualidade") {
+        caixa.appendChild(el("div", { "class": "grupo", texto: "Com álcool · " + (estado.foco === "economia" ? "pacote " + nomesNivel("basico") : "pacote " + nomesNivel("premium")) }));
+        com.forEach(function (it) { caixa.appendChild(linhaItem(it, p)); });
+        if (estado.foco === "qualidade") caixa.appendChild(el("p", { "class": "aviso-foco", texto: "Chope, caipirinha e vinho da casa também estão inclusos no " + nomesNivel("premium") + "." }));
+        return;
+      }
+      var titulos = cias.length > 1 ? {
+        basico: "Inclusos no básico (" + nomesNivel("basico") + ") e no premium",
+        muda: "Muda de uma companhia para a outra",
+        premium: "Só no premium (" + nomesNivel("premium") + ")",
+      } : {
+        basico: "Inclusos no " + nomesNivel("basico") + " e no " + nomesNivel("premium"),
+        muda: "Muda de uma companhia para a outra",
+        premium: "Só no " + nomesNivel("premium"),
+      };
+      ["basico", "muda", "premium"].forEach(function (b) {
+        var lista = com.filter(function (it) { return C.blocoDoItem(it) === b; });
+        if (!lista.length) return;
+        var bloco = el("div", { "class": "bloco " + b }, [el("div", { "class": "grupo", texto: titulos[b] })]);
+        lista.forEach(function (it) { bloco.appendChild(linhaItem(it, p)); });
+        caixa.appendChild(bloco);
       });
+    }
+
+    // Alguém da cabine bebe álcool? (Só aí a pergunta do foco faz sentido.)
+    function algumBebe() {
+      if (estado.voce.alcool) return true;
+      if (estado.adultos === 1 || estado.igual) return false;
+      return estado.outros.slice(0, estado.adultos - 1).some(function (p) { return p.alcool; });
+    }
+    // Pergunta do foco: some se ninguém bebe álcool; o resto da tela espera a resposta de quem bebe.
+    function mostrarFoco() {
+      document.getElementById("sec-foco").classList.toggle("oculto", !algumBebe());
+      document.getElementById("depois-foco").classList.toggle("oculto", estado.voce.alcool && !estado.foco);
+    }
+    function montarFoco() {
+      var caixa = document.getElementById("foco");
+      caixa.innerHTML = "";
+      [["economia", "Pagar menos"], ["qualidade", "Bebidas de marca melhor"], ["todos", "Quero ver todos"]].forEach(function (o) {
+        var b = el("button", { type: "button", "data-v": o[0], "aria-pressed": String(estado.foco === o[0]), texto: o[1] });
+        b.onclick = function () {
+          caixa.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+          estado.foco = o[0];
+          estado.preferencia = null;
+          // Troca o foco = volta ao mínimo daquele foco quem bebe (como ao trocar o álcool).
+          [estado.voce].concat(estado.outros).forEach(function (p) { if (p.alcool) p.consumo = C.diaMinimo(ciaDia, true, o[0]); });
+          montarItens(document.getElementById("itens-voce"), estado.voce);
+          montarOutros();
+          mostrarFoco();
+          atualizar();
+        };
+        caixa.appendChild(b);
+      });
+      caixa.parentNode.appendChild(el("p", { "class": "dica", style: "margin:10px 0 0", texto: "Pagar menos mostra só as bebidas do pacote " + nomesNivel("basico") + ". Marca melhor mostra só as do " + nomesNivel("premium") + "." }));
     }
 
     // Sim/Não. Trocar o álcool volta a lista ao mínimo daquele caso (com ou sem álcool).
@@ -240,7 +340,7 @@
     }
 
     function trocaAlcool(p, caixaItens) {
-      return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim); montarItens(caixaItens, p); atualizar(); };
+      return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim, estado.foco); montarItens(caixaItens, p); mostrarFoco(); atualizar(); };
     }
 
     // Cada adulto a mais ganha o próprio bloco, já preenchido com o mínimo, só quando "Não, quero preencher cada um".
@@ -270,10 +370,12 @@
       return c;
     }
 
+    // Só o que a tela mostra entra na conta (álcool de quem não bebe e itens fora do foco = zero).
+    function daTela(p) { return C.soDoFoco(semAlcool(p), cias, estado.foco); }
     function perfis() {
-      if (estado.adultos === 1 || estado.igual) return [{ consumo: semAlcool(estado.voce), pessoas: estado.adultos }];
-      var lista = [{ consumo: semAlcool(estado.voce), pessoas: 1 }];
-      for (var i = 0; i < estado.adultos - 1; i++) lista.push({ consumo: semAlcool(estado.outros[i]), pessoas: 1 });
+      if (estado.adultos === 1 || estado.igual) return [{ consumo: daTela(estado.voce), pessoas: estado.adultos }];
+      var lista = [{ consumo: daTela(estado.voce), pessoas: 1 }];
+      for (var i = 0; i < estado.adultos - 1; i++) lista.push({ consumo: daTela(estado.outros[i]), pessoas: 1 });
       return lista;
     }
 
@@ -362,8 +464,11 @@
     }
 
     function atualizar() {
+      mostrarFoco(); // adultos, "bebem parecido" e o álcool de cada um mudam se a pergunta aparece
       var rs = cias.map(function (ciaId) {
+        // Foco escolhido e alguém bebe: compara só o pacote do foco com o sem pacote ("todos" = os três).
         return C.calcular({ cia: ciaId, noites: estado.noites, adultos: estado.adultos, perfis: perfis(),
+          niveis: algumBebe() ? C.niveisDoFoco(estado.foco) : null,
           pacotesSaida: saida && saida.cia === ciaId && estado.noites === saida.noites ? saida.pacotes : null });
       });
       var caixa = document.getElementById("resultados");
@@ -412,11 +517,13 @@
     }
 
     montarViagem();
+    montarFoco();
     var itensVoce = document.getElementById("itens-voce");
     montarItens(itensVoce, estado.voce);
     simNao(document.getElementById("alcool"), true, ["Sim", "Não"], trocaAlcool(estado.voce, itensVoce));
     simNao(document.getElementById("igual"), true, ["Sim, parecido", "Não, quero preencher cada um"], function (sim) { estado.igual = sim; montarOutros(); atualizar(); });
     montarOutros();
+    mostrarFoco();
     atualizar();
   }
 

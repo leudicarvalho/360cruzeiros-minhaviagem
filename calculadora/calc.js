@@ -7,34 +7,49 @@
   "use strict";
 
   // Itens da tela, na ordem. alcool: some quando o cliente diz que não bebe álcool.
+  // FOCO (Leonardo, 21/11/2026: "se a pessoa está buscando preço mais barato ou bebidas de maior qualidade... só deixar
+  // selecionar os drinks daquele pacote"): cerveja e drink separados pelo pacote que cobre cada um. O nome e o nível
+  // (basico/premium) de cada item alcoólico mudam por companhia em CIAS[cia].itens (a long neck Corona é do Premium
+  // Extra na MSC e do My Drinks na Costa). ANTES: um "Cerveja" (chope) e um "Drink da casa" só, sem separar por pacote.
   var ITENS = [
     { id: "refri", nome: "Refrigerante ou suco", alcool: false },
     { id: "agua", nome: "Água (garrafa)", alcool: false },
     { id: "cafe", nome: "Café especial ou cappuccino", alcool: false },
-    { id: "cerveja", nome: "Cerveja", alcool: true },
-    { id: "vinho", nome: "Vinho (taça)", alcool: true },
-    { id: "drink", nome: "Drink da casa (caipirinha, mojito...)", alcool: true },
+    { id: "cerveja", nome: "Chope", alcool: true },
+    { id: "longneck", nome: "Cerveja long neck (Corona, Heineken...)", alcool: true },
+    { id: "artesanal", nome: "Cerveja artesanal ou premium", alcool: true },
+    { id: "vinho", nome: "Vinho da casa (taça)", alcool: true },
+    { id: "drink", nome: "Drink clássico (caipirinha, mojito...)", alcool: true },
     { id: "premium", nome: "Drink premium ou destilado (whisky, gin...)", alcool: true },
   ];
+
+  // O que a pessoa busca: "economia" (só o básico), "qualidade" (só o premium) ou "todos" (os dois, em blocos).
+  var FOCOS = ["economia", "qualidade", "todos"];
 
   // Dia já preenchido = o MÍNIMO em que o pacote passa a valer a pena (Leonardo, 21/11/2026: "coloque que é o
   // mínimo que vale a pena para o pacote de bebidas"). Sem álcool: o exemplo da habilidade (MSC 6 refris + 3 águas
   // contra 205; Costa 5 refris + 3 águas contra 180). Com álcool: um dia comum que chega ao básico pela referência
   // (MSC 2 refris + 1 água + 2 cervejas + 2 drinks = 297 contra o Easy 285; Costa o mesmo com 3 drinks = 291
   // contra o My Drinks 270). Com 1 drink a menos, o pacote já não compensa (o teste confere).
+  // Foco "qualidade" (21/11/2026): o mínimo em que o premium compensa (MSC 2 refris + 1 água + 5 drinks premium = 489
+  // contra o Premium Extra 485; Costa o mesmo com 4 = 393 contra o My Drinks Plus 360). Com 1 a menos já não compensa.
   var DIA_MINIMO = {
     msc: {
-      sem_alcool: { refri: 6, agua: 3, cafe: 0, cerveja: 0, vinho: 0, drink: 0, premium: 0 },
-      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja: 2, vinho: 0, drink: 2, premium: 0 },
+      sem_alcool: { refri: 6, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
+      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja: 2, longneck: 0, artesanal: 0, vinho: 0, drink: 2, premium: 0 },
+      qualidade: { refri: 2, agua: 1, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 5 },
     },
     costa: {
-      sem_alcool: { refri: 5, agua: 3, cafe: 0, cerveja: 0, vinho: 0, drink: 0, premium: 0 },
-      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja: 2, vinho: 0, drink: 3, premium: 0 },
+      sem_alcool: { refri: 5, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
+      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja: 2, longneck: 0, artesanal: 0, vinho: 0, drink: 3, premium: 0 },
+      qualidade: { refri: 2, agua: 1, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 4 },
     },
   };
   // MSC e Costa lado a lado: o dia da MSC (a habilidade manda oferecer a MSC primeiro).
-  function diaMinimo(cia, alcool) {
-    var d = (DIA_MINIMO[cia] || DIA_MINIMO.msc)[alcool ? "com_alcool" : "sem_alcool"];
+  // foco "qualidade" com álcool = o dia do premium; os outros focos = o dia do básico.
+  function diaMinimo(cia, alcool, foco) {
+    var t = DIA_MINIMO[cia] || DIA_MINIMO.msc;
+    var d = !alcool ? t.sem_alcool : foco === "qualidade" ? t.qualidade : t.com_alcool;
     var c = {};
     Object.keys(d).forEach(function (k) { c[k] = d[k]; });
     return c;
@@ -44,22 +59,39 @@
   var CIAS = {
     msc: {
       nome: "MSC",
-      avulso: { refri: 26, agua: 17, cafe: 21, cerveja: 48, vinho: 48, drink: 66, premium: 84 },
+      avulso: { refri: 26, agua: 17, cafe: 21, cerveja: 48, longneck: 54, artesanal: 72, vinho: 48, drink: 66, premium: 84 },
+      // Nome na tela e o pacote mais simples que cobre cada item alcoólico (tabela da habilidade).
+      itens: {
+        cerveja: { nome: "Chope Stella", nivel: "basico" },
+        longneck: { nome: "Cerveja long neck (Heineken, Corona)", nivel: "premium" },
+        artesanal: { nome: "Cerveja artesanal", nivel: "premium" },
+        vinho: { nome: "Vinho ou espumante da casa (taça)", nivel: "basico" },
+        drink: { nome: "Drink clássico (caipirinha, mojito, piña colada...)", nivel: "basico" },
+        premium: { nome: "Drink premium ou destilado (Negroni, Mai-Tai, whisky, gin...)", nivel: "premium" },
+      },
       niveis: {
         sem_alcool: { pacote: "Não Alcoólico", cobre: { refri: true, agua: true, cafe: true } },
         basico: { pacote: "Easy", cobre: { refri: true, agua: true, cerveja: true, vinho: true, drink: true } },
-        premium: { pacote: "Premium Extra", cobre: { refri: true, agua: true, cafe: true, cerveja: true, vinho: true, drink: true, premium: true } },
+        premium: { pacote: "Premium Extra", cobre: { refri: true, agua: true, cafe: true, cerveja: true, longneck: true, artesanal: true, vinho: true, drink: true, premium: true } },
       },
       // Referência por dia por adulto, quando o link não traz a saída (textos aprovados da habilidade).
       referenciaDia: { sem_alcool: 205, basico: 285, premium: 485 },
     },
     costa: {
       nome: "Costa",
-      avulso: { refri: 27, agua: 15, cafe: 15, cerveja: 30, vinho: 42, drink: 54, premium: 81 },
+      avulso: { refri: 27, agua: 15, cafe: 15, cerveja: 30, longneck: 39, artesanal: 47, vinho: 42, drink: 54, premium: 81 },
+      itens: {
+        cerveja: { nome: "Chope", nivel: "basico" },
+        longneck: { nome: "Cerveja long neck (Corona, Carlsberg, Beck's)", nivel: "basico" },
+        artesanal: { nome: "Cerveja premium (Weissbier)", nivel: "premium" },
+        vinho: { nome: "Vinho da casa (taça)", nivel: "basico" },
+        drink: { nome: "Drink clássico (caipirinha, Aperol, piña colada...)", nivel: "basico" },
+        premium: { nome: "Drink premium ou destilado (Hendrick's, Tanqueray Nº10...)", nivel: "premium" },
+      },
       niveis: {
         sem_alcool: { pacote: "My Soft Drinks", cobre: { refri: true, agua: true, cafe: true } },
-        basico: { pacote: "My Drinks", cobre: { refri: true, agua: 1, cafe: true, cerveja: true, vinho: true, drink: true } },
-        premium: { pacote: "My Drinks Plus", cobre: { refri: true, agua: true, cafe: true, cerveja: true, vinho: true, drink: true, premium: true } },
+        basico: { pacote: "My Drinks", cobre: { refri: true, agua: 1, cafe: true, cerveja: true, longneck: true, vinho: true, drink: true } },
+        premium: { pacote: "My Drinks Plus", cobre: { refri: true, agua: true, cafe: true, cerveja: true, longneck: true, artesanal: true, vinho: true, drink: true, premium: true } },
       },
       referenciaDia: { sem_alcool: 180, basico: 270, premium: 360 },
     },
@@ -67,6 +99,59 @@
 
   var NIVEIS = ["sem_pacote", "sem_alcool", "basico", "premium"];
   var FAIXA = 0.35; // regra dos 35% (venda consultiva)
+
+  // Itens que aparecem para o foco, nas companhias da tela. Sem álcool: sempre. "economia": os do básico (de pelo
+  // menos uma das companhias); "qualidade": os do premium (idem); "todos" ou sem foco: todos. Cada item leva o nível
+  // em cada companhia (nivelPor) e, com uma companhia só, o nome dela (marcas).
+  function itensDoFoco(cias, foco) {
+    return ITENS.filter(function (it) {
+      if (!it.alcool || foco !== "economia" && foco !== "qualidade") return true;
+      var alvo = foco === "qualidade" ? "premium" : "basico";
+      return cias.some(function (c) { return CIAS[c].itens[it.id].nivel === alvo; });
+    }).map(function (it) {
+      var por = {};
+      if (it.alcool) cias.forEach(function (c) { por[c] = CIAS[c].itens[it.id].nivel; });
+      return { id: it.id, alcool: it.alcool, nome: it.alcool && cias.length === 1 ? CIAS[cias[0]].itens[it.id].nome : it.nome, nivelPor: por };
+    });
+  }
+
+  // Bloco do item no foco "todos": "basico" (no básico de todas as companhias da tela), "premium" (só no premium
+  // delas) ou "muda" (básico numa, premium na outra: a long neck). Sem álcool = null.
+  function blocoDoItem(item) {
+    var ns = Object.keys(item.nivelPor || {}).map(function (c) { return item.nivelPor[c]; });
+    if (!ns.length) return null;
+    if (ns.every(function (n) { return n === "basico"; })) return "basico";
+    if (ns.every(function (n) { return n === "premium"; })) return "premium";
+    return "muda";
+  }
+
+  // Pacotes comparados por foco: "economia" = só o básico; "qualidade" = só o premium; "todos" ou sem foco = os três.
+  function niveisDoFoco(foco) {
+    if (foco === "economia") return ["basico"];
+    if (foco === "qualidade") return ["premium"];
+    return ["sem_alcool", "basico", "premium"];
+  }
+
+  // Consumo só com os itens que a tela mostra (o que sumiu da lista não entra na conta).
+  function soDoFoco(consumo, cias, foco) {
+    var vis = {}, c = {};
+    itensDoFoco(cias, foco).forEach(function (it) { vis[it.id] = true; });
+    ITENS.forEach(function (it) { c[it.id] = vis[it.id] ? consumo[it.id] || 0 : 0; });
+    return c;
+  }
+
+  // Noites que já vêm da pesquisa salva no site (Leonardo, 21/11/2026: "já vim como padrão o que ela escolheu", com a
+  // possibilidade de alterar). A pesquisa guarda a duração (t), não a noite exata: "mini" (3 e 4 noites) = 3 e "longo"
+  // (5 ou mais) = 7, as durações mais comuns no arquivo do dia (21/11/2026: 49 saídas de 3 noites contra 29 de 4; 71 de
+  // 7 contra 6 das outras longas). "todos" ou sem pesquisa = null (a tela usa 4, como antes).
+  function noitesDaPesquisa(t) {
+    return t === "mini" ? 3 : t === "longo" ? 7 : null;
+  }
+
+  // Foco que já vem da pesquisa (b do link ou da pesquisa guardada): basico = economia, premium = qualidade.
+  function focoDaPesquisa(b) {
+    return b === "basico" ? "economia" : b === "premium" ? "qualidade" : null;
+  }
 
   function inteiro(v, min, max, padrao) {
     var n = parseInt(v, 10);
@@ -104,7 +189,9 @@
     var avulsoViagem = 0;
     perfis.forEach(function (p) { avulsoViagem += avulsoDia(cia, p.consumo, null) * noites * p.pessoas; });
 
-    var pacotes = ["sem_alcool", "basico", "premium"].map(function (nivel) {
+    // niveis (opcional): só os pacotes do foco (niveisDoFoco). Sem: os três.
+    var lista = entrada.niveis && entrada.niveis.length ? entrada.niveis : ["sem_alcool", "basico", "premium"];
+    var pacotes = lista.map(function (nivel) {
       var preco = precoPacote(cia, nivel, noites, entrada.pacotesSaida);
       var foraViagem = 0;
       perfis.forEach(function (p) { foraViagem += avulsoDia(cia, p.consumo, nivel) * noites * p.pessoas; });
@@ -201,6 +288,8 @@
       noites: p.noites ? inteiro(p.noites, 1, 30, null) : null,
       adultos: p.adultos ? inteiro(p.adultos, 1, 4, null) : null,
       saida: String(p.saida || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 60),
+      // Pacote da pesquisa (b=basico|premium): a pergunta do foco já vem marcada (21/11/2026). Outro valor = vazio.
+      b: p.b === "basico" || p.b === "premium" ? p.b : "",
       // WhatsApp do contato no link (w), o mesmo da página (mv.js): só os dígitos; "{{...}}" não trocado = vazio.
       // Quem confere o número é o MV.conferirWhats na tela. (Leonardo, 21/11/2026: o WhatsApp vem no link, a
       // calculadora não pede de novo.) ANTES: a calculadora não lia o w e pedia o WhatsApp num formulário.
@@ -208,7 +297,8 @@
     };
   }
 
-  var api = { ITENS: ITENS, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA,
+  var api = { ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
+    soDoFoco: soDoFoco, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA,
     avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir,
     nivelDasDuas: nivelDasDuas, NIVEL_PARA_B: NIVEL_PARA_B, montarEnvio: montarEnvio, saidaDoDia: saidaDoDia, lerLink: lerLink };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
