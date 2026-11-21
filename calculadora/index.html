@@ -253,12 +253,11 @@
   function linkWhats(texto) { return 'https://wa.me/' + WHATS + '?text=' + encodeURIComponent(texto); }
 
   var link = C.lerLink(location.search);
-  // WhatsApp do link (w): guarda no aparelho (mv_whats, o mesmo da página) e tira da barra de endereço, como a página faz.
+  // WhatsApp do link (w): guarda no aparelho (mv_whats, o mesmo da página) e CONTINUA na barra de endereço, como a
+  // página (21/11/2026). O envio usa primeiro o número do link (wLink), porque o navegador do WhatsApp pode não guardar
+  // nada no aparelho. ANTES: tirava o w da barra e só lia o mv_whats.
   var wLink = MV.conferirWhats(link.whats).num;
-  if (wLink) {
-    guardar("mv_whats", wLink);
-    try { history.replaceState(null, '', location.pathname + location.search.replace(/([?&])w=[^&]*&?/, '$1').replace(/[?&]$/, '') + location.hash); } catch (e) {}
-  }
+  if (wLink) guardar("mv_whats", wLink);
   // "Voltar" só quando veio da própria página (com a pesquisa dela); quem abriu pelo link da mensagem não vê o botão.
   var daPagina = document.referrer && document.referrer.indexOf(location.origin + '/') === 0 && document.referrer.indexOf('/calculadora') < 0;
   if (daPagina) {
@@ -582,7 +581,7 @@
       }
       // Vai a pesquisa inteira (a que a página guardou no aparelho, mv_pref) com o pacote trocado, no formato do Salvar
       // (MV.montarEnvio): o Entur não lê os campos mv_* do contato numa expressão, então o fluxo usa o que chega.
-      var w = MV.conferirWhats(ler("mv_whats") || "").num, pref = ler("mv_pref");
+      var w = wLink || MV.conferirWhats(ler("mv_whats") || "").num, pref = ler("mv_pref");
       if (!link.codigo || !w || !pref) { peloWhats(""); return; }
       var pesquisa = MV.lerPesquisa(pref);
       pesquisa.b = C.NIVEL_PARA_B[nivel];
