@@ -12,7 +12,7 @@
     t: ["mini", "longo", "todos"],
     a: ["1", "2", "3", "4", "5"],
     c: ["0", "1", "2", "3", "4"],
-    k: ["int", "ext", "var", "todas"],
+    k: ["int", "ext", "var", "sui", "todas"],
     b: ["sem", "soft", "basico", "premium", "entender"],
   };
   var PADRAO = { t: "todos", p: "todas", a: "2", c: "0", k: "todas", b: "sem" };
@@ -71,6 +71,17 @@
   var NOME_CABINE = { int: "Interna", ext: "Externa", var: "Varanda", sui: "Suíte" };
   var NOME_NIVEL = { sem: "sem pacote de bebidas", soft: "pacote sem álcool", basico: "pacote básico", premium: "pacote premium" };
 
+  // Cabine com mais de uma escolha (Leonardo, 21/11/2026: "na pesquisa vai ter a possibilidade de selecionar mais de uma";
+  // "só vai aparecer as quatro se eles falarem qualquer uma"): k = "todas" (qualquer uma) ou tipos separados por ponto,
+  // na ordem int, ext, var, sui ("int.var"). As 4 marcadas = todas. ANTES: um tipo só (int, ext, var ou todas), sem suíte.
+  function lerCabines(v) {
+    var ok = {};
+    String(v == null ? "" : v).trim().toLowerCase().split(".").forEach(function (x) { if (CABINES.indexOf(x) >= 0) ok[x] = 1; });
+    var r = CABINES.filter(function (c) { return ok[c]; });
+    return !r.length || r.length === CABINES.length ? "todas" : r.join(".");
+  }
+  // Os tipos da pesquisa: "todas" = os 4.
+  function cabinesDe(k) { var x = lerCabines(k); return x === "todas" ? CABINES.slice() : x.split("."); }
   function lerPesquisa(busca) {
     var q = {};
     String(busca || "").replace(/^\?/, "").split("&").forEach(function (par) {
@@ -84,6 +95,7 @@
       var v = String(q[k] == null ? "" : q[k]).trim().toLowerCase();
       r[k] = LISTAS[k].indexOf(v) >= 0 ? v : PADRAO[k];
     });
+    r.k = lerCabines(q.k);
     r.p = lerPeriodo(q.p).join(".") || "todas";
     r.de = lerData(q.de);
     r.ate = lerData(q.ate);
@@ -157,9 +169,8 @@
 
   // Preço que ordena a saída: o da cabine escolhida; "todas" = a cabine mais em conta disponível.
   function precoOrdem(s, f) {
-    if (f.k !== "todas") { var t = total(s, f.a, f.k, f.b); return typeof t === "number" ? t : null; }
     var m = null;
-    CABINES.forEach(function (c) { var t = total(s, f.a, c, f.b); if (typeof t === "number" && (m === null || t < m)) m = t; });
+    cabinesDe(f.k).forEach(function (c) { var t = total(s, f.a, c, f.b); if (typeof t === "number" && (m === null || t < m)) m = t; });
     return m;
   }
 
@@ -197,6 +208,7 @@
   function pesquisaDe(f) {
     var r = {};
     Object.keys(LISTAS).forEach(function (k) { r[k] = LISTAS[k].indexOf(String(f[k])) >= 0 ? String(f[k]) : PADRAO[k]; });
+    r.k = lerCabines(f.k);
     r.p = lerPeriodo(f.p).join(".") || "todas";
     r.de = lerData(f.de); r.ate = lerData(f.ate);
     return r;
@@ -245,7 +257,8 @@
     var gente = p.a === "5" ? "5 ou mais adultos" : p.a + (p.a === "1" ? " adulto" : " adultos");
     if (p.c !== "0") gente += " e " + p.c + (p.c === "1" ? " criança" : " crianças");
     partes.push(gente);
-    partes.push(p.k === "todas" ? "todas as cabines" : NOME_CABINE[p.k]);
+    var ks = p.k === "todas" ? [] : p.k.split(".").map(function (c) { return NOME_CABINE[c]; });
+    partes.push(!ks.length ? "qualquer cabine" : ks.length === 1 ? ks[0] : ks.slice(0, -1).join(", ") + " ou " + ks[ks.length - 1]);
     partes.push(p.b === "entender" ? "pacote de bebidas a decidir" : NOME_NIVEL[p.b]);
     return partes.join(" · ");
   }
@@ -421,7 +434,7 @@
     return q.length ? "?" + q.join("&") : "";
   }
 
-  var api = { caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+  var api = { caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, lerCabines: lerCabines, cabinesDe: cabinesDe, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,

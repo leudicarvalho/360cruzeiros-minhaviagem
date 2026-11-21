@@ -240,6 +240,9 @@
   .fav { align-self: flex-start; background: none; border: 0; color: #9aaab2; font-size: 22px; line-height: 1; cursor: pointer; padding: 2px; }
   .fav.sim { color: var(--ouro-escuro); }
   .cabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px 12px 4px; }
+  .cabs.uma { grid-template-columns: 1fr; }
+  .filtro > span .varias { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--marca); background: var(--marca-clara); border-radius: 999px; padding: 1px 7px; margin-left: 4px; font-size: 11px; }
+  .pilulas.multi button.ativo:not([data-v="todas"])::before { content: '✓ '; }
   .cab { position: relative; border: 1px solid var(--linha); border-radius: 12px; padding: 9px 10px; background: #f7fafb; min-width: 0; }
   .cab small { display: block; color: var(--suave); font-size: 12px; font-weight: 500; }
   .cab b { display: block; font-size: 21px; font-weight: 800; letter-spacing: -.4px; margin-top: 2px; color: var(--texto); line-height: 1.1; white-space: nowrap; }
@@ -293,7 +296,6 @@
   .detalhe .abas { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 10px; scrollbar-width: none; }
   .detalhe .abas::-webkit-scrollbar { display: none; }
   .detalhe .abas button { padding: 5px 10px; font-size: 12px; font-weight: 600; flex: none; }
-  .detalhe .abas button.indisp { opacity: .45; text-decoration: line-through; cursor: default; }
   /* Faixa do preço como no Google Flights (Leonardo, 21/11/2026: "horizontal e com cores verde e vermelho para dizer onde
      ele está atualmente e quando que foi o mais barato e o mais caro"; vem aberta). Verde = terço mais barato, amarelo =
      meio, vermelho = terço mais caro; a marca "Hoje" mostra onde o preço de hoje está. Embaixo, o caminho do preço por dia
@@ -350,6 +352,11 @@
   .extremos .mx b { color: #c0392b; }
   .grafico { width: 100%; max-width: 520px; height: auto; display: block; margin-top: 8px; }
   .grafico text { fill: var(--suave); font: 600 10px var(--fonte); }
+  .graf-box { position: relative; max-width: 520px; }
+  .grafico .pt { cursor: pointer; }
+  .dica-graf { position: absolute; z-index: 3; transform: translate(-50%, calc(-100% - 10px)); background: var(--texto); color: #fff; border-radius: 8px;
+    padding: 5px 9px; font: 700 12px var(--fonte); white-space: nowrap; pointer-events: none; box-shadow: 0 4px 12px rgba(16,37,46,.3); border-left: 4px solid var(--cor, #fff); }
+  .dica-graf::after { content: ''; position: absolute; left: var(--seta, 50%); top: 100%; margin-left: -5px; border: 5px solid transparent; border-top-color: var(--texto); }
   .legenda { color: var(--suave); font-size: 11.5px; margin-top: 4px; }
   .legenda b { color: var(--texto); }
   .vazio { background: var(--card); border: 1px dashed #c9d5db; border-radius: 12px; padding: 18px; color: var(--suave); text-align: center; margin-bottom: 12px; }
@@ -418,8 +425,8 @@
       <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5 ou mais</button></div></div>
     <div class="filtro"><span>Crianças</span><div class="pilulas num" data-f="c">
       <button data-v="0">Nenhuma</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div></div>
-    <div class="filtro"><span>Cabine</span><div class="pilulas" data-f="k">
-      <button data-v="int">Interna</button><button data-v="ext">Externa</button><button data-v="var">Varanda</button><button data-v="todas">Comparar todas</button></div></div>
+    <div class="filtro"><span>Cabine <small class="varias">pode marcar mais de uma</small></span><div class="pilulas multi" data-f="k">
+      <button data-v="int">Interna</button><button data-v="ext">Externa</button><button data-v="var">Varanda</button><button data-v="sui">Suíte</button><button data-v="todas">Qualquer uma</button></div></div>
     <div class="filtro"><span>Bebidas</span><div class="pilulas" data-f="b">
       <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div></div>
     </div>
@@ -677,7 +684,10 @@
     $('txt-cal').innerHTML = !datas ? 'Escolher os dias' : e.de && e.ate ? 'Embarque ' + d5(e.de) + ' <em>·</em> Volta ' + d5(e.ate) :
       e.de ? 'Embarque a partir de ' + d5(e.de) : 'Volta até ' + d5(e.ate);
     [].forEach.call(document.querySelectorAll('.pilulas[data-f]'), function (g) {
-      [].forEach.call(g.children, function (b) { b.classList.toggle('ativo', b.dataset.v === String(e[g.dataset.f])); });
+      [].forEach.call(g.children, function (b) {
+        var on = g.dataset.f === 'k' ? (e.k === 'todas' ? b.dataset.v === 'todas' : e.k.split('.').indexOf(b.dataset.v) >= 0) : b.dataset.v === String(e[g.dataset.f]);
+        b.classList.toggle('ativo', on);
+      });
     });
     var pend = mudouPainel() && pesquisou;
     $('n-pesq').textContent = contarPainel();
@@ -717,14 +727,15 @@
   function periodo(s) { var v = MV.volta(s); return MV.diaDaSemana(s.embarque) + ', ' + dm(s.embarque) + ' a ' + MV.diaDaSemana(v) + ', ' + dm(v); }
 
   function card(s, i) {
-    // As 4 cabines sempre (Leonardo, 21/11/2026, 6ª rodada: "se não tiver, mostre que está indisponível. Daí fica o
-    // padrão de ter as 4 sempre"). ANTES: a cabine que a saída não tinha sumia do cartão.
-    var a = adultos(), o = s.ocup[a], cabs = MV.CABINES;
+    // Cabines de acordo com o filtro (Leonardo, 21/11/2026: "tem que ser de acordo com o que foi filtrado"; "só vai aparecer
+    // as quatro se eles falarem qualquer uma"): "Qualquer uma" = as 4; cabines marcadas = só elas. A que a saída não tem
+    // aparece como "Indisponível". ANTES: as que a saída tinha, com a escolhida em destaque.
+    var a = adultos(), o = s.ocup[a], cabs = MV.cabinesDe(f.k);
     var menor = null;
     cabs.forEach(function (c) { var t = MV.total(s, a, c, f.b); if (typeof t === 'number' && (menor === null || t < MV.total(s, a, menor, f.b))) menor = c; });
     var celulas = cabs.map(function (c) {
-      var t = MV.total(s, a, c, f.b), esc1 = (c === f.k ? ' escolhida' : '') + (c === menor && f.k === 'todas' && cabs.length > 1 ? ' menor' : '');
-      if (o && !(c in o.cab)) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>Indisponível</b></div>';
+      var t = MV.total(s, a, c, f.b), esc1 = c === menor && cabs.length > 1 ? ' menor' : '';
+      if (o && !(c in o.cab)) return '<div class="cab esg"><small>' + NOME[c] + '</small><b>Indisponível</b></div>';
       if (t === null) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>Esgotada</b></div>';
       if (t === undefined) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>No WhatsApp</b></div>';
       return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '</small><b>' + reais(t / a) + '<em>por pessoa</em></b>' +
@@ -742,16 +753,15 @@
         '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : 'msc') + '">' + esc(s.cia) + '</span>' + s.noites + ' noites · volta ' + dm(MV.volta(s)) + '</span>' +
         '<span class="rota">Santos → ' + esc(s.roteiro.replace(/^Santos,\s*/, '').replace(/,\s*Santos$/, '')) + ' → Santos</span></div>' +
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
-      '<div class="cabs">' + celulas + '</div><p class="pp">' + nota + '</p>' +
+      '<div class="cabs' + (cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
       (aberta ? detalhe(s) : '') +
       '<button class="ver abre">' + (aberta ? 'Esconder o histórico do preço' : 'Ver o histórico do preço') + '</button></div>';
   }
 
   // Linha do tempo (abre ao tocar na saída): o preço de cada dia da cabine, para os adultos e o pacote escolhidos.
   function detalhe(s) {
-    var a = adultos(), cab = cabDetalhe[s.id] || (f.k !== 'todas' ? f.k : menorCabine(s));
-    var abas = MV.CABINES.map(function (c) {
-      if (!s.ocup[a] || !(c in s.ocup[a].cab)) return '<button disabled class="indisp" title="Indisponível nesta saída">' + NOME[c] + '</button>';
+    var a = adultos(), cab = cabDetalhe[s.id] || menorCabine(s);
+    var abas = MV.CABINES.filter(function (c) { return s.ocup[a] && (c in s.ocup[a].cab); }).map(function (c) {
       return '<button data-cab="' + c + '" data-s="' + esc(s.id) + '"' + (c === cab ? ' class="ativo"' : '') + '>' + NOME[c] + '</button>';
     }).join('');
     var corpo;
@@ -789,8 +799,8 @@
 
   function menorCabine(s) {
     var a = adultos(), m = null;
-    MV.CABINES.forEach(function (c) { var t = MV.total(s, a, c, f.b); if (typeof t === 'number' && (m === null || t < MV.total(s, a, m, f.b))) m = c; });
-    return m || 'int';
+    MV.cabinesDe(f.k).forEach(function (c) { var t = MV.total(s, a, c, f.b); if (typeof t === 'number' && (m === null || t < MV.total(s, a, m, f.b))) m = c; });
+    return m || MV.cabinesDe(f.k).filter(function (c) { return s.ocup[a] && (c in s.ocup[a].cab); })[0] || 'int';
   }
 
   // Faixa verde/amarela/vermelha com a marca "Hoje", e o menor e o maior com o dia.
@@ -838,7 +848,14 @@
       if (p[2]) lista = true;
     });
     fechaTrecho();
-    function ponto(dia, v, cor, r) { return '<circle cx="' + x(dia).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="' + r + '" fill="' + cor + '" stroke="#fff" stroke-width="2"/>'; }
+    // Bolinha com o preço ao passar o mouse ou tocar (Leonardo, 21/11/2026: "quando eu passar o mouse em cima da bolinha...
+    // mostrar o preço que estava... tem que ter um fundo que destaque"): um círculo invisível maior pega o mouse/dedo e o
+    // balão (#dica-graf) aparece por cima, dentro do cartão. ANTES: a bolinha não mostrava nada.
+    function ponto(dia, v, cor, r) {
+      var cx = x(dia).toFixed(1), cy = y(v).toFixed(1), tip = esc(reais(v) + ' por pessoa · ' + dm(dia));
+      return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + cor + '" stroke="#fff" stroke-width="2"/>' +
+        '<circle class="pt" cx="' + cx + '" cy="' + cy + '" r="12" fill="transparent" data-tip="' + tip + '" data-cor="' + cor + '"/>';
+    }
     marcas += ponto(fx.min.dia, fx.min.v, '#1fa855', 5) + ponto(fx.max.dia, fx.max.v, '#d64535', 5);
     if (fx.hoje) marcas += ponto(fx.hoje.dia, fx.hoje.v, '#10252e', 4.5);
     // Riscos (Leonardo, 21/11/2026: "faça um risco no mais barato e no mais caro para ver onde fica"): linha vertical
@@ -857,7 +874,7 @@
       '<path d="' + linha + '" fill="none" stroke="#0f4c5c" stroke-width="2.2" stroke-linecap="round"/>' + marcas +
       '<text x="' + e + '" y="' + (H - 4) + '">' + dm(pts[0][0]) + '</text>' + rotulos +
       '<text x="' + (W - d) + '" y="' + (H - 4) + '" text-anchor="end" style="fill:#10252e;font-weight:700">hoje</text></svg>';
-    return svg + (lista ? '<p class="legenda">Alguns dias vêm da lista do site, que pode variar um pouco.</p>' : '');
+    return '<div class="graf-box">' + svg + '<div class="dica-graf" hidden></div></div>' + (lista ? '<p class="legenda">Alguns dias vêm da lista do site, que pode variar um pouco.</p>' : '');
   }
 
   // Chamada do topo: o menor preço por pessoa da pesquisa (cabine e pacote escolhidos).
@@ -913,7 +930,7 @@
     ligarCarrossel();
     if (r.semPreco.length) {
       $('sem-preco').innerHTML = '<div class="vazio">' + (r.lista.length ? 'Mais ' : '') + r.semPreco.length + (r.semPreco.length === 1 ? ' saída' : ' saídas') +
-        ' desta pesquisa ainda sem o preço de hoje para ' + gente + (f.k !== 'todas' ? ' nesta cabine' : '') + '. Eu confiro para você:<a class="btn" href="' +
+        ' desta pesquisa ainda sem o preço de hoje para ' + gente + (f.k !== 'todas' ? ' nas cabines escolhidas' : '') + '. Eu confiro para você:<a class="btn" href="' +
         linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero o preço para ' + gente + '.') +
         '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
     }
@@ -971,11 +988,30 @@
       .catch(function () { hist = { dias: [], saidas: {} }; desenhar(); });
   }
 
+  // Balão do preço na bolinha do gráfico (mouse e toque); fica dentro da caixa do gráfico, sem passar da borda.
+  function mostrarDica(pt) {
+    var box = pt.closest('.graf-box'), d = box.querySelector('.dica-graf');
+    d.textContent = pt.getAttribute('data-tip'); d.style.setProperty('--cor', pt.getAttribute('data-cor')); d.hidden = false;
+    var r = pt.getBoundingClientRect(), b = box.getBoundingClientRect(), cx = r.left + r.width / 2 - b.left, w = d.offsetWidth;
+    var left = Math.max(w / 2, Math.min(b.width - w / 2, cx));
+    d.style.left = left + 'px'; d.style.top = (r.top + r.height / 2 - b.top - 4) + 'px';
+    d.style.setProperty('--seta', (50 + (cx - left) / w * 100) + '%');
+  }
+  function esconderDicas() { [].forEach.call(document.querySelectorAll('.dica-graf'), function (d) { d.hidden = true; }); }
+  document.addEventListener('mouseover', function (ev) { var pt = ev.target.closest && ev.target.closest('.pt'); if (pt) mostrarDica(pt); });
+  document.addEventListener('mouseout', function (ev) { if (ev.target.closest && ev.target.closest('.pt')) esconderDicas(); });
+  document.addEventListener('click', function (ev) { var pt = ev.target.closest && ev.target.closest('.pt'); esconderDicas(); if (pt) mostrarDica(pt); }, true);
+
   // Cliques: filtros, ordem, abrir saída, cabine da linha do tempo, favorita.
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest && ev.target.closest('button, .abre');
     if (!b) return;
     var grupo = b.parentNode && b.parentNode.dataset && b.parentNode.dataset.f;
+    if (grupo === 'k') {   // várias cabines: marca e desmarca; "Qualquer uma" limpa; nenhuma marcada = qualquer uma
+      var ks = e.k === 'todas' ? [] : e.k.split('.'), v = b.dataset.v;
+      if (v === 'todas') ks = []; else if (ks.indexOf(v) >= 0) ks.splice(ks.indexOf(v), 1); else ks.push(v);
+      e.k = MV.lerCabines(ks.join('.')); marcar(); return;
+    }
     if (grupo) { e[grupo] = b.dataset.v; marcar(); return; }
     if (b.dataset.q) { clicarQuando(b.dataset.q); return; }
     if (b.dataset.temp) { trocarTemporada(b.dataset.temp); return; }
