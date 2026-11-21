@@ -77,17 +77,27 @@
   .pilulas button.carnaval:not(.ativo) { border-color: var(--ouro-escuro); color: var(--ouro-texto); }
   .pilulas.num button { min-width: 40px; padding: 7px 10px; }
   select { background: var(--campo); color: var(--texto); border: 1px solid #c9d5db; border-radius: 8px; padding: 9px; font: 500 14px var(--fonte); width: 100%; }
-  .mudar { display: block; width: 100%; background: #fff; border: 2px solid var(--marca); color: var(--marca); border-radius: 8px;
-    padding: 10px; font: 800 14px var(--fonte); cursor: pointer; }
-  .mudar span { display: inline-block; transition: transform .2s; }
-  .filtros.aberto .mudar span { transform: rotate(180deg); }
+  /* Refazer a pesquisa (Leonardo, 21/11/2026: "não estou conseguindo refazer a pesquisa depois que veio... pense na melhor
+     maneira com os padrões dos melhores sites"): como no Booking e no Google Flights, um resumo da pesquisa com o botão
+     "Refazer", que fica preso no alto da tela enquanto a pessoa desce pelas saídas. Tocar abre a pesquisa ali mesmo.
+     ANTES: um botão "Mudar a pesquisa" que ficava lá em cima (e, sem link, sumia depois de pesquisar: não dava para refazer). */
+  .mudar { display: flex; align-items: center; gap: 10px; width: 100%; background: #fff; border: 2px solid var(--marca); color: var(--texto); border-radius: 12px;
+    padding: 8px 8px 8px 12px; font: 500 13px var(--fonte); cursor: pointer; text-align: left; }
+  .mudar svg { flex: none; color: var(--marca); }
+  .mudar .m-txt { flex: 1; min-width: 0; line-height: 1.25; }
+  .mudar .m-txt small { display: block; font-size: 11px; color: var(--suave); }
+  .mudar .m-txt span { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mudar .m-bt { flex: none; background: var(--marca); color: #fff; border-radius: 9px; padding: 8px 12px; font-weight: 700; font-size: 13px; }
+  .filtros.aberto .mudar { border-color: var(--linha); }
+  .filtros.aberto .mudar .m-bt { background: #fff; color: var(--marca); border: 1px solid var(--marca); }
+  .filtros:not(.aberto) { position: sticky; top: 0; z-index: 6; padding: 8px; box-shadow: 0 6px 16px rgba(16,37,46,.12); }
   /* Saídas primeiro (Leonardo, 21/11/2026: "quando a pessoa já tiver o link pronto... mostrar primeiro as saídas
      disponíveis, para depois poder modificar a pesquisa"): o painel fica recolhido atrás do "Mudar a pesquisa" em
      qualquer tela; sem link ele já abre aberto. ANTES: recolhido só no celular; no computador sempre aberto. */
   .filtros:not(.aberto) .corpo-filtros { display: none; }
   .filtros:not(.aberto) #convite-calc:not(.forte) { display: none; }
   .filtros.aberto .corpo-filtros { margin-top: 8px; }
-  .filtros.sem-link .mudar { display: none; }
+  .filtros.sem-pesquisa .mudar { display: none; }
   @media (max-width: 699px) {
     /* fechada: só o "Mudar a pesquisa"; a calculadora só para quem respondeu "Quero entender a diferença" no formulário */
     .filtros { padding: 12px; margin-top: 10px; }
@@ -235,10 +245,6 @@
   @keyframes seta { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
   @media (prefers-reduced-motion: reduce) { .dica .seta { animation: none; } }
   @media (max-width: 699px) { .dica.tem { display: block; } }
-  /* Voltar à pesquisa (Leonardo, 21/11/2026: "quando faz a pesquisa, tem que ter como retornar para a pesquisa
-     facilmente"): botão preso no pé da tela quando o "Mudar a pesquisa" saiu de vista; sobe e abre a pesquisa. */
-  .flutua { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 9; display: flex; align-items: center; gap: 8px;
-    background: var(--marca); color: #fff; border: 0; border-radius: 999px; padding: 12px 20px; font: 700 14px var(--fonte); box-shadow: 0 8px 24px rgba(16,37,46,.35); cursor: pointer; white-space: nowrap; }
   .pontos { display: flex; justify-content: center; gap: 6px; margin: 2px 0 6px; }
   .pontos i { width: 7px; height: 7px; border-radius: 50%; background: #c9d5db; transition: all .2s; }
   .pontos i.ativo { width: 20px; border-radius: 4px; background: var(--marca); }
@@ -273,12 +279,18 @@
   .pacote-linha { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--ouro-claro); border: 1px solid #f0cf8a; font-size: 13px; }
   .pacote-linha b { color: var(--ouro-texto); font-weight: 700; }
   .pacote-linha span { color: var(--suave); font-size: 12px; }
-  .nivel { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; font-size: 13px; margin-bottom: 4px; }
-  .nivel b { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
-  .nivel.baixo b { background: #dcf5e4; color: #0f6b34; }
-  .nivel.medio b { background: #fff1c7; color: #7a5a00; }
-  .nivel.alto b { background: #fde2df; color: #a12a1d; }
-  .nivel.estavel b, .nivel.esgotada b { background: #eef3f5; color: var(--suave); }
+  /* Preço de hoje em destaque (Leonardo, 21/11/2026: "destacar mais o preço de hoje... tem que ter um fundo diferente,
+     tem que chamar bem a atenção"): quadro com a cor do nível (verde baixo, amarelo média, vermelho alto), "Hoje" e o
+     valor grande. ANTES: "Hoje: R$ X por pessoa" em texto simples ao lado do selo. */
+  .nivel { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-radius: 12px; padding: 9px 12px; margin-bottom: 2px; border: 1px solid; }
+  .nivel .hoje-v small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+  .nivel .hoje-v strong { font-size: 22px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: var(--texto); }
+  .nivel .hoje-v strong em { font-style: normal; font-size: 11px; font-weight: 500; color: var(--suave); margin-left: 3px; letter-spacing: 0; }
+  .nivel b { flex: none; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; color: #fff; }
+  .nivel.baixo { background: #e9f8ee; border-color: #8fd8a8; } .nivel.baixo small { color: #0f6b34; } .nivel.baixo b { background: #1fa855; }
+  .nivel.medio { background: #fff8e1; border-color: #f2d27a; } .nivel.medio small { color: #7a5a00; } .nivel.medio b { background: #c99a06; }
+  .nivel.alto { background: #fdecea; border-color: #f0a79e; } .nivel.alto small { color: #a12a1d; } .nivel.alto b { background: #d64535; }
+  .nivel.estavel, .nivel.esgotada { background: #eef3f5; border-color: var(--linha); } .nivel.estavel b, .nivel.esgotada b { background: var(--suave); }
   .faixa { position: relative; margin: 26px 4px 4px; }
   .faixa .barra-cor { display: flex; height: 8px; border-radius: 8px; overflow: hidden; }
   .faixa .barra-cor i { flex: 1; }
@@ -348,7 +360,7 @@
     <a class="btn" id="btn-idades" href="#" target="_blank" rel="noopener">Ver o preço exato com as idades</a></div></div>
 
   <div class="filtros" id="filtros">
-    <button class="mudar" id="mudar" aria-expanded="false">Mudar a pesquisa <span>▾</span></button>
+    <button class="mudar" id="mudar" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="m-txt"><small>Sua pesquisa</small><span id="m-resumo"></span></span><span class="m-bt" id="m-bt">Refazer</span></button>
     <div class="corpo-filtros">
     <div class="filtro quando"><span>Quando</span><div>
       <div class="temporadas" id="temporadas"></div>
@@ -407,7 +419,6 @@
   <p class="rodape">Preços do dia para adultos, com taxas, na categoria mais em conta de cada tipo de cabine. Com pacote de bebidas, o total soma o pacote de cada adulto. Sujeitos a disponibilidade e confirmados no atendimento.<br>360cruzeiros, agência autorizada CVC.</p>
 </div>
 
-<button class="flutua" id="flutua" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Mudar a pesquisa</button>
 
 <div class="fundo-cal" id="fundo-cal" hidden>
   <div class="cal" role="dialog" aria-modal="true" aria-labelledby="cal-titulo">
@@ -427,22 +438,10 @@
 <div class="fundo-janela" id="janela" hidden>
   <div class="janela" role="dialog" aria-modal="true" aria-labelledby="j-titulo">
     <button class="fechar" id="j-fechar" aria-label="Fechar">×</button>
-    <div id="j-form">
-      <h3 id="j-titulo">Salvar como minha preferência</h3>
-      <p>Confirme seu WhatsApp: é por ele que chega o link para você abrir esta pesquisa quando quiser.<br><b id="j-resumo"></b></p>
-      <label>Seu WhatsApp, com DDD<input id="j-whats" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999"></label>
-      <div class="mel" aria-hidden="true"><label>Não preencha<input id="j-mel" tabindex="-1" autocomplete="off"></label></div>
-      <p class="erro" id="j-erro"></p>
-      <button class="btn" id="j-enviar">Salvar</button>
-    </div>
-    <div id="j-pronto" class="pronto" hidden>
-      <h3>Pronto!</h3>
-      <p>Esta pesquisa agora é a sua preferência. Em instantes chega no seu WhatsApp o link para abrir ela quando quiser, sempre com o preço do dia.</p>
-    </div>
-    <div id="j-semcodigo" hidden>
-      <h3>Salvar como minha preferência</h3>
-      <p>Me chama no WhatsApp que eu guardo esta pesquisa para você.</p>
-      <a class="btn" id="j-chamar" href="#" target="_blank" rel="noopener">Chamar no WhatsApp</a>
+    <div id="j-pronto" class="pronto">
+      <h3 id="j-titulo">Pronto, salvo!</h3>
+      <p>Esta pesquisa agora é a sua preferência. Da próxima vez que você abrir esta página neste aparelho, ela já abre assim, com o preço do dia.<br><b id="j-resumo"></b></p>
+      <button class="btn" id="j-ok">Ver as saídas</button>
     </div>
   </div>
 </div>
@@ -464,13 +463,21 @@
   function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   function ler(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 
-  var salva = MV.lerPesquisa(location.search);   // a pesquisa do link = "minhas preferências"
+  // Preferência (Leonardo, 21/11/2026: "na tela inicial... mostrar primeiro as minhas preferências"; "salvar... tem que
+  // registrar automaticamente"): o link do WhatsApp traz a preferência; sem link, vale a última salva NESTE aparelho
+  // (mv_pref). Salvar grava no aparelho na hora, sem pedir nada. ANTES: só o link trazia preferência; sem link o Salvar
+  // mandava "me chama no WhatsApp" e nada ficava salvo.
+  var temLink = /[?&](t|p|a|c|k|b|de|ate|id)=/.test(location.search);
+  var busca = temLink ? location.search : (ler('mv_pref') || '');
+  var temPref = !!busca, pesquisou = temPref;
+  var salva = MV.lerPesquisa(busca);   // a preferência
+  if (!salva.id && !temLink) salva.id = (MV.lerPesquisa('?id=' + (ler('mv_id') || '')).id);
+  if (temLink) { guardar('mv_pref', MV.linkPesquisa(salva, '')); if (salva.id) guardar('mv_id', salva.id); }
   var f = Object.assign({}, salva, { navio: '', ordem: 'preco' });
   // "Quero entender a diferença": a página abre sem pacote e com o convite da calculadora
   if (f.b === 'entender') f.b = 'sem';
-  // Link com a pesquisa (99% dos casos, quem respondeu o formulário): abre direto nas saídas, com a pesquisa recolhida.
-  // Só o endereço, sem pesquisa: abre com o painel aberto e nenhuma saída até tocar em Pesquisar (Leonardo, 21/11/2026).
-  var temLink = /[?&](t|p|a|c|k|b|de|ate|id)=/.test(location.search), pesquisou = temLink;
+  // Com preferência (link ou aparelho): abre direto nas saídas, com a pesquisa recolhida. Sem nenhuma: abre a pesquisa
+  // aberta e nenhuma saída até tocar em Pesquisar (Leonardo, 21/11/2026).
   // f = a pesquisa que está na tela; e = o que o cliente está marcando no painel (só vale ao tocar em Pesquisar).
   var e = Object.assign({}, f);
   function copiarParaPainel() { e = Object.assign({}, f); $('navio').value = f.navio || ''; }
@@ -603,19 +610,20 @@
     [].forEach.call($('ordem').children, function (b) { b.classList.toggle('ativo', b.dataset.v === f.ordem); });
     var p = pesquisaAtual(), igual = MV.mesmaPesquisa(p, salva);
     $('resumo').innerHTML = '<b>Sua pesquisa:</b> ' + esc(MV.resumo(p));
+    $('m-resumo').textContent = MV.resumo(p);
     if (!pesquisou) $('resumo').innerHTML = 'Escolha a data, as pessoas e a cabine, e veja os preços de hoje.';
     // Caixa das preferências: azul quando a tela mostra a pesquisa salva; dourada, com Salvar e Voltar, quando não.
     // Sem link (sem preferências salvas): só aparece depois de pesquisar, com o Salvar (que leva ao WhatsApp).
-    var igualSalva = temLink && igual && !f.navio;
+    var igualSalva = temPref && igual && !f.navio;
     $('prefs').hidden = !pesquisou;
     $('prefs').className = 'prefs ' + (igualSalva ? 'salva' : 'nova');
     $('prefs-titulo').textContent = igualSalva ? 'Você está vendo a sua preferência salva' : 'Esta pesquisa ainda não é a sua preferência';
-    $('prefs-sub').textContent = igualSalva ? 'Quer ver outras datas ou cabines? Toque em Mudar a pesquisa. Sua preferência só muda se você salvar.' :
-      !temLink ? 'Gostou? Salve como sua preferência e eu guardo pelo WhatsApp para você.' :
+    $('prefs-sub').textContent = igualSalva ? 'Quer ver outras datas ou cabines? Toque em Refazer, lá em cima. Sua preferência só muda se você salvar.' :
+      !temPref ? 'Salve como sua preferência: da próxima vez, a página já abre nela.' :
       igual ? 'Você filtrou um navio. O navio não fica salvo; o resto é igual à sua preferência.' :
-      'Gostou? Salve como sua preferência e receba no WhatsApp o link para voltar nela quando quiser.';
-    $('salvar').hidden = temLink && igual;
-    $('voltar').hidden = !temLink || igualSalva;
+      'Gostou? Salve como sua preferência: da próxima vez, a página já abre nela. Ou volte à sua preferência.';
+    $('salvar').hidden = temPref && igual;
+    $('voltar').hidden = !temPref || igualSalva;
     $('convite-calc').classList.toggle('forte', salva.b === 'entender');
     $('aviso-criancas').hidden = f.c === '0';
     $('convite-calc').hidden = !MV.conviteCalc(salva.b, f.b);
@@ -705,8 +713,9 @@
 
   // Faixa verde/amarela/vermelha com a marca "Hoje", e o menor e o maior com o dia.
   function faixa(fx) {
-    var txt = { baixo: 'Preço baixo agora', medio: 'Preço na média', alto: 'Preço alto agora', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
-    var html = '<p class="nivel ' + fx.nivel + '"><b>' + txt + '</b>' + (fx.hoje ? '<span>Hoje: ' + reais(fx.hoje.v) + ' por pessoa</span>' : '') + '</p>';
+    var txt = { baixo: 'Preço baixo', medio: 'Na média', alto: 'Preço alto', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
+    var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><small>Preço de hoje</small><strong>' + reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : '') +
+      '<b>' + txt + '</b></div>';
     if (fx.pos !== null && fx.min.v !== fx.max.v) {
       var pct = Math.max(2, Math.min(98, fx.pos * 100)), lado = pct < 15 ? ' ponta-e' : pct > 85 ? ' ponta-d' : '';
       html += '<div class="faixa"><div class="marca' + lado + '" style="left:' + pct.toFixed(1) + '%"><span>Hoje</span></div>' +
@@ -719,29 +728,42 @@
 
   // Caminho do preço por dia (pequeno, cabe no celular): verde no dia mais barato, vermelho no mais caro, escuro hoje.
   function grafico(pts, fx) {
-    var W = 320, H = 86, e = 6, d = 6, t = 10, b = 18;
+    var W = 320, H = 96, e = 6, d = 6, t = 12, b = 18;
     var mn = fx.min.v, mx = fx.max.v;
     if (mn === mx) { mn -= 100; mx += 100; }
     var d0 = new Date(pts[0][0]), d1 = new Date(pts[pts.length - 1][0]), dias = Math.max(1, (d1 - d0) / 864e5);
     function x(dia) { return e + (W - e - d) * ((new Date(dia) - d0) / 864e5) / dias; }
     function y(v) { return t + (H - t - b) * (1 - (v - mn) / (mx - mn)); }
-    var linha = '', area = '', marcas = '', lista = false, ini = null, fimX = null;
-    pts.forEach(function (p, k) {
-      if (p[1] === null) { marcas += '<text x="' + x(p[0]).toFixed(1) + '" y="' + (H - b + 1) + '" text-anchor="middle" fill="#c0392b">×</text>'; return; }
-      var novo = !(linha && pts[k - 1] && pts[k - 1][1] !== null);
-      linha += (novo ? 'M' : 'L') + x(p[0]).toFixed(1) + ' ' + y(p[1]).toFixed(1);
-      if (ini === null) ini = x(p[0]);
-      fimX = x(p[0]);
+    // Linha arredondada (MV.caminhoSuave): cada trecho sem dia esgotado vira uma curva que passa por todos os pontos.
+    var linha = '', marcas = '', lista = false, trecho = [];
+    function fechaTrecho() { if (trecho.length) linha += MV.caminhoSuave(trecho); trecho = []; }
+    pts.forEach(function (p) {
+      if (p[1] === null) { fechaTrecho(); marcas += '<text x="' + x(p[0]).toFixed(1) + '" y="' + (H - b + 1) + '" text-anchor="middle" fill="#c0392b">×</text>'; return; }
+      trecho.push([x(p[0]), y(p[1])]);
       if (p[2]) lista = true;
     });
+    fechaTrecho();
     function ponto(dia, v, cor, r) { return '<circle cx="' + x(dia).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="' + r + '" fill="' + cor + '" stroke="#fff" stroke-width="2"/>'; }
     marcas += ponto(fx.min.dia, fx.min.v, '#1fa855', 5) + ponto(fx.max.dia, fx.max.v, '#d64535', 5);
     if (fx.hoje) marcas += ponto(fx.hoje.dia, fx.hoje.v, '#10252e', 4.5);
+    // Riscos (Leonardo, 21/11/2026: "faça um risco no mais barato e no mais caro para ver onde fica"): linha vertical
+    // tracejada no dia mais barato (verde), no mais caro (vermelho) e em hoje (escuro), com o dia embaixo.
+    var riscos = '', rotulos = '', usados = [e + 14, W - d - 14];
+    function risco(dia, cor, nome) {
+      var xx = x(dia);
+      riscos += '<line x1="' + xx.toFixed(1) + '" y1="' + (t - 6) + '" x2="' + xx.toFixed(1) + '" y2="' + (H - b) + '" stroke="' + cor + '" stroke-width="1.4" stroke-dasharray="3 3"/>';
+      if (!nome || usados.some(function (u) { return Math.abs(u - xx) < 30; })) return;
+      usados.push(xx);
+      rotulos += '<text x="' + xx.toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle" style="fill:' + cor + ';font-weight:700">' + nome + '</text>';
+    }
+    risco(fx.min.dia, '#1fa855', dm(fx.min.dia));
+    risco(fx.max.dia, '#d64535', dm(fx.max.dia));
+    if (fx.hoje) risco(fx.hoje.dia, '#10252e', '');
     var svg = '<svg class="grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Preço por pessoa, dia a dia">' +
-      '<line x1="' + e + '" y1="' + (H - b) + '" x2="' + (W - d) + '" y2="' + (H - b) + '" stroke="#dbe3e8"/>' +
-      '<path d="' + linha + '" fill="none" stroke="#0f4c5c" stroke-width="2" stroke-linejoin="round"/>' + marcas +
-      '<text x="' + e + '" y="' + (H - 4) + '">' + dm(pts[0][0]) + '</text>' +
-      '<text x="' + (W - d) + '" y="' + (H - 4) + '" text-anchor="end">hoje</text></svg>';
+      '<line x1="' + e + '" y1="' + (H - b) + '" x2="' + (W - d) + '" y2="' + (H - b) + '" stroke="#dbe3e8"/>' + riscos +
+      '<path d="' + linha + '" fill="none" stroke="#0f4c5c" stroke-width="2.2" stroke-linecap="round"/>' + marcas +
+      '<text x="' + e + '" y="' + (H - 4) + '">' + dm(pts[0][0]) + '</text>' + rotulos +
+      '<text x="' + (W - d) + '" y="' + (H - 4) + '" text-anchor="end" style="fill:#10252e;font-weight:700">hoje</text></svg>';
     return svg + (lista ? '<p class="legenda">Alguns dias vêm da lista do site, que pode variar um pouco.</p>' : '');
   }
 
@@ -880,30 +902,22 @@
     }
   });
   // Pesquisar: o que está marcado no painel vai para a tela; o painel recolhe e a página desce até as saídas.
-  // Botão "Mudar a pesquisa" que flutua quando o do painel sai de vista (só depois de ter saídas na tela).
-  function verFlutua() {
-    var r = $('filtros').getBoundingClientRect();
-    $('flutua').hidden = !pesquisou || $('filtros').classList.contains('aberto') || r.bottom > 0 || !$('fundo-cal').hidden || !$('janela').hidden;
-  }
-  window.addEventListener('scroll', verFlutua, { passive: true });
-  $('flutua').onclick = function () {
-    $('flutua').hidden = true;
-    if (!$('filtros').classList.contains('aberto')) $('mudar').onclick();
-    window.scrollTo({ top: $('filtros').getBoundingClientRect().top + window.pageYOffset - 8, behavior: 'smooth' });
-  };
   $('pesquisar').onclick = function () {
     f = Object.assign({}, e, { ordem: f.ordem });
     pesquisou = true;
     novaLista(); desenhar();
+    $('filtros').classList.remove('sem-pesquisa');
     if ($('filtros').classList.contains('aberto')) $('mudar').onclick();
-    var t = $('prefs').getBoundingClientRect().top + window.pageYOffset - 8;
+    var t = $('filtros').getBoundingClientRect().top + window.pageYOffset - 4;
     window.scrollTo({ top: t, behavior: 'smooth' });
   };
   $('mudar').onclick = function () {
     if (!$('filtros').classList.contains('aberto')) copiarParaPainel();   // abre com a pesquisa da tela (fechar sem Pesquisar descarta)
+    var topo = $('filtros').getBoundingClientRect().top + window.pageYOffset;   // antes de abrir (preso no alto, ela anda)
     var ab = $('filtros').classList.toggle('aberto');
-    this.setAttribute('aria-expanded', ab ? 'true' : 'false');
-    $('mudar').firstChild.nodeValue = ab ? 'Fechar sem pesquisar ' : 'Mudar a pesquisa ';
+    $('mudar').setAttribute('aria-expanded', ab ? 'true' : 'false');
+    $('m-bt').textContent = ab ? 'Fechar' : 'Refazer';
+    if (ab) window.scrollTo({ top: Math.max(0, $('filtros').getBoundingClientRect().top + window.pageYOffset - 4), behavior: 'smooth' });
     if (!ab) marcar();
   };
   $('abrir-cal').onclick = abrirCal;
@@ -921,45 +935,29 @@
     copiarParaPainel(); novaLista(); desenhar(); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Salvar: pede o WhatsApp (uma vez, guardado no aparelho) e manda a pesquisa ao webhook 53 com o código do link.
-  function abrirJanela() {
+  // Salvar como minha preferência: grava NESTE aparelho na hora (sem pedir nada). Quem veio pelo link do WhatsApp (tem o
+  // código e já deixou o número numa vez anterior) também manda ao CRM, sem aparecer nada (webhook 53, passo 4).
+  $('salvar').onclick = function () {
+    var p = pesquisaAtual();
+    guardar('mv_pref', MV.linkPesquisa(p, ''));
+    salva = MV.lerPesquisa(MV.linkPesquisa(p, salva.id)); temPref = true;
+    try { if (temLink) history.replaceState(null, '', MV.linkPesquisa(salva, salva.id)); } catch (e) {}
+    var w = ler('mv_whats');
+    if (salva.id && w) {
+      try { fetch(WEBHOOK_SALVAR, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(MV.montarEnvio(p, salva.id, w, '')) }).catch(function () {}); } catch (e) {}
+    }
+    $('j-resumo').textContent = MV.resumo(p);
     $('janela').hidden = false;
-    var sem = !salva.id;
-    $('j-form').hidden = sem; $('j-pronto').hidden = true; $('j-semcodigo').hidden = !sem;
-    $('j-chamar').href = linkWhats('Oi, Leonardo! Quero salvar minha pesquisa de cruzeiro: ' + MV.resumo(pesquisaAtual()) + '.');
-    $('j-resumo').textContent = MV.resumo(pesquisaAtual());
-    $('j-whats').value = ler('mv_whats') || ''; $('j-erro').textContent = ''; $('j-whats').classList.remove('falta');
-    $('j-enviar').disabled = false; $('j-enviar').textContent = 'Salvar';
-  }
-  $('salvar').onclick = abrirJanela;
+    desenhar();
+  };
+  $('j-ok').onclick = function () { $('janela').hidden = true; };
   $('j-fechar').onclick = function () { $('janela').hidden = true; };
   $('janela').onclick = function (ev) { if (ev.target === this) this.hidden = true; };
-  // Leonardo, 21/11/2026: depois de tocar em "Chamar no WhatsApp" a janela fecha sozinha (o WhatsApp abre e a página
-  // volta limpa). Esc também fecha.
-  $('j-chamar').onclick = function () { $('janela').hidden = true; };
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') $('janela').hidden = true; if (ev.key === 'Escape') fecharCal(); });
-  $('j-enviar').onclick = function () {
-    var w = MV.conferirWhats($('j-whats').value);
-    if (!w.num) { $('j-erro').textContent = w.motivo; $('j-whats').classList.add('falta'); return; }
-    var corpo = MV.montarEnvio(pesquisaAtual(), salva.id, w.num, $('j-mel').value);
-    var bt = this; bt.disabled = true; bt.textContent = 'Salvando...';
-    fetch(WEBHOOK_SALVAR, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); })
-      .then(function () {
-        guardar('mv_whats', w.num);
-        salva = MV.lerPesquisa(MV.linkPesquisa(pesquisaAtual(), salva.id));
-        try { history.replaceState(null, '', MV.linkPesquisa(salva, salva.id)); } catch (e) {}
-        $('j-form').hidden = true; $('j-pronto').hidden = false; desenhar();
-      })
-      .catch(function () {
-        bt.disabled = false; bt.textContent = 'Salvar';
-        $('j-erro').textContent = 'Não consegui salvar agora. Tente de novo em instantes ou me chama no WhatsApp.';
-      });
-  };
 
   $('chamar').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero sair de outro porto.');
 
-  if (!temLink) $('filtros').classList.add('aberto', 'sem-link');
+  if (!temPref) $('filtros').classList.add('aberto', 'sem-pesquisa');
   marcar();
   fetch('dados/precos.json').then(function (r) { return r.json(); }).then(function (j) {
     dados = j;

@@ -313,6 +313,32 @@
   function diaDaSemana(iso) { return SEMANA[new Date(iso + "T12:00:00Z").getUTCDay()]; }
   function nomeMesCurto(iso) { return MESES[+iso.slice(5, 7) - 1]; }
 
+  // Linha arredondada do gráfico (Leonardo, 21/11/2026: "tem como fazer que o gráfico dos preços fique arredondado?"):
+  // curva monótona (Fritsch-Carlson), que passa por todos os pontos e nunca sobe além do maior nem desce abaixo do menor
+  // entre dois dias (não inventa preço). pts = [[x, y], ...] com x crescente. ANTES: retas entre os pontos.
+  function caminhoSuave(pts) {
+    var n = pts.length;
+    if (!n) return "";
+    function f1(v) { return (Math.round(v * 10) / 10).toString(); }
+    if (n === 1) return "M" + f1(pts[0][0]) + " " + f1(pts[0][1]);
+    var dx = [], m = [], t = [];
+    for (var i = 0; i < n - 1; i++) { dx[i] = pts[i + 1][0] - pts[i][0]; m[i] = dx[i] ? (pts[i + 1][1] - pts[i][1]) / dx[i] : 0; }
+    t[0] = m[0]; t[n - 1] = m[n - 2];
+    for (i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+    for (i = 0; i < n - 1; i++) {
+      if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+      var a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
+      if (s > 9) { var k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
+    }
+    var d = "M" + f1(pts[0][0]) + " " + f1(pts[0][1]);
+    for (i = 0; i < n - 1; i++) {
+      var h = dx[i] / 3;
+      d += "C" + f1(pts[i][0] + h) + " " + f1(pts[i][1] + t[i] * h) + " " + f1(pts[i + 1][0] - h) + " " + f1(pts[i + 1][1] - t[i + 1] * h) +
+        " " + f1(pts[i + 1][0]) + " " + f1(pts[i + 1][1]);
+    }
+    return d;
+  }
+
   // Pacote de bebidas ao lado do histórico (Leonardo, 21/11/2026: o histórico é só do cruzeiro, sem bebidas; o pacote vai
   // numa linha à parte). Do histórico do pacote (pk_<nível>) tira o valor mais recente por adulto, o dia dessa leitura e
   // desde quando ele não muda (só quando houve mais de uma leitura com o mesmo valor). null = sem leitura.
@@ -363,7 +389,7 @@
     return q.length ? "?" + q.join("&") : "";
   }
 
-  var api = { pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+  var api = { caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
