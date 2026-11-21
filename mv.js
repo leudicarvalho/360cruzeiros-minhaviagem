@@ -196,6 +196,41 @@
   }
   function diaMes(iso) { return iso.slice(8, 10) + "/" + iso.slice(5, 7); }
 
+  // Mensagem do botão "Quero esta saída" (Leonardo, 21/11/2026: "tá enviando uma mensagem incompleta... não tá botando
+  // pacote de bebidas, não tá colocando o preço total, tem que ter todas as informações possíveis"). ANTES: só navio,
+  // datas, noites, cabine e pessoas. AGORA: navio e companhia, datas com o dia da semana, roteiro, cabine, pessoas, preço
+  // por pessoa e total do cruzeiro, pacote de bebidas (valor por adulto e total), total com o pacote e o dia do preço.
+  // salvaB = pacote do link ("entender" = ainda decidindo).
+  function rs(n) { return "R$ " + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+  // Perguntas da janela do "Quero esta saída" (Leonardo, 21/11/2026: "aparecer uma lista de perguntas que a pessoa pode
+  // fazer... só clicar"; escolheu parcelar, desconto à vista e "tudo incluso", que puxa o seguro).
+  // 3 perguntas (Leonardo, 21/11/2026: "se der só três perguntas, pode tirar dois"; saiu "Esse preço ainda está valendo?").
+  var PERGUNTAS_SAIDA = ["Em quantas vezes dá para parcelar?",
+    "Esse valor já é com tudo incluso? Não tem nenhuma taxa a mais?", "Tem desconto pagando à vista?"];
+  function msgSaida(s, f, cab, salvaB, pergunta) {
+    var a = String(f.a), na = Number(a), o = (s.ocup || {})[a], v = o && (cab in o.cab) ? o.cab[cab] : undefined;
+    var l = ["Oi, Leonardo! Quero esta saída que vi na minha página:",
+      "Navio: " + s.navio + (s.cia && s.navio.indexOf(s.cia) !== 0 ? " (" + s.cia + ")" : ""),
+      "Datas: " + diaDaSemana(s.embarque) + ", " + diaMes(s.embarque) + "/" + s.embarque.slice(0, 4) + " a " + diaDaSemana(volta(s)) + ", " +
+        diaMes(volta(s)) + "/" + volta(s).slice(0, 4) + " (" + s.noites + " noites)",
+      "Roteiro: " + rotaTexto(s.roteiro),
+      "Cabine: " + (NOME_CABINE[cab] || cab),
+      "Pessoas: " + gente(f)];
+    if (typeof v === "number") l.push("Cruzeiro: " + rs(v / na) + " por pessoa" + (na > 1 ? " (total " + rs(v) + ")" : "") + ", taxas inclusas");
+    else l.push("Cruzeiro: " + (v === null ? "esgotada nesta cabine, quero ver outra opção" : "preço a confirmar"));
+    var b = f.b, pk = pacote(s, b);
+    if (s.bebidas === "a bordo") l.push("Bebidas: vendidas somente a bordo");
+    else if (b === "sem" || !b) l.push("Pacote de bebidas: " + (salvaB === "entender" ? "ainda não decidi, quero entender a diferença" : "sem pacote"));
+    else if (!pk) l.push("Pacote de bebidas: " + NOME_NIVEL[b] + ", preço a confirmar");
+    else {
+      l.push("Pacote de bebidas: " + pk.nome + ", " + rs(pk.v) + " por pessoa" + (na > 1 ? " (total " + rs(pk.v * na) + ")" : ""));
+      if (typeof v === "number") l.push("Total com o pacote: " + rs(v + na * pk.v));
+    }
+    if (o && o.dia) l.push("Preço visto em " + diaMes(o.dia) + ".");
+    l.push(pergunta || PERGUNTAS_SAIDA[0]);   // uma pergunta só, a que o cliente tocou (Leonardo, 21/11/2026; ANTES: "Pode conferir para mim?", vago)
+    return l.join("\n");
+  }
+
   function pacote(s, b) {
     if (b !== "soft" && b !== "basico" && b !== "premium") return { v: 0, nome: "" };
     // Temático (Leonardo, 21/11/2026: "Bebidas do cruzeiro temático, elas são vendidas somente a bordo"): sem pacote para
@@ -516,7 +551,7 @@
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
-    lerIdades: lerIdades, textoIdades: textoIdades, lotacao: lotacao, gente: gente, msgIdades: msgIdades,
+    lerIdades: lerIdades, textoIdades: textoIdades, lotacao: lotacao, gente: gente, msgIdades: msgIdades, msgSaida: msgSaida, PERGUNTAS_SAIDA: PERGUNTAS_SAIDA,
     lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, rotaTexto: rotaTexto, total: total, precoOrdem: precoOrdem,
     filtrar: filtrar, esgotadaNa: esgotadaNa, outraComPreco: outraComPreco, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,
     linkPesquisa: linkPesquisa, resumo: resumo, conferirWhats: conferirWhats, linhaDoTempo: linhaDoTempo };
