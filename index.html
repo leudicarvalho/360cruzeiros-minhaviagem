@@ -350,12 +350,18 @@
   @media (max-width: 699px) { .cabs:not(.uma) .cab { padding: 9px 7px; } .cabs:not(.uma) .cab small { font-size: 12px; letter-spacing: -.2px; } }
   .cab .cab-v { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 10px; }
   .cab .cab-v span { font-size: 14.5px; font-weight: 600; margin-top: 2px; white-space: nowrap; }
-  .cab.esg b { color: var(--suave); font-size: 14px; font-weight: 600; }
+  .cab.esg b { color: var(--suave); font-size: 14px; font-weight: 600; line-height: 23px; }   /* 23px = altura do valor (padronizar tudo, 21/11/2026) */
   /* Esgotada no mesmo tamanho das outras cabines, em vermelho (Leonardo, 21/11/2026: "deixar no mesmo tamanho do padrão para o
      card não ficar menor e ainda com um fundo vermelho e mais moderno"). ANTES: fundo cinza e "Esgotada" pequeno (14px). */
   .cab.esgotada { background: linear-gradient(135deg, #fff3f1, #fde0dc); border-color: #f2a69c; box-shadow: inset 3px 0 0 #d9443a; }
   .cab.esgotada small { color: #a12a1d; }
   .cab.esgotada b { color: #b3261e; font-size: 21px; font-weight: 800; letter-spacing: -.3px; margin-top: 2px; line-height: 1.1; }
+  /* Mesma altura em tudo (Leonardo, 21/11/2026: "Continuam não ficando no mesmo tamanho os cards. Tem que padronizar tudo"):
+     a esgotada guarda o lugar da linha do Total (invisível) e as linhas da grade têm a mesma altura. ANTES: duas esgotadas na
+     mesma linha deixavam a linha e o cartão mais baixos. */
+  .cab .cab-fantasma { visibility: hidden; font-size: 14.5px; font-weight: 600; }   /* mesmo tamanho da linha do Total */
+  .cabs.uma .cab .cab-fantasma { display: none; }
+  .cabs { grid-auto-rows: 1fr; }
   .cab.menor { border-color: var(--verde); background: #eefaf2; }
   .cab.menor::before { content: 'Melhor preço'; position: absolute; top: -8px; left: 8px; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
     padding: 2px 7px; border-radius: 999px; background: var(--verde-btn); color: #fff; }
@@ -969,9 +975,10 @@
     cabs.forEach(function (c) { var t = MV.total(s, a, c, f.b); if (typeof t === 'number' && (menor === null || t < MV.total(s, a, menor, f.b))) menor = c; });
     var celulas = cabs.map(function (c) {
       var t = MV.total(s, a, c, f.b), esc1 = c === menor && cabs.length > 1 ? ' menor' : '';
-      if (o && !(c in o.cab)) return '<div class="cab esg"><small>' + NOME[c] + '</small><b>Indisponível</b></div>';
-      if (t === null) return '<div class="cab esgotada' + esc1 + '"><small>' + NOME[c] + '</small><b>Esgotada</b></div>';
-      if (t === undefined) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>No WhatsApp</b></div>';
+      var fantasma = a === '1' ? '' : '<span class="cab-fantasma" aria-hidden="true">Total</span>';   // guarda a linha do Total
+      if (o && !(c in o.cab)) return '<div class="cab esg"><small>' + NOME[c] + '</small><b>Indisponível</b>' + fantasma + '</div>';
+      if (t === null) return '<div class="cab esgotada' + esc1 + '"><small>' + NOME[c] + '</small><b>Esgotada</b>' + fantasma + '</div>';
+      if (t === undefined) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>No WhatsApp</b>' + fantasma + '</div>';
       var ate = temCrianca() ? 'até ' : '';
       // Nome e "por pessoa" em cima; valor e total lado a lado (Leonardo, 21/11/2026: "mais para cima, varanda... por pessoa.
       // O total pode ir para o lado e ficar um pouquinho maior... Tá tudo muito espaço em branco"). ANTES: nome, valor,
