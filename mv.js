@@ -28,16 +28,38 @@
   var MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
   function mesDe(iso) { return "m" + iso.slice(2, 4) + iso.slice(5, 7); }
   function nomeMes(m) { return MESES[+m.slice(3, 5) - 1] + " 20" + m.slice(1, 3); }
-  function chaveOrdem(x) { return CARNAVAL[x] ? CARNAVAL[x].de.slice(2, 4) + CARNAVAL[x].de.slice(5, 7) + "z" : x.slice(1); }
+  function chaveOrdem(x) { return CARNAVAL[x] ? CARNAVAL[x].de.slice(2, 4) + CARNAVAL[x].de.slice(5, 7) + "z" : /^t/.test(x) ? x.slice(1) + "00" : x.slice(1); }
+  // Temporada inteira como período (Leonardo, 21/11/2026, 6ª rodada: "todas as datas... vai ter que ser todas as datas da
+  // temporada escolhida"): t27 = temporada 26/27 (jul/2026 a jun/2027). No link e no Salvar vai como os 12 meses dela
+  // (m2607...m2706), que passam na trava de formato do fluxo 1424 do Entur; ao ler, os 12 meses juntos voltam a ser t27.
+  // ANTES: "Todas as datas" = as duas temporadas juntas.
+  function mesesDaTemporada(t) {
+    var a = +t.slice(1), r = [];
+    for (var i = 0; i < 12; i++) { var m = 7 + i, y = m > 12 ? a : a - 1; m = m > 12 ? m - 12 : m; r.push("m" + y + (m < 10 ? "0" : "") + m); }
+    return r;
+  }
   // "m2611.carn27" -> ["m2611", "carn27"] (ordenado, sem repetir, só códigos válidos); vazio = todas as datas
   function lerPeriodo(v) {
     v = String(v || "").trim().toLowerCase();
     if (ANTIGOS[v]) v = ANTIGOS[v];
     var ok = {};
     v.split(".").forEach(function (x) {
-      if (/^m\d\d(0[1-9]|1[0-2])$/.test(x) || CARNAVAL[x]) ok[x] = 1;
+      if (/^m\d\d(0[1-9]|1[0-2])$/.test(x) || /^t\d\d$/.test(x) || CARNAVAL[x]) ok[x] = 1;
     });
+    Object.keys(ok).forEach(function (x) {
+      if (!/^m/.test(x)) return;
+      var t = "t" + temporada(x).slice(2), ms = mesesDaTemporada(t);
+      if (ms.every(function (m) { return ok[m]; })) { ms.forEach(function (m) { delete ok[m]; }); ok[t] = 1; }
+    });
+    // temporada marcada = ela inteira: os meses e o Carnaval dela não somam nada
+    Object.keys(ok).forEach(function (x) { if (/^t/.test(x)) Object.keys(ok).forEach(function (y) { if (y !== x && temporada(y) === temporada(x)) delete ok[y]; }); });
     return Object.keys(ok).sort(function (a, b) { return chaveOrdem(a) < chaveOrdem(b) ? -1 : 1; });
+  }
+  // Período para o link e o Entur: a temporada vira os 12 meses dela.
+  function periodoLink(v) {
+    var r = [];
+    lerPeriodo(v).forEach(function (x) { r = r.concat(/^t/.test(x) ? mesesDaTemporada(x) : [x]); });
+    return r.join(".") || "todas";
   }
   function lerData(v) {
     v = String(v || "").replace(/\D/g, "");
@@ -89,7 +111,7 @@
     if (!ps.length) return true;
     return ps.some(function (x) {
       var c = CARNAVAL[x];
-      return c ? (s.embarque <= c.ate && volta(s) >= c.de) : mesDe(s.embarque) === x;
+      return c ? (s.embarque <= c.ate && volta(s) >= c.de) : /^t/.test(x) ? temporada(mesDe(s.embarque)) === temporada(x) : mesDe(s.embarque) === x;
     });
   }
   // Janela do período pedido (para achar as saídas mais próximas): [de, ate] ou null.
@@ -101,6 +123,7 @@
     ps.forEach(function (x) {
       var c = CARNAVAL[x];
       if (c) { ds.push(c.de); as.push(c.ate); return; }
+      if (/^t/.test(x)) { var y = 2000 + +x.slice(1); ds.push((y - 1) + "-07-01"); as.push(y + "-06-30"); return; }
       var a = "20" + x.slice(1, 3), m = x.slice(3, 5), fim = new Date(Date.UTC(+a, +m, 0)).toISOString().slice(0, 10);
       ds.push(a + "-" + m + "-01"); as.push(fim);
     });
@@ -186,14 +209,14 @@
   // Corpo do POST ao webhook 53 "preferências salvas (site)" (formato fixado no passo 4).
   function montarEnvio(f, id, telefone, hp) {
     var p = pesquisaDe(f);
-    return { telefone: "+" + telefone, id: id, t: p.t, p: p.p, de: p.de.replace(/-/g, ""), ate: p.ate.replace(/-/g, ""),
+    return { telefone: "+" + telefone, id: id, t: p.t, p: periodoLink(p.p), de: p.de.replace(/-/g, ""), ate: p.ate.replace(/-/g, ""),
       a: p.a, c: p.c, k: p.k, b: p.b, hp: hp || "" };
   }
 
   // Endereço da página com a pesquisa (o mesmo que o Entur monta com os campos mv_*).
   function linkPesquisa(f, id) {
     var p = pesquisaDe(f);
-    return "?t=" + p.t + "&p=" + p.p + (p.de ? "&de=" + p.de.replace(/-/g, "") : "") + (p.ate ? "&ate=" + p.ate.replace(/-/g, "") : "") + "&a=" + p.a + "&c=" + p.c + "&k=" + p.k + "&b=" + p.b + (id ? "&id=" + id : "");
+    return "?t=" + p.t + "&p=" + periodoLink(p.p) + (p.de ? "&de=" + p.de.replace(/-/g, "") : "") + (p.ate ? "&ate=" + p.ate.replace(/-/g, "") : "") + "&a=" + p.a + "&c=" + p.c + "&k=" + p.k + "&b=" + p.b + (id ? "&id=" + id : "");
   }
 
   function dmA(iso) { return iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4); }
@@ -204,7 +227,8 @@
     if (f.ate) return "voltando até " + dmA(f.ate);
     var ps = lerPeriodo(f.p);
     if (!ps.length) return "todas as datas";
-    var nomes = [], meses = ps.filter(function (x) { return !CARNAVAL[x]; });
+    var nomes = [], meses = ps.filter(function (x) { return /^m/.test(x); });
+    ps.forEach(function (x) { if (/^t/.test(x)) nomes.push("temporada " + nomeTemporada(temporada(x))); });
     meses.forEach(function (m, i) {
       var prox = meses[i + 1];
       nomes.push(MESES[+m.slice(3, 5) - 1] + (prox && prox.slice(1, 3) === m.slice(1, 3) ? "" : " 20" + m.slice(1, 3)));
@@ -267,9 +291,12 @@
   // nome do ano do verão. nov/dez 2026 e jan a abr 2027 = "2027"; nov/dez 2027 e jan a abr 2028 = "2028".
   function temporada(x) {
     if (CARNAVAL[x]) return CARNAVAL[x].de.slice(0, 4);
+    if (/^t\d\d$/.test(x)) return "20" + x.slice(1);
     var a = 2000 + +x.slice(1, 3), m = +x.slice(3, 5);
     return String(m >= 7 ? a + 1 : a);
   }
+  // "2027" -> "26/27" (Leonardo, 21/11/2026: "temporada tem que ser dividida entre 26/27 e 27/28"); ANTES: "2027".
+  function nomeTemporada(t) { return String(+t.slice(2) - 1) + "/" + t.slice(2); }
   function temporadas(saidas, hoje) {
     var t = {};
     mesesComSaida(saidas, hoje).forEach(function (m) { t[temporada(m)] = 1; });
@@ -394,7 +421,7 @@
     return q.length ? "?" + q.join("&") : "";
   }
 
-  var api = { caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+  var api = { caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,

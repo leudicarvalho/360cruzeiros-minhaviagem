@@ -125,13 +125,35 @@
   .meses button.carnaval { grid-column: span 2; border-color: var(--ouro-escuro); background: var(--ouro-claro); color: var(--ouro-texto); }
   .meses button.carnaval.ativo { background: var(--ouro-escuro); color: #10252e; }
   .meses button.carnaval.ativo small { color: #10252e; }
-  .linha-datas { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .abrir-cal { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; border: 2px dashed var(--marca); color: var(--marca);
-    border-radius: 10px; padding: 9px 10px; font: 700 14px var(--fonte); cursor: pointer; }
-  .abrir-cal.tem { border-style: solid; background: var(--marca-clara); }
+  /* Botão do calendário pequeno (Leonardo, 21/11/2026, 6ª rodada: "essa linha em pontilhado... ocupando quase toda a
+     tela, tá horrível... bem menor. E quando tiver selecionado, mostrar o que está no início e no fim"). "Todas as datas"
+     virou "Todas as datas de 26/27" (a temporada aberta). ANTES: botão tracejado da largura do painel e "Todas as datas"
+     das duas temporadas. */
+  .linha-datas { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+  .abrir-cal { flex: none; display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #c9d5db; color: var(--marca);
+    border-radius: 999px; padding: 7px 12px; font: 700 13px var(--fonte); cursor: pointer; }
+  .abrir-cal.tem { border-color: var(--marca); background: var(--marca-clara); }
   .abrir-cal svg { flex: none; }
-  .todas-datas { background: none; border: 1px solid #c9d5db; border-radius: 10px; padding: 9px 12px; font: 600 13px var(--fonte); color: var(--suave); cursor: pointer; }
+  .abrir-cal em { font-style: normal; font-weight: 500; color: var(--suave); }
+  .todas-datas { background: #fff; border: 1px solid #c9d5db; border-radius: 999px; padding: 7px 12px; font: 600 13px var(--fonte); color: var(--suave); cursor: pointer; }
   .todas-datas.ativo { background: var(--marca); border-color: var(--marca); color: #fff; }
+  /* Filtros em grade (Leonardo, 21/11/2026, 6ª rodada: "Noites, navio, adultos... dá para distribuir melhor na tela. Dá
+     para ocupar todo aquele lado direito"): título em cima e opções em barra segmentada da largura da coluna; no
+     computador 3 colunas, no celular uma embaixo da outra. ANTES: uma linha por filtro, título à esquerda e as pílulas
+     encostadas nele, com o lado direito vazio. */
+  .filtro.quando { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 0 0 12px; border-bottom: 1px solid var(--linha); }
+  .grade-filtros .pilulas[data-f="c"] button:first-child { flex-grow: 2; }
+  .filtro.quando > span { padding-top: 0; }
+  @media (min-width: 700px) { .meses { grid-template-columns: repeat(6, 1fr); } .temporadas { max-width: 420px; } }
+  .grade-filtros { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+  @media (min-width: 700px) { .grade-filtros { grid-template-columns: repeat(3, 1fr); gap: 14px 18px; } }
+  .grade-filtros .filtro { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 0; border: 0; }
+  .grade-filtros .pilulas { flex-wrap: nowrap; gap: 3px; background: #eef3f5; border-radius: 12px; padding: 3px; }
+  .grade-filtros .pilulas button, .grade-filtros .pilulas.num button { flex: 1 1 0; min-width: 0; border: 0; background: none; border-radius: 9px; padding: 9px 4px;
+    white-space: normal; line-height: 1.15; font: 600 13px var(--fonte); color: var(--texto); }
+  .grade-filtros .pilulas button:hover:not(.ativo) { background: #fff; }
+  .grade-filtros .pilulas button.ativo { background: var(--marca); color: #fff; box-shadow: 0 1px 4px rgba(16,37,46,.2); }
+  .grade-filtros select { height: 41px; border-radius: 12px; background: #eef3f5; border-color: #eef3f5; font-weight: 600; }
 
   /* Calendário (Leonardo, 21/11/2026: "abrir um calendário para poder selecionar... fácil de utilizar e que dê para informar
      manualmente também... facilidade no celular"): no celular sobe de baixo, no computador abre no meio. Dois campos para
@@ -271,6 +293,7 @@
   .detalhe .abas { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 10px; scrollbar-width: none; }
   .detalhe .abas::-webkit-scrollbar { display: none; }
   .detalhe .abas button { padding: 5px 10px; font-size: 12px; font-weight: 600; flex: none; }
+  .detalhe .abas button.indisp { opacity: .45; text-decoration: line-through; cursor: default; }
   /* Faixa do preço como no Google Flights (Leonardo, 21/11/2026: "horizontal e com cores verde e vermelho para dizer onde
      ele está atualmente e quando que foi o mais barato e o mais caro"; vem aberta). Verde = terço mais barato, amarelo =
      meio, vermelho = terço mais caro; a marca "Hoje" mostra onde o preço de hoje está. Embaixo, o caminho do preço por dia
@@ -301,6 +324,23 @@
   .faixa .marca span { font-size: 11px; font-weight: 700; color: #fff; background: var(--texto); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
   .faixa .marca::after { content: ''; width: 3px; height: 18px; background: var(--texto); border-radius: 2px; margin-top: 1px; box-shadow: 0 0 0 2px #fff; }
   .faixa .marca.ponta-e span { transform: translateX(40%); }
+  .faixa > .risco-min, .faixa > .risco-max { position: absolute; top: -5px; width: 4px; height: 18px; margin-left: -2px; border-radius: 3px; box-shadow: 0 0 0 2px #fff; z-index: 1; }
+  .faixa > .risco-min { background: #1fa855; }
+  .faixa > .risco-max { background: #d64535; }
+  .faixa .marca { z-index: 2; }
+  .faixa .marca.no-min span { background: #1fa855; }
+  .faixa .marca.no-min::after { background: #1fa855; }
+  .faixa .marca.no-max span { background: #d64535; }
+  .faixa .marca.no-max::after { background: #d64535; }
+  .alerta-preco { display: flex; align-items: center; gap: 10px; margin: 10px 0 2px; padding: 9px 12px; border-radius: 12px; font-size: 12.5px; line-height: 1.35; }
+  .alerta-preco b { display: block; font-size: 14px; }
+  .alerta-preco .ico { flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font: 800 17px var(--fonte); }
+  .alerta-preco.barato { background: #e9f8ee; border: 1px solid #8fd8a8; color: #0f6b34; }
+  .alerta-preco.barato .ico { background: #1fa855; animation: pulso 1.8s ease-out infinite; }
+  .alerta-preco.caro { background: #fdecea; border: 1px solid #f0a8a0; color: #8f2a1f; }
+  .alerta-preco.caro .ico { background: #d64535; }
+  @keyframes pulso { 0% { box-shadow: 0 0 0 0 rgba(31,168,85,.5); } 70% { box-shadow: 0 0 0 9px rgba(31,168,85,0); } 100% { box-shadow: 0 0 0 0 rgba(31,168,85,0); } }
+  @media (prefers-reduced-motion: reduce) { .alerta-preco .ico { animation: none; } }
   .faixa .marca.ponta-d span { transform: translateX(-40%); }
   .extremos { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 11.5px; line-height: 1.25; }
   .extremos span { color: var(--suave); }
@@ -366,10 +406,11 @@
       <div class="temporadas" id="temporadas"></div>
       <div class="meses" id="quando"></div>
       <div class="linha-datas">
-        <button class="abrir-cal" id="abrir-cal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="txt-cal">Escolher os dias no calendário</span></button>
+        <button class="abrir-cal" id="abrir-cal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="txt-cal">Escolher os dias</span></button>
         <button class="todas-datas" id="todas-datas" data-q="todas">Todas as datas</button>
       </div>
     </div></div>
+    <div class="grade-filtros">
     <div class="filtro"><span>Noites</span><div class="pilulas" data-f="t">
       <button data-v="mini">3 e 4 noites</button><button data-v="longo">5 noites ou mais</button><button data-v="todos">Todas</button></div></div>
     <div class="filtro"><span>Navio</span><div><select id="navio"><option value="">Todos os navios</option></select></div></div>
@@ -381,6 +422,7 @@
       <button data-v="int">Interna</button><button data-v="ext">Externa</button><button data-v="var">Varanda</button><button data-v="todas">Comparar todas</button></div></div>
     <div class="filtro"><span>Bebidas</span><div class="pilulas" data-f="b">
       <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div></div>
+    </div>
     <p class="legenda" id="legenda-pacote"></p>
     <div class="barra-pesq">
       <button class="btn pesquisar" id="pesquisar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Pesquisar <span id="n-pesq"></span></button>
@@ -505,12 +547,30 @@
   function contarSaidas(q) {
     return dados.saidas.filter(function (s) { return s.embarque > dados.leitura && MV.noPeriodo(s, { p: q }); }).length;
   }
+  // Temporada como filtro (Leonardo, 21/11/2026, 6ª rodada: "quando selecionar uma, aparecem só os itens daquela temporada
+  // e os outros são escondidos. E se teve algum marcado, desmarca"): trocar de aba desmarca o que era da outra (meses,
+  // Carnaval e datas) e, sem nada marcado, o período é a temporada inteira (t27 / t28). ANTES: a aba só escondia os
+  // meses e o que estava marcado na outra continuava valendo.
+  function codTemp(t) { return 't' + t.slice(2); }
+  function tempDe(iso) { return MV.temporada('m' + iso.slice(2, 4) + iso.slice(5, 7)); }
+  function trocarTemporada(t) {
+    temporadaAberta = t;
+    var ps = MV.lerPeriodo(e.p).filter(function (x) { return MV.temporada(x) === t && !/^t/.test(x); });
+    if ((e.de && tempDe(e.de) !== t) || (e.ate && tempDe(e.ate) !== t)) { e.de = ''; e.ate = ''; }
+    e.p = ps.length && !e.de && !e.ate ? ps.join('.') : codTemp(t);
+    marcar();
+  }
+  // Link antigo ou preferência com "todas" (as duas temporadas): abre na primeira temporada com saída.
+  function ajustarTemporada(x, ts) { if (!x.de && !x.ate && !MV.lerPeriodo(x.p).length && ts[0]) x.p = codTemp(ts[0]); }
   function montarQuando() {
     var ts = MV.temporadas(dados.saidas, dados.leitura), ps = MV.lerPeriodo(e.p);
-    if (ts.indexOf(temporadaAberta) < 0) temporadaAberta = ps.length && ts.indexOf(MV.temporada(ps[0])) >= 0 ? MV.temporada(ps[0]) : ts[0];
+    if (ts.indexOf(temporadaAberta) < 0) {
+      var t0 = e.de ? tempDe(e.de) : e.ate ? tempDe(e.ate) : ps.length ? MV.temporada(ps[0]) : '';
+      temporadaAberta = ts.indexOf(t0) >= 0 ? t0 : ts[0];
+    }
     $('temporadas').innerHTML = ts.map(function (t) {
-      var marcados = ps.filter(function (x) { return MV.temporada(x) === t; }).length;
-      return '<button data-temp="' + t + '"' + (t === temporadaAberta ? ' class="ativo"' : '') + '>Temporada<b>' + t +
+      var marcados = ps.filter(function (x) { return MV.temporada(x) === t && !/^t/.test(x); }).length;
+      return '<button data-temp="' + t + '"' + (t === temporadaAberta ? ' class="ativo"' : '') + '>Temporada<b>' + MV.nomeTemporada(t) +
         (marcados ? '<i>' + marcados + '</i>' : '') + '</b></button>';
     }).join('');
     var html = '';
@@ -528,11 +588,11 @@
     $('quando').innerHTML = html;
   }
   function clicarQuando(q) {
-    var ps = MV.lerPeriodo(e.p);
+    var ps = MV.lerPeriodo(e.p).filter(function (x) { return !/^t/.test(x); });
     if (q === 'todas') ps = [];
     else if (ps.indexOf(q) >= 0) ps.splice(ps.indexOf(q), 1);
     else ps.push(q);
-    e.p = ps.join('.') || 'todas'; e.de = ''; e.ate = '';
+    e.p = ps.join('.') || codTemp(temporadaAberta); e.de = ''; e.ate = '';
     marcar();
   }
   function novaLista() { fechadas = {}; pagina = 1; }
@@ -542,19 +602,26 @@
   function abrirCal() {
     c.de = e.de || ''; c.ate = e.ate || '';
     var p0 = MV.lerPeriodo(e.p)[0];
-    c.mes = (c.de || (p0 && !MV.CARNAVAL[p0] ? '20' + p0.slice(1, 3) + '-' + p0.slice(3, 5) : '') || dados.leitura).slice(0, 7);
+    c.mes = (c.de || (p0 && /^m/.test(p0) ? '20' + p0.slice(1, 3) + '-' + p0.slice(3, 5) : '') || '').slice(0, 7);
     $('fundo-cal').hidden = false;
     desenharCal(true);
   }
   function fecharCal() { $('fundo-cal').hidden = true; }
   function desenharCal(campos) {
-    var hoje = dados.leitura, embarques = {}, ultimo = hoje.slice(0, 7);
-    dados.saidas.forEach(function (s) { if (s.embarque > hoje) { embarques[s.embarque] = 1; if (s.embarque.slice(0, 7) > ultimo) ultimo = s.embarque.slice(0, 7); } });
-    if (c.mes < hoje.slice(0, 7)) c.mes = hoje.slice(0, 7);
+    // só os meses da temporada aberta (do 1º ao último embarque dela)
+    var hoje = dados.leitura, embarques = {}, primeiro = '', ultimo = '';
+    dados.saidas.forEach(function (s) {
+      if (s.embarque <= hoje || tempDe(s.embarque) !== temporadaAberta) return;
+      embarques[s.embarque] = 1; var m = s.embarque.slice(0, 7);
+      if (!primeiro || m < primeiro) primeiro = m;
+      if (m > ultimo) ultimo = m;
+    });
+    if (!primeiro) primeiro = ultimo = hoje.slice(0, 7);
+    if (!c.mes || c.mes < primeiro) c.mes = primeiro;
     if (c.mes > ultimo) c.mes = ultimo;
     var nome = MV.MESES[+c.mes.slice(5, 7) - 1];
     $('cal-nome').textContent = { jan: 'janeiro', fev: 'fevereiro', mar: 'março', abr: 'abril', mai: 'maio', jun: 'junho', jul: 'julho', ago: 'agosto', set: 'setembro', out: 'outubro', nov: 'novembro', dez: 'dezembro' }[nome] + ' ' + c.mes.slice(0, 4);
-    $('cal-ant').disabled = c.mes <= hoje.slice(0, 7);
+    $('cal-ant').disabled = c.mes <= primeiro;
     $('cal-prox').disabled = c.mes >= ultimo;
     var html = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'].map(function (d) { return '<span class="sem">' + d.charAt(0) + '</span>'; }).join('');
     MV.semanasDoMes(c.mes).forEach(function (sem) {
@@ -571,7 +638,7 @@
     if (campos) { $('cal-de').value = MV.dataBR(c.de); $('cal-ate').value = MV.dataBR(c.ate); }
     $('lb-de').classList.toggle('foco', !c.de || !!c.ate);
     $('lb-ate').classList.toggle('foco', !!c.de && !c.ate);
-    $('cal-ok').textContent = c.de || c.ate ? 'Usar estas datas' : 'Usar todas as datas';
+    $('cal-ok').textContent = c.de || c.ate ? 'Usar estas datas' : 'Todas as datas de ' + MV.nomeTemporada(temporadaAberta);
   }
   function digitarCal(campo) {
     var el = $('cal-' + campo);
@@ -586,7 +653,7 @@
     var de = c.de, ate = c.ate;
     if (de && ate && ate < de) { var x = de; de = ate; ate = x; }
     e.de = de; e.ate = ate;
-    if (de || ate) e.p = 'todas';
+    e.p = codTemp(temporadaAberta);
     fecharCal(); marcar();
   }
 
@@ -602,9 +669,13 @@
     var ps = MV.lerPeriodo(e.p), datas = !!(e.de || e.ate);
     if (dados) montarQuando();
     [].forEach.call($('quando').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
-    $('todas-datas').classList.toggle('ativo', !ps.length && !datas);
+    var soTemp = !datas && (!ps.length || (ps.length === 1 && /^t/.test(ps[0])));
+    $('todas-datas').classList.toggle('ativo', soTemp);
+    if (temporadaAberta) $('todas-datas').textContent = 'Todas as datas de ' + MV.nomeTemporada(temporadaAberta);
     $('abrir-cal').classList.toggle('tem', datas);
-    $('txt-cal').textContent = datas ? (e.de && e.ate ? MV.dataBR(e.de).slice(0, 5) + ' a ' + MV.dataBR(e.ate).slice(0, 5) : e.de ? 'A partir de ' + MV.dataBR(e.de).slice(0, 5) : 'Voltando até ' + MV.dataBR(e.ate).slice(0, 5)) + ' · mudar' : 'Escolher os dias no calendário';
+    var d5 = function (x) { return MV.dataBR(x).slice(0, 5); };
+    $('txt-cal').innerHTML = !datas ? 'Escolher os dias' : e.de && e.ate ? 'Embarque ' + d5(e.de) + ' <em>·</em> Volta ' + d5(e.ate) :
+      e.de ? 'Embarque a partir de ' + d5(e.de) : 'Volta até ' + d5(e.ate);
     [].forEach.call(document.querySelectorAll('.pilulas[data-f]'), function (g) {
       [].forEach.call(g.children, function (b) { b.classList.toggle('ativo', b.dataset.v === String(e[g.dataset.f])); });
     });
@@ -646,11 +717,14 @@
   function periodo(s) { var v = MV.volta(s); return MV.diaDaSemana(s.embarque) + ', ' + dm(s.embarque) + ' a ' + MV.diaDaSemana(v) + ', ' + dm(v); }
 
   function card(s, i) {
-    var a = adultos(), o = s.ocup[a], cabs = MV.CABINES.filter(function (c) { return o && (c in o.cab); });
+    // As 4 cabines sempre (Leonardo, 21/11/2026, 6ª rodada: "se não tiver, mostre que está indisponível. Daí fica o
+    // padrão de ter as 4 sempre"). ANTES: a cabine que a saída não tinha sumia do cartão.
+    var a = adultos(), o = s.ocup[a], cabs = MV.CABINES;
     var menor = null;
     cabs.forEach(function (c) { var t = MV.total(s, a, c, f.b); if (typeof t === 'number' && (menor === null || t < MV.total(s, a, menor, f.b))) menor = c; });
     var celulas = cabs.map(function (c) {
       var t = MV.total(s, a, c, f.b), esc1 = (c === f.k ? ' escolhida' : '') + (c === menor && f.k === 'todas' && cabs.length > 1 ? ' menor' : '');
+      if (o && !(c in o.cab)) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>Indisponível</b></div>';
       if (t === null) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>Esgotada</b></div>';
       if (t === undefined) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>No WhatsApp</b></div>';
       return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '</small><b>' + reais(t / a) + '<em>por pessoa</em></b>' +
@@ -676,7 +750,8 @@
   // Linha do tempo (abre ao tocar na saída): o preço de cada dia da cabine, para os adultos e o pacote escolhidos.
   function detalhe(s) {
     var a = adultos(), cab = cabDetalhe[s.id] || (f.k !== 'todas' ? f.k : menorCabine(s));
-    var abas = MV.CABINES.filter(function (c) { return s.ocup[a] && (c in s.ocup[a].cab); }).map(function (c) {
+    var abas = MV.CABINES.map(function (c) {
+      if (!s.ocup[a] || !(c in s.ocup[a].cab)) return '<button disabled class="indisp" title="Indisponível nesta saída">' + NOME[c] + '</button>';
       return '<button data-cab="' + c + '" data-s="' + esc(s.id) + '"' + (c === cab ? ' class="ativo"' : '') + '>' + NOME[c] + '</button>';
     }).join('');
     var corpo;
@@ -686,6 +761,7 @@
       // histórico e escondia a variação da cabine. ANTES: com pacote escolhido, somava o pacote de cada dia.
       var pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(function (p) { return [p[0], p[1] === null ? null : Math.round(p[1] / a), p[2]]; });
       var fx = MV.faixaPreco(pts);
+      if (fx) fx.desde = pts[0][0];
       corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx)) + linhaPacote(s, a);
     }
     var texto = 'Oi, Leonardo! Vi na minha página o ' + s.navio + ', de ' + dm(s.embarque) + ' a ' + dm(MV.volta(s)) + ', ' + s.noites + ' noites, cabine ' +
@@ -719,17 +795,30 @@
 
   // Faixa verde/amarela/vermelha com a marca "Hoje", e o menor e o maior com o dia.
   function faixa(fx) {
+    fx.desde = fx.desde || fx.min.dia;
     var txt = { baixo: 'Preço baixo', medio: 'Na média', alto: 'Preço alto', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
     var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><small>Preço de hoje</small><strong>' + reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : '') +
       '<b>' + txt + '</b></div>';
+    // Marcas na barra (Leonardo, 21/11/2026, 6ª rodada: "não é para ter a linha tracejada... é para só marcar lá em cima...
+    // o mais barato, um risco ali no verde, e o mais caro no vermelho. Se o hoje for igual a qualquer um dos dois, as
+    // linhas vão ficar sobrepostas. E vai ter um alerta"). ANTES: só a marca Hoje na barra e riscos tracejados no gráfico.
     if (fx.pos !== null && fx.min.v !== fx.max.v) {
       var pct = Math.max(2, Math.min(98, fx.pos * 100)), lado = pct < 15 ? ' ponta-e' : pct > 85 ? ' ponta-d' : '';
-      html += '<div class="faixa"><div class="marca' + lado + '" style="left:' + pct.toFixed(1) + '%"><span>Hoje</span></div>' +
+      var ext = fx.hoje && fx.hoje.v === fx.min.v ? ' no-min' : fx.hoje && fx.hoje.v === fx.max.v ? ' no-max' : '';
+      html += '<div class="faixa"><i class="risco-min" style="left:2%"></i><i class="risco-max" style="left:98%"></i>' +
+        '<div class="marca' + lado + ext + '" style="left:' + pct.toFixed(1) + '%"><span>Hoje</span></div>' +
         '<div class="barra-cor"><i></i><i></i><i></i></div></div>';
+    }
+    var alerta = '';
+    if (fx.hoje && fx.min.v !== fx.max.v && (fx.hoje.v === fx.min.v || fx.hoje.v === fx.max.v)) {
+      var barato = fx.hoje.v === fx.min.v;
+      alerta = '<div class="alerta-preco ' + (barato ? 'barato' : 'caro') + '"><span class="ico">' + (barato ? '↓' : '↑') + '</span><div><b>' +
+        (barato ? 'Preço mais barato' : 'Preço mais caro') + '</b>' + (barato ? 'Hoje está no menor preço' : 'Hoje está no maior preço') +
+        ' desde ' + dm(fx.desde) + (barato ? '. Boa hora para garantir.' : '. Vale acompanhar: ele já esteve mais baixo.') + '</div></div>';
     }
     html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>mais barato, em ' + dm(fx.min.dia) + '</span>' +
       '<span class="mx"><b>' + reais(fx.max.v) + '</b>mais caro, em ' + dm(fx.max.dia) + '</span></div>';
-    return html;
+    return html + alerta;
   }
 
   // Caminho do preço por dia (pequeno, cabe no celular): verde no dia mais barato, vermelho no mais caro, escuro hoje.
@@ -757,14 +846,12 @@
     var riscos = '', rotulos = '', usados = [e + 14, W - d - 14];
     function risco(dia, cor, nome) {
       var xx = x(dia);
-      riscos += '<line x1="' + xx.toFixed(1) + '" y1="' + (t - 6) + '" x2="' + xx.toFixed(1) + '" y2="' + (H - b) + '" stroke="' + cor + '" stroke-width="1.4" stroke-dasharray="3 3"/>';
       if (!nome || usados.some(function (u) { return Math.abs(u - xx) < 30; })) return;
       usados.push(xx);
       rotulos += '<text x="' + xx.toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle" style="fill:' + cor + ';font-weight:700">' + nome + '</text>';
     }
     risco(fx.min.dia, '#1fa855', dm(fx.min.dia));
     risco(fx.max.dia, '#d64535', dm(fx.max.dia));
-    if (fx.hoje) risco(fx.hoje.dia, '#10252e', '');
     var svg = '<svg class="grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Preço por pessoa, dia a dia">' +
       '<line x1="' + e + '" y1="' + (H - b) + '" x2="' + (W - d) + '" y2="' + (H - b) + '" stroke="#dbe3e8"/>' + riscos +
       '<path d="' + linha + '" fill="none" stroke="#0f4c5c" stroke-width="2.2" stroke-linecap="round"/>' + marcas +
@@ -891,7 +978,7 @@
     var grupo = b.parentNode && b.parentNode.dataset && b.parentNode.dataset.f;
     if (grupo) { e[grupo] = b.dataset.v; marcar(); return; }
     if (b.dataset.q) { clicarQuando(b.dataset.q); return; }
-    if (b.dataset.temp) { temporadaAberta = b.dataset.temp; marcar(); return; }
+    if (b.dataset.temp) { trocarTemporada(b.dataset.temp); return; }
     if (b.dataset.pag) { if (!b.disabled) irPagina(+b.dataset.pag); return; }
     if (b.dataset.dia) { var t = MV.tocarDia(c.de, c.ate, b.dataset.dia); c.de = t.de; c.ate = t.ate; desenharCal(true); return; }
     if (b.parentNode && b.parentNode.id === 'ordem') { f.ordem = b.dataset.v; novaLista(); desenhar(); return; }
@@ -968,6 +1055,8 @@
   marcar();
   fetch('dados/precos.json').then(function (r) { return r.json(); }).then(function (j) {
     dados = j;
+    var ts = MV.temporadas(j.saidas, j.leitura);
+    [salva, f, e].forEach(function (x) { ajustarTemporada(x, ts); });
     $('atualizado').innerHTML = 'Preços de <b>' + dm(j.leitura) + '/' + j.leitura.slice(0, 4) + '</b>';
     navios();
     montarQuando();
