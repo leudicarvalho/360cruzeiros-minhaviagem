@@ -940,7 +940,7 @@
   // Faixa verde/amarela/vermelha com a marca "Hoje", e o menor e o maior com o dia.
   function faixa(fx) {
     fx.desde = fx.desde || fx.min.dia;
-    var txt = { baixo: 'Preço baixo', medio: 'Na média', alto: 'Preço em alta', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
+    var txt = { baixo: 'Preço em baixa', medio: 'Na média', alto: 'Preço em alta', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
     var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><small>Preço de hoje</small><strong>' + reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : '') +
       '<b>' + txt + '</b></div>';
     // Marcas na barra (Leonardo, 21/11/2026, 6ª rodada: "não é para ter a linha tracejada... é para só marcar lá em cima...
