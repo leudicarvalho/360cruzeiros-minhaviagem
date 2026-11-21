@@ -137,23 +137,62 @@
   .abrir-cal em { font-style: normal; font-weight: 500; color: var(--suave); }
   .todas-datas { background: #fff; border: 1px solid #c9d5db; border-radius: 999px; padding: 7px 12px; font: 600 13px var(--fonte); color: var(--suave); cursor: pointer; }
   .todas-datas.ativo { background: var(--marca); border-color: var(--marca); color: #fff; }
-  /* Filtros em grade (Leonardo, 21/11/2026, 6ª rodada: "Noites, navio, adultos... dá para distribuir melhor na tela. Dá
-     para ocupar todo aquele lado direito"): título em cima e opções em barra segmentada da largura da coluna; no
-     computador 3 colunas, no celular uma embaixo da outra. ANTES: uma linha por filtro, título à esquerda e as pílulas
-     encostadas nele, com o lado direito vazio. */
-  .filtro.quando { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 0 0 12px; border-bottom: 1px solid var(--linha); }
-  .grade-filtros .pilulas[data-f="c"] button:first-child { flex-grow: 2; }
-  .filtro.quando > span { padding-top: 0; }
-  @media (min-width: 700px) { .meses { grid-template-columns: repeat(6, 1fr); } .temporadas { max-width: 420px; } }
+  /* Pesquisa moderna (Leonardo, 21/11/2026, 7ª rodada): cartões iguais (3 por linha no computador, 2 no tablet, 1 no
+     celular), título com emoji, opções em grade de botões do mesmo tamanho. ANTES (6ª rodada): barras segmentadas com
+     botões de larguras diferentes ("Sem pacote" e "Qualquer uma" quebrando linha). */
+  .sec-quando { background: #f6f9fa; border: 1px solid #e3eaee; border-radius: 18px; padding: 14px; }
+  .quando-topo { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+  .quando-topo .cartao-tit { margin-right: 2px; }
+  .quando-topo .temporadas { flex: 0 1 300px; }
+  .quando-topo .linha-datas { margin: 0 0 0 auto; }
+  @media (max-width: 699px) { .quando-topo .temporadas { flex: 1 1 100%; } .quando-topo .linha-datas { margin: 0; width: 100%; } .quando-topo .linha-datas > * { flex: 1 1 0; justify-content: center; } }
+  .temporadas button { padding: 6px 8px; white-space: nowrap; }
+  .temporadas button b { display: inline; font-size: 15px; margin-left: 3px; }
+  .sec-quando .meses { margin-top: 12px; gap: 8px; }
+  @media (min-width: 700px) { .sec-quando .meses { grid-template-columns: repeat(6, 1fr); } }
+  .sec-quando .meses button { background: #fff; border: 1px solid #dbe4e8; border-radius: 12px; padding: 9px 4px; font: 700 14px var(--fonte); transition: border-color .15s, box-shadow .15s; }
+  .sec-quando .meses button:hover:not(.ativo) { border-color: var(--marca); box-shadow: 0 2px 8px rgba(16,37,46,.08); }
+  .sec-quando .meses button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; box-shadow: 0 3px 10px rgba(15,76,92,.3); }
+  /* Réveillon e Carnaval no meio (Leonardo, 21/11/2026: "emoji... champanhe e fogos e no outro festa e máscara. E deixe
+     eles mais centralizados no meio") */
+  .festas { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .festas:empty { display: none; }
+  .festas button { display: inline-flex; align-items: center; gap: 10px; border-radius: 999px; padding: 8px 18px 8px 10px; cursor: pointer; font: 800 14px var(--fonte); text-align: left; line-height: 1.15;
+    border: 2px solid transparent; transition: transform .15s, box-shadow .15s; }
+  .festas button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16,37,46,.15); }
+  .festas button .emo { font-size: 22px; letter-spacing: -4px; padding-right: 4px; white-space: nowrap; flex: none; }
+  .festas button small { display: block; font-size: 11px; font-weight: 600; opacity: .8; }
+  .festas button.reveillon { background: linear-gradient(135deg, #10252e, #1d5566); color: #f8d27a; }
+  .festas button.carnaval { background: linear-gradient(135deg, #fff1c2, #ffd3e4); color: #6b2a4a; }
+  .festas button.ativo { border-color: var(--ouro-escuro); box-shadow: 0 0 0 3px rgba(248,196,99,.55); }
+  .festas button.ativo::after { content: '✓'; margin-left: 2px; font-size: 15px; }
+  @media (max-width: 699px) {
+    .festas { flex-wrap: nowrap; gap: 8px; }
+    .festas button { flex: 1 1 0; min-width: 0; gap: 6px; padding: 8px 10px 8px 8px; font-size: 13px; }
+    .festas button .emo { font-size: 17px; }
+    .quando-topo .linha-datas { flex-wrap: nowrap; }
+    .so-pc { display: none; }
+    .quando-topo .linha-datas > * { white-space: nowrap; font-size: 12px; padding: 8px 8px; min-width: 0; }
+    .festas button { font-size: 12.5px; }
+    .festas button .emo { font-size: 15px; letter-spacing: -3px; }
+  }
   .grade-filtros { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
-  @media (min-width: 700px) { .grade-filtros { grid-template-columns: repeat(3, 1fr); gap: 14px 18px; } }
-  .grade-filtros .filtro { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 0; border: 0; }
-  .grade-filtros .pilulas { flex-wrap: nowrap; gap: 3px; background: #eef3f5; border-radius: 12px; padding: 3px; }
-  .grade-filtros .pilulas button, .grade-filtros .pilulas.num button { flex: 1 1 0; min-width: 0; border: 0; background: none; border-radius: 9px; padding: 9px 4px;
-    white-space: normal; line-height: 1.15; font: 600 13px var(--fonte); color: var(--texto); }
-  .grade-filtros .pilulas button:hover:not(.ativo) { background: #fff; }
-  .grade-filtros .pilulas button.ativo { background: var(--marca); color: #fff; box-shadow: 0 1px 4px rgba(16,37,46,.2); }
-  .grade-filtros select { height: 41px; border-radius: 12px; background: #eef3f5; border-color: #eef3f5; font-weight: 600; }
+  @media (min-width: 600px) { .grade-filtros { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 900px) { .grade-filtros { grid-template-columns: repeat(3, 1fr); } }
+  .cartao { background: #f6f9fa; border: 1px solid #e3eaee; border-radius: 18px; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .cartao-tit { display: flex; align-items: center; gap: 8px; font: 800 14px var(--fonte); color: var(--texto); flex-wrap: wrap; }
+  .cartao-tit i { font-style: normal; width: 30px; height: 30px; border-radius: 10px; background: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 1px 3px rgba(16,37,46,.1); }
+  .cartao-tit .varias { font: 600 11px var(--fonte); color: var(--marca); background: var(--marca-clara); border-radius: 999px; padding: 2px 8px; }
+  .pilulas.opcoes { display: grid; gap: 6px; }
+  .pilulas.opcoes.c2 { grid-template-columns: repeat(2, 1fr); }
+  .pilulas.opcoes.c3 { grid-template-columns: repeat(3, 1fr); }
+  .pilulas.opcoes.c5 { grid-template-columns: repeat(5, 1fr); }
+  .pilulas.opcoes .larga { grid-column: span 2; }
+  .pilulas.opcoes button { height: 40px; min-width: 0; padding: 0 6px; border: 1px solid #dbe4e8; border-radius: 11px; background: #fff; color: var(--texto); font: 700 13px var(--fonte);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: border-color .15s, box-shadow .15s, background .15s; }
+  .pilulas.opcoes button:hover:not(.ativo) { border-color: var(--marca); }
+  .pilulas.opcoes button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; box-shadow: 0 3px 10px rgba(15,76,92,.3); }
+  .cartao select { height: 40px; border-radius: 11px; background: #fff; border: 1px solid #dbe4e8; font: 700 13px var(--fonte); padding: 0 10px; }
 
   /* Calendário (Leonardo, 21/11/2026: "abrir um calendário para poder selecionar... fácil de utilizar e que dê para informar
      manualmente também... facilidade no celular"): no celular sobe de baixo, no computador abre no meio. Dois campos para
@@ -241,7 +280,6 @@
   .fav.sim { color: var(--ouro-escuro); }
   .cabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px 12px 4px; }
   .cabs.uma { grid-template-columns: 1fr; }
-  .filtro > span .varias { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--marca); background: var(--marca-clara); border-radius: 999px; padding: 1px 7px; margin-left: 4px; font-size: 11px; }
   .pilulas.multi button.ativo:not([data-v="todas"])::before { content: '✓ '; }
   .cab { position: relative; border: 1px solid var(--linha); border-radius: 12px; padding: 9px 10px; background: #f7fafb; min-width: 0; }
   .cab small { display: block; color: var(--suave); font-size: 12px; font-weight: 500; }
@@ -409,26 +447,34 @@
   <div class="filtros" id="filtros">
     <button class="mudar" id="mudar" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="m-txt"><small>Sua pesquisa</small><span id="m-resumo"></span></span><span class="m-bt" id="m-bt">Refazer</span></button>
     <div class="corpo-filtros">
-    <div class="filtro quando"><span>Quando</span><div>
-      <div class="temporadas" id="temporadas"></div>
-      <div class="meses" id="quando"></div>
-      <div class="linha-datas">
-        <button class="abrir-cal" id="abrir-cal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="txt-cal">Escolher os dias</span></button>
-        <button class="todas-datas" id="todas-datas" data-q="todas">Todas as datas</button>
+    <!-- Pesquisa nova (Leonardo, 21/11/2026, 7ª rodada: "tá muito pobre esse layout... modernize bastante... não pode ficar
+         uma coisa muito larga e as outras menores"): cada filtro num cartão do mesmo tamanho, opções em grade com botões
+         iguais; datas ao lado das temporadas; Réveillon e Carnaval no meio, com emoji. ANTES: linhas soltas, pílulas de
+         tamanhos diferentes e o calendário embaixo dos meses. -->
+    <section class="sec-quando">
+      <div class="quando-topo">
+        <div class="cartao-tit"><i>📅</i>Quando</div>
+        <div class="temporadas" id="temporadas"></div>
+        <div class="linha-datas">
+          <button class="abrir-cal" id="abrir-cal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="txt-cal">Escolher os dias</span></button>
+          <button class="todas-datas" id="todas-datas" data-q="todas">Todas as datas</button>
+        </div>
       </div>
-    </div></div>
+      <div class="meses" id="quando"></div>
+      <div class="festas" id="festas"></div>
+    </section>
     <div class="grade-filtros">
-    <div class="filtro"><span>Noites</span><div class="pilulas" data-f="t">
-      <button data-v="mini">3 e 4 noites</button><button data-v="longo">5 noites ou mais</button><button data-v="todos">Todas</button></div></div>
-    <div class="filtro"><span>Navio</span><div><select id="navio"><option value="">Todos os navios</option></select></div></div>
-    <div class="filtro"><span>Adultos</span><div class="pilulas num" data-f="a">
-      <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5 ou mais</button></div></div>
-    <div class="filtro"><span>Crianças</span><div class="pilulas num" data-f="c">
-      <button data-v="0">Nenhuma</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div></div>
-    <div class="filtro"><span>Cabine <small class="varias">pode marcar mais de uma</small></span><div class="pilulas multi" data-f="k">
-      <button data-v="int">Interna</button><button data-v="ext">Externa</button><button data-v="var">Varanda</button><button data-v="sui">Suíte</button><button data-v="todas">Qualquer uma</button></div></div>
-    <div class="filtro"><span>Bebidas</span><div class="pilulas" data-f="b">
-      <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div></div>
+      <div class="cartao"><div class="cartao-tit"><i>🌙</i>Noites</div><div class="pilulas opcoes c3" data-f="t">
+        <button data-v="mini">3 e 4</button><button data-v="longo">5 ou mais</button><button data-v="todos">Todas</button></div></div>
+      <div class="cartao"><div class="cartao-tit"><i>🧑</i>Adultos</div><div class="pilulas opcoes c5" data-f="a">
+        <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5+</button></div></div>
+      <div class="cartao"><div class="cartao-tit"><i>🧒</i>Crianças</div><div class="pilulas opcoes c5" data-f="c">
+        <button data-v="0">0</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div></div>
+      <div class="cartao"><div class="cartao-tit"><i>🛏️</i>Cabine <small class="varias">pode marcar mais de uma</small></div><div class="pilulas opcoes c3 multi" data-f="k">
+        <button data-v="int">Interna</button><button data-v="ext">Externa</button><button data-v="var">Varanda</button><button data-v="sui">Suíte</button><button data-v="todas" class="larga">Qualquer uma</button></div></div>
+      <div class="cartao"><div class="cartao-tit"><i>🍹</i>Bebidas</div><div class="pilulas opcoes c2" data-f="b">
+        <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div></div>
+      <div class="cartao"><div class="cartao-tit"><i>🚢</i>Navio</div><select id="navio"><option value="">Todos os navios</option></select></div>
     </div>
     <p class="legenda" id="legenda-pacote"></p>
     <div class="barra-pesq">
@@ -587,12 +633,16 @@
       html += '<button data-q="' + m + '">' + nome.charAt(0).toUpperCase() + nome.slice(1, 3) + ' ' + nome.slice(-2) +
         '<small>' + n + (n === 1 ? ' saída' : ' saídas') + '</small></button>';
     });
-    Object.keys(MV.CARNAVAL).forEach(function (k) {
-      var n = contarSaidas(k);
-      if (n && MV.temporada(k) === temporadaAberta)
-        html += '<button data-q="' + k + '" class="carnaval">' + MV.CARNAVAL[k].nome + '<small>' + n + (n === 1 ? ' saída' : ' saídas') + '</small></button>';
-    });
     $('quando').innerHTML = html;
+    // Réveillon (champanhe e fogos) e Carnaval (festa e máscara) da temporada aberta, no meio
+    var festas = '';
+    Object.keys(MV.CARNAVAL).forEach(function (k) {
+      var n = contarSaidas(k), x = MV.CARNAVAL[k];
+      if (n && MV.temporada(k) === temporadaAberta)
+        festas += '<button data-q="' + k + '" class="' + x.festa + '"><span class="emo">' + (x.festa === 'reveillon' ? '🥂🎆' : '🎉🎭') + '</span><span>' + x.nome +
+          '<small>' + n + (n === 1 ? ' saída' : ' saídas') + '</small></span></button>';
+    });
+    $('festas').innerHTML = festas;
   }
   function clicarQuando(q) {
     var ps = MV.lerPeriodo(e.p).filter(function (x) { return !/^t/.test(x); });
@@ -676,9 +726,10 @@
     var ps = MV.lerPeriodo(e.p), datas = !!(e.de || e.ate);
     if (dados) montarQuando();
     [].forEach.call($('quando').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
+    [].forEach.call($('festas').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
     var soTemp = !datas && (!ps.length || (ps.length === 1 && /^t/.test(ps[0])));
     $('todas-datas').classList.toggle('ativo', soTemp);
-    if (temporadaAberta) $('todas-datas').textContent = 'Todas as datas de ' + MV.nomeTemporada(temporadaAberta);
+    if (temporadaAberta) $('todas-datas').innerHTML = 'Todas as datas<span class="so-pc"> de ' + MV.nomeTemporada(temporadaAberta) + '</span>';
     $('abrir-cal').classList.toggle('tem', datas);
     var d5 = function (x) { return MV.dataBR(x).slice(0, 5); };
     $('txt-cal').innerHTML = !datas ? 'Escolher os dias' : e.de && e.ate ? 'Embarque ' + d5(e.de) + ' <em>·</em> Volta ' + d5(e.ate) :

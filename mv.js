@@ -20,9 +20,14 @@
   // Quando (Leonardo, 21/11/2026: "todos os meses... fora o carnaval, que vai ficar separado também de fevereiro, e um
   // campo para informar a data inicial e final"). Carnaval = sábado a quarta de cinzas: entra a saída que tem algum dia
   // nessa janela (o mês de fevereiro continua com todas as saídas de fevereiro).
+  // Réveillon (Leonardo, 21/11/2026, 7ª rodada: "pode ter Carnaval e Réveillon também, nos 2 anos"): entra a saída que
+  // está no navio na virada, embarca até 31/12 e volta a partir de 01/01. A conta é a mesma do Carnaval (embarque <= ate e
+  // volta >= de), por isso no Réveillon "de" é 01/01 e "ate" é 31/12. ANTES: só Carnaval.
   var CARNAVAL = {
-    carn27: { nome: "Carnaval 2027", de: "2027-02-06", ate: "2027-02-10" },
-    carn28: { nome: "Carnaval 2028", de: "2028-02-26", ate: "2028-03-01" },
+    rev27: { nome: "Réveillon 2027", de: "2027-01-01", ate: "2026-12-31", festa: "reveillon" },
+    carn27: { nome: "Carnaval 2027", de: "2027-02-06", ate: "2027-02-10", festa: "carnaval" },
+    rev28: { nome: "Réveillon 2028", de: "2028-01-01", ate: "2027-12-31", festa: "reveillon" },
+    carn28: { nome: "Carnaval 2028", de: "2028-02-26", ate: "2028-03-01", festa: "carnaval" },
   };
   var ANTIGOS = { nd26: "m2611.m2612", jf27: "m2701.m2702", ma27: "m2703.m2704" };   // códigos do Lead Ads
   var MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
@@ -134,7 +139,7 @@
     var ds = [], as = [];
     ps.forEach(function (x) {
       var c = CARNAVAL[x];
-      if (c) { ds.push(c.de); as.push(c.ate); return; }
+      if (c) { ds.push(c.de < c.ate ? c.de : c.ate); as.push(c.de < c.ate ? c.ate : c.de); return; }
       if (/^t/.test(x)) { var y = 2000 + +x.slice(1); ds.push((y - 1) + "-07-01"); as.push(y + "-06-30"); return; }
       var a = "20" + x.slice(1, 3), m = x.slice(3, 5), fim = new Date(Date.UTC(+a, +m, 0)).toISOString().slice(0, 10);
       ds.push(a + "-" + m + "-01"); as.push(fim);
