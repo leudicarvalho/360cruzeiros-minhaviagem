@@ -366,8 +366,10 @@
   /* Cartões do mesmo tamanho (Leonardo, 21/11/2026: "o tamanho do nome das cidades é maior ou menor, elas ficam diferentes.
      Também faça com que a data ali não se alongue"): roteiro sempre com a altura de 2 linhas, navio e período em 1 linha,
      cartões esticados à altura do maior (o botão do histórico vai para o pé) e o bloco da data no tamanho dele.
-     ANTES: roteiro de 1 linha deixava o cartão menor e o bloco da data esticava junto com o texto. */
-  .grade { align-items: stretch; }
+     ANTES: roteiro de 1 linha deixava o cartão menor e o bloco da data esticava junto com o texto.
+     Cada cartão na própria altura (Leonardo, 21/11/2026: "no computador fica muito grande esse espaço"): o topo já tem altura
+     fixa; esticar ao mais alto deixava um vão branco no fim dos outros. ANTES: align-items: stretch. */
+  .grade { align-items: flex-start; }
   .car-seta { display: none; }
   @media (min-width: 700px) {
     .grade > * { flex-basis: calc((100% - 24px) / 3); scroll-snap-align: start; }
@@ -395,7 +397,6 @@
   .cri { margin: 0 14px 12px; padding: 10px 12px; border-radius: 12px; background: #fff7e3; border: 1px solid #f1d58c; font-size: 13.5px; color: #5b4510; }
   .cri b { color: #3d2e06; }
   .cri .btn { display: block; margin-top: 8px; text-align: center; }
-  .ver { display: block; width: 100%; margin-top: auto; background: none; border: 0; border-top: 1px dashed var(--linha); color: var(--marca); font: 700 14px var(--fonte); padding: 9px; cursor: pointer; }
   .detalhe { padding: 4px 12px 12px; border-top: 1px dashed var(--linha); }
   .detalhe h3 { font-size: 14px; font-weight: 600; color: var(--suave); margin: 10px 0 6px; }
   .detalhe .abas { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 10px; scrollbar-width: none; }
@@ -707,7 +708,7 @@
   // f = a pesquisa que está na tela; e = o que o cliente está marcando no painel (só vale ao tocar em Pesquisar).
   var e = Object.assign({}, f);
   function copiarParaPainel() { e = Object.assign({}, f); $('navio').value = f.navio || ''; }
-  var dados = null, hist = null, histPedido = null, fechadas = {}, cabDetalhe = {};
+  var dados = null, hist = null, histPedido = null, cabDetalhe = {};
   var favs = {}; try { favs = JSON.parse(ler('mv_favoritas') || '{}') || {}; } catch (e) { favs = {}; }
 
   function pesquisaAtual() {
@@ -781,7 +782,7 @@
     e.p = ps.join('.') || codTemp(temporadaAberta); e.de = ''; e.ate = '';
     marcar();
   }
-  function novaLista() { fechadas = {}; voltarInicio = true; }
+  function novaLista() { voltarInicio = true; }
 
   // Calendário: c = o que está sendo escolhido (só vale ao tocar em "Ver as saídas").
   var c = { de: '', ate: '', mes: '' };
@@ -956,7 +957,8 @@
     // Esgotada nas cabines escolhidas (Leonardo, 21/11/2026, "Mostrar como Esgotada"): diz a cabine que ainda tem preço.
     var outra = MV.esgotadaNa(s, Object.assign({}, f, { a: a })) ? MV.outraComPreco(s, Object.assign({}, f, { a: a })) : null;
     if (outra) nota += '. Ainda tem ' + NOME[outra.c] + ': ' + reais(outra.t / a) + ' por pessoa';
-    var aberta = !fechadas[s.id];   // vem aberta (Leonardo, 21/11/2026: "vamos testar ele vindo expandido")
+    // Histórico sempre aberto, sem botão de recolher (Leonardo, 21/11/2026: "não vamos deixar recolher, fica sempre padrão
+    // expandido"). ANTES: vinha aberto com um botão no pé para recolher e abrir de novo.
     return '<div class="card" data-i="' + i + '">' +
       '<div class="c-topo"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
         MV.nomeMesCurto(s.embarque) + ' ' + s.embarque.slice(2, 4) + '</span></div>' +
@@ -967,8 +969,7 @@
       '<div class="cabs' + (cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
       (temCrianca() ? '<div class="cri"><b>Com criança pode sair menos.</b> O valor depende da idade de cada uma.' +
         '<a class="btn" href="' + esc(linkWhats(MV.msgIdades(s, f, menor || cabs[0]))) + '" target="_blank" rel="noopener">Valor exato com as idades</a></div>' : '') +
-      (aberta ? detalhe(s) : '') +
-      '<button class="ver abre">' + (aberta ? 'Esconder o histórico do preço' : 'Ver o histórico do preço') + '</button></div>';
+      detalhe(s) + '</div>';
   }
 
   // Linha do tempo (abre ao tocar na saída): o preço de cada dia da cabine, para os adultos e o pacote escolhidos.
@@ -1285,12 +1286,6 @@
       guardar('mv_favoritas', JSON.stringify(favs)); desenhar(); return;
     }
     if (b.dataset.cab) { cabDetalhe[b.dataset.s] = b.dataset.cab; desenhar(); return; }
-    var cd = b.closest('.card');
-    if (cd && b.classList.contains('abre')) {
-      var s = mostradas[+cd.dataset.i];
-      fechadas[s.id] = !fechadas[s.id];
-      desenhar();
-    }
   });
   // Pesquisar: o que está marcado no painel vai para a tela; o painel recolhe e a página desce até as saídas.
   $('pesquisar').onclick = function () {
