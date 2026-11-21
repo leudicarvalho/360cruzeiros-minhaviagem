@@ -409,7 +409,7 @@
     padding: 2px 7px; border-radius: 999px; background: var(--ouro-escuro); color: #10252e; }
   .pp { color: var(--suave); font-size: 12.5px; padding: 2px 14px 10px; }
   .pp b { color: var(--texto); font-weight: 700; }
-  .pp .pp-bt { all: unset; cursor: pointer; color: var(--mar, #0b6e8a); font-weight: 700; text-decoration: underline; }
+  .pp .pp-bt { all: unset; cursor: pointer; color: var(--marca); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
   /* Criança: idade de cada uma no painel e o aviso com o botão em cada saída (21/11/2026) */
   .idades { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .idades:empty { display: none; }
@@ -1000,7 +1000,7 @@
     // Esgotada nas cabines escolhidas (Leonardo, 21/11/2026, "Mostrar como Esgotada"): diz a cabine que ainda tem preço.
     var outra = MV.esgotadaNa(s, Object.assign({}, f, { a: a })) ? MV.outraComPreco(s, Object.assign({}, f, { a: a })) : null;
     if (outra) nota += '. Ainda tem ' + NOME[outra.c] + ': ' + reais(outra.t / a) + ' por pessoa';
-    if (troca) nota = '<b>Vendo ' + NOME[troca] + '</b>, taxas inclusas · <button class="pp-bt" data-volta="' + esc(s.id) + '">Voltar</button> · ' +
+    if (troca) nota = '<b>Vendo ' + NOME[troca] + '</b> · <button class="pp-bt" data-volta="' + esc(s.id) + '">Voltar</button> · ' +
       '<button class="pp-bt" data-todas="' + troca + '">Ver todas em ' + NOME[troca] + '</button>';
     // Histórico sempre aberto, sem botão de recolher (Leonardo, 21/11/2026: "não vamos deixar recolher, fica sempre padrão
     // expandido"). ANTES: vinha aberto com um botão no pé para recolher e abrir de novo.
