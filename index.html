@@ -1120,6 +1120,8 @@
       // preferência... vai parecer que fez a pesquisa"): só o aviso, o que foi pesquisado e Refazer / Carregar a salva /
       // WhatsApp. Nenhuma saída, sem Salvar e sem a caixa da preferência (semResultado). ANTES: até 6 saídas "mais
       // próximas" no mesmo cartão das normais, e a caixa da preferência continuava na tela.
+      // Mensagem do WhatsApp leva a pesquisa feita (Leonardo, 21/11/2026: "tem que mostrar qual foi a pesquisa que o cliente
+      // fez"). ANTES: só "não achei a data que eu posso. Pode me ajudar?", sem dizer o que ele pesquisou.
       todas = [];
       $('titulo-lista').innerHTML = 'Nenhuma saída para esta pesquisa';
       $('chamada').innerHTML = '<small>Nenhuma saída para a sua pesquisa</small>';
@@ -1127,7 +1129,7 @@
       aviso = '<div class="vazio sem-res"><span class="pesq-feita">Você pesquisou: ' + esc(MV.resumo(pesquisaAtual())) + '</span>' +
         '<button class="btn" data-vazio="refazer">Refazer pesquisa</button>' +
         (podeSalva ? '<button class="btn contorno" data-vazio="salva">Carregar minha pesquisa salva</button>' : '') +
-        '<a class="btn contorno" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e não achei a data que eu posso. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
+        '<a class="btn contorno" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e não achei a data que eu posso. Pesquisei: ' + MV.resumo(pesquisaAtual()) + '. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
       lista = []; mostradas = []; voltarInicio = false;
       $('lista').innerHTML = aviso;
       return;
