@@ -128,8 +128,15 @@
   .mudar.salva { background: #e8f5f8; }
   .mudar.salva #m-rot { color: var(--marca); font-weight: 700; }
   .mudar.salva #m-rot::before { content: '✓ '; }
-  .mudar .m-txt .m-dica { margin-top: 2px; }
-  .filtros.aberto .m-dica { display: none; }
+  /* Barra numa linha só (Leonardo, 21/11/2026: "ficar só numa linha... A descrição teria que diminuir bastante", Refazer
+     no canto direito): lupa, o resumo cortado com "…" e Refazer; na preferência salva, "✓ Salva" antes do resumo.
+     ANTES: 2 a 3 linhas ("Sua pesquisa" / resumo / "Refazer não muda a sua preferência."). */
+  .mudar { padding: 5px 5px 5px 10px; gap: 8px; }
+  .mudar .m-txt { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+  .mudar .m-txt small#m-rot { flex: none; font-size: 13.5px; }
+  .mudar .m-txt small#m-rot:empty { display: none; }
+  .mudar .m-txt span { flex: 1; min-width: 0; }
+  .mudar .m-bt { padding: 7px 12px; }
   @media (max-width: 699px) {
     /* fechada: só o "Mudar a pesquisa"; a calculadora só para quem respondeu "Quero entender a diferença" no formulário */
     .filtros { padding: 12px; margin-top: 10px; }
@@ -377,6 +384,7 @@
     .car-seta.esq { left: -8px; } .car-seta.dir { right: -8px; }
     .car-seta.fim { opacity: 0; pointer-events: none; }
   }
+  .dica-baixo { text-align: center; margin: -4px 2px 12px; }
   .contagem { text-align: center; color: var(--suave); font-size: 13.5px; margin: 2px 0 10px; }
   .cab.escolhida { border: 2px solid var(--ouro-escuro); background: var(--ouro-claro); }
   .cab.escolhida b { color: var(--ouro-texto); }
@@ -531,7 +539,7 @@
     Com a idade, pode sair menos. Em cada saída tem o botão para o valor exato.</div></div>
 
   <div class="filtros" id="filtros">
-    <button class="mudar" id="mudar" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="m-txt"><small id="m-rot">Sua pesquisa</small><span id="m-resumo"></span><small class="m-dica" id="m-dica" hidden>Refazer não muda a sua preferência.</small></span><span class="m-bt" id="m-bt">Refazer</span></button>
+    <button class="mudar" id="mudar" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="m-txt"><small id="m-rot"></small><span id="m-resumo"></span></span><span class="m-bt" id="m-bt">Refazer</span></button>
     <div class="corpo-filtros">
     <!-- Pesquisa nova (Leonardo, 21/11/2026, 7ª rodada: "tá muito pobre esse layout... modernize bastante... não pode ficar
          uma coisa muito larga e as outras menores"): cada filtro num cartão do mesmo tamanho, opções em grade com botões
@@ -598,6 +606,8 @@
   <p class="dica" id="dica">Arraste para o lado para ver as outras saídas <span class="seta">→</span></p>
   <div id="lista"></div>
   <p class="contagem" id="contagem"></p>
+  <!-- Aviso de arrastar também embaixo, abaixo da contagem (Leonardo, 21/11/2026: "tem que ficar lá em cima e embaixo também"). ANTES: só em cima. -->
+  <p class="dica dica-baixo" id="dica2">Arraste para o lado para ver as outras saídas <span class="seta">→</span></p>
   <div id="sem-preco"></div>
 
   <section class="conversa">
@@ -905,8 +915,7 @@
     var igualSalva = temPref && igual && !f.navio && f.cia === 'todas';
     $('prefs').hidden = !pesquisou || semResultado() || igualSalva;   // sem nada não vira preferência; salva = aviso na barra
     $('mudar').classList.toggle('salva', pesquisou && igualSalva);
-    $('m-rot').textContent = pesquisou && igualSalva ? 'Sua preferência salva' : 'Sua pesquisa';
-    $('m-dica').hidden = !(pesquisou && igualSalva);
+    $('m-rot').textContent = pesquisou && igualSalva ? 'Salva' : '';   // numa linha só (21/11/2026); ANTES: 'Sua preferência salva' : 'Sua pesquisa'
     $('ordem').hidden = semResultado();
     $('prefs').className = 'prefs ' + (igualSalva ? 'salva' : 'nova');
     $('prefs-titulo').textContent = igualSalva ? 'Você está vendo a sua preferência salva' : 'Esta pesquisa ainda não é a sua preferência';
@@ -1145,6 +1154,7 @@
     $('contagem').textContent = ''; $('sem-preco').innerHTML = '';
     $('topo-lista').hidden = !pesquisou;
     $('dica').classList.remove('tem');
+    $('dica2').classList.remove('tem');
     if (!pesquisou) { $('lista').innerHTML = ''; $('chamada').innerHTML = '<small>Cruzeiros com o preço de hoje</small>'; return; }
     if (MV.lotacao(f) === '5') {
       $('chamada').innerHTML = '<small>Para 5 ou mais pessoas, eu monto as opções pelo WhatsApp</small>';
@@ -1192,6 +1202,7 @@
     $('lista').innerHTML = aviso + '<div class="carrossel"><button class="car-seta esq" data-car="-1" aria-label="Saídas anteriores">‹</button>' +
       '<div class="grade" id="grade">' + html + '</div><button class="car-seta dir" data-car="1" aria-label="Próximas saídas">›</button></div>';
     $('dica').classList.toggle('tem', mostradas.length > 1);
+    $('dica2').classList.toggle('tem', mostradas.length > 1);
     ligarCarrossel();
     if (kAntes) rolarAte(kAntes);   // fica no mesmo cartão quando a tela redesenha (favorita, cabine do histórico)
     contar();
