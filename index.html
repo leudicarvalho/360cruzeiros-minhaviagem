@@ -1,21 +1,470 @@
 <!doctype html>
+<!-- Minha Viagem 360cruzeiros (passo 3 do plano, Leonardo, 21/11/2026): página pessoal de cada cliente do Lead Ads.
+     Endereço: https://minhaviagem.360cruzeiros.com.br/?t=&p=&a=&c=&k=&b=&id= (formato do passo 4).
+     Visual e funções reaproveitados do site da Black (blackfriday/site/index.html, que NÃO foi mexido).
+     Contas em mv.js (testadas em testes/minhaviagem_site_21_11.test.js). Preços em dados/precos.json e a linha do tempo em
+     dados/historico.json, gerados por minhaviagem/gerar_dados.py depois de cada leitura do termômetro. Manual:
+     docs/conversas/passagem_minhaviagem.md. Sem dado pessoal no link: só a pesquisa e o código do contato. -->
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Minha Viagem | 360cruzeiros</title>
+<title>Minha Viagem · 360cruzeiros</title>
+<link rel="preload" href="dados/precos.json" as="fetch" crossorigin>
+<link rel="preconnect" href="https://static.wixstatic.com" crossorigin>
 <style>
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f4f7fb;color:#12304a;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
-.c{background:#fff;border-radius:16px;padding:32px 24px;max-width:420px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08)}
-h1{font-size:1.5rem;margin:0 0 12px}p{margin:0;line-height:1.5;color:#46627a}
+  :root {
+    --fundo: #07161d; --card: #0f2a35; --linha: #1e4250; --texto: #ffffff; --suave: #9fb6bf;
+    --ouro: #f8c463; --ouro-escuro: #e8a635; --verde: #25d366; --verde-escuro: #1da851; --queda: #4ade80; --alta: #f87171;
+    --alerta: #e84118; --ciano: #7ee8fa;
+    --fonte: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--fundo); color: var(--texto); font-family: var(--fonte); line-height: 1.4; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 40px; }
+  [hidden] { display: none !important; }
+
+  .topo { position: relative; margin: 0 -16px 4px; padding: 16px 18px 18px; border-radius: 0 0 24px 24px; overflow: hidden;
+    background: linear-gradient(160deg, rgba(7,22,29,.9) 0%, rgba(10,30,40,.8) 50%, rgba(15,46,58,.92) 100%),
+      url('https://static.wixstatic.com/media/c17eb2_48f6acdc40cc445b941835be15115c99~mv2.jpg') center/cover no-repeat; }
+  .topo::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(248,196,99,.6), transparent); }
+  .barra { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; }
+  .logo { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.08); border: 1px solid rgba(248,196,99,.3); border-radius: 60px; padding: 3px 12px 3px 3px; text-decoration: none; }
+  .logo img { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ouro); object-fit: cover; }
+  .logo span { font-weight: 800; font-size: 13px; color: var(--ouro); }
+  .selo { display: inline-flex; align-items: center; height: 32px; background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: var(--fundo); font-weight: 900; letter-spacing: 2px; font-size: 12px; padding: 0 14px; border-radius: 60px; }
+  .atualizado { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 5px 12px; border-radius: 60px; background: rgba(37,211,102,.12); border: 1px solid rgba(37,211,102,.5); color: #fff; font-size: 12px; font-weight: 600; text-align: center; }
+  .atualizado b { color: #7ef0a8; white-space: nowrap; }
+  .atualizado::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--verde); box-shadow: 0 0 0 4px rgba(37,211,102,.25); flex: none; }
+  h1 { font-size: clamp(22px, 4.6vw, 32px); font-weight: 900; line-height: 1.1; letter-spacing: -.5px; text-align: center; }
+  h1 em { font-style: normal; color: var(--ouro); }
+  .resumo { margin: 8px auto 0; max-width: 620px; text-align: center; color: var(--suave); font-size: 13px; }
+  .resumo b { color: #fff; }
+  @media (min-width: 700px) { .barra { justify-content: flex-start; } .atualizado { margin-left: auto; } }
+
+  /* Caixas de aviso (mesmas da Black): info ciano, base ouro, aviso vermelho. */
+  .caixa { border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.4; color: #fff; display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+  .caixa::before { flex: 0 0 22px; height: 22px; border-radius: 50%; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .caixa > div { flex: 1; }
+  .info { background: rgba(126,232,250,.10); border: 1px solid rgba(126,232,250,.5); }
+  .info b { color: var(--ciano); }
+  .info::before { content: '✓'; background: var(--ciano); color: var(--fundo); }
+  .base { background: rgba(248,196,99,.10); border: 1px solid rgba(248,196,99,.5); }
+  .base b { color: var(--ouro); }
+  .base::before { content: 'i'; background: var(--ouro); color: var(--fundo); font-family: Georgia, serif; }
+  .caixa .btn { margin-top: 8px; }
+
+  /* Painel dos filtros: uma linha por filtro, botões em pílula (os da Black). */
+  .filtros { margin-top: 14px; background: #0b222c; border: 1px solid var(--linha); border-top: 4px solid var(--ouro); border-radius: 20px; padding: 14px 14px 12px; }
+  .filtro { display: grid; grid-template-columns: 86px 1fr; gap: 8px; align-items: center; padding: 7px 0; border-bottom: 1px dashed var(--linha); }
+  .filtro:last-of-type { border-bottom: 0; }
+  .filtro > span { color: var(--suave); font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+  .pilulas { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pilulas button { background: transparent; color: var(--texto); border: 1px solid var(--linha); border-radius: 999px; padding: 7px 12px; font: 700 13px var(--fonte); cursor: pointer; white-space: nowrap; }
+  .pilulas button.ativo { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); border-color: var(--ouro); color: var(--fundo); }
+  .pilulas.num button { min-width: 40px; padding: 7px 10px; }
+  select { background: var(--fundo); color: var(--texto); border: 1px solid var(--linha); border-radius: 8px; padding: 9px; font: 500 14px var(--fonte); width: 100%; }
+  .acoes-pesq { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .acoes-pesq .btn { margin: 0; }
+  .btn { display: block; text-align: center; text-decoration: none; background: var(--verde); color: #fff; font-weight: 700; font-size: 14px; padding: 11px; border-radius: 8px; border: 0; cursor: pointer; font-family: inherit; width: 100%; }
+  .btn:hover { background: var(--verde-escuro); }
+  .btn.ouro { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: var(--fundo); }
+  .btn.contorno { background: transparent; border: 2px solid var(--ouro); color: var(--ouro); }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .salvas { grid-column: 1 / -1; text-align: center; color: var(--suave); font-size: 12px; }
+  @media (max-width: 420px) { .filtro { grid-template-columns: 1fr; gap: 6px; } .pilulas button { padding: 7px 10px; font-size: 12.5px; } }
+
+  .ordem { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 18px 2px 8px; flex-wrap: wrap; }
+  .ordem h2 { font-size: 19px; font-weight: 800; }
+  .ordem h2 em { font-style: normal; color: var(--ouro); }
+
+  /* Cartão de cada saída (faixas da Black): data, navio, cabines, e a linha do tempo ao tocar. */
+  .card { border: 1px solid color-mix(in srgb, var(--ouro) 24%, var(--linha)); border-radius: 16px; overflow: hidden; margin-bottom: 12px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ouro) 6%, #0f2a35) 0%, #0b2029 100%); }
+  .c-topo { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: color-mix(in srgb, var(--ouro) 14%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--ouro) 28%, transparent); cursor: pointer; }
+  .c-topo .quando { flex: 1; min-width: 0; }
+  .data { display: block; color: var(--ouro); font-weight: 800; font-size: 16px; white-space: nowrap; }
+  .data i { font-style: normal; font-weight: 700; font-size: 14px; color: #fff; opacity: .75; margin: 0 4px; }
+  .noites { display: block; color: var(--suave); font-size: 12px; font-weight: 600; }
+  .fav { background: none; border: 0; color: var(--suave); font-size: 22px; line-height: 1; cursor: pointer; padding: 2px 4px; }
+  .fav.sim { color: var(--ouro); }
+  .c-navio { padding: 10px 14px; border-bottom: 1px dashed var(--linha); cursor: pointer; }
+  .navio { display: block; font-weight: 800; font-size: 16px; }
+  .rota { display: block; color: var(--suave); font-size: 12px; margin-top: 2px; }
+  .rota b { color: #fff; font-weight: 700; }
+  .cabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 10px 12px 4px; }
+  @media (min-width: 620px) { .cabs { grid-template-columns: repeat(4, 1fr); } }
+  .cab { position: relative; border: 1px solid var(--linha); border-radius: 10px; padding: 8px 9px; background: rgba(0,0,0,.18); min-width: 0; }
+  .cab small { display: block; color: var(--suave); font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
+  .cab b { display: block; font-size: 18px; font-weight: 900; letter-spacing: -.3px; margin-top: 1px; }
+  .cab span { display: block; color: var(--suave); font-size: 11px; }
+  .cab.esg b { color: var(--suave); font-size: 14px; }
+  .cab.escolhida { border: 2px solid var(--ouro); background: color-mix(in srgb, var(--ouro) 14%, #0d2530); }
+  .cab.escolhida b { color: var(--ouro); }
+  .cab.escolhida::after { content: 'Sua escolha'; position: absolute; top: -8px; right: 8px; font-size: 9.5px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 999px; background: var(--ouro); color: var(--fundo); }
+  .pp { color: var(--suave); font-size: 11.5px; padding: 2px 14px 10px; }
+  .ver { display: block; width: 100%; background: none; border: 0; border-top: 1px dashed var(--linha); color: var(--ciano); font: 700 13px var(--fonte); padding: 9px; cursor: pointer; }
+  .detalhe { padding: 4px 14px 14px; border-top: 1px dashed var(--linha); }
+  .detalhe h3 { font-size: 14px; margin: 10px 0 4px; }
+  .detalhe .abas { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 8px; }
+  .grafico { width: 100%; max-width: 520px; height: auto; display: block; }
+  .grafico text { fill: var(--suave); font: 600 10px var(--fonte); }
+  .legenda { color: var(--suave); font-size: 11.5px; margin-top: 4px; }
+  .vazio { background: var(--card); border: 1px dashed var(--linha); border-radius: 12px; padding: 18px; color: var(--suave); text-align: center; margin-bottom: 12px; }
+  .vazio .btn { max-width: 320px; margin: 12px auto 0; }
+  .termometro { margin-top: 10px; }
+
+  section.conversa { margin-top: 22px; background: #0b222c; border: 1px solid var(--linha); border-top: 4px solid #e4eef2; border-radius: 20px; padding: 18px 16px; text-align: center; }
+  section.conversa h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+  section.conversa h2 em { font-style: normal; color: var(--ouro); }
+  section.conversa p { color: var(--suave); font-size: 14px; }
+  section.conversa .btn { max-width: 340px; margin: 14px auto 0; }
+  .rodape { color: var(--suave); font-size: 12px; text-align: center; margin-top: 30px; }
+
+  /* Janela do Salvar (a janelinha do "Quero esse" da Black). */
+  .fundo-janela { position: fixed; inset: 0; background: rgba(3,10,14,.75); z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .janela { position: relative; width: min(420px, 100%); background: var(--card); border: 1px solid var(--ouro); border-radius: 16px; padding: 18px; box-shadow: 0 18px 50px rgba(0,0,0,.6); }
+  .janela h3 { font-size: 19px; font-weight: 900; margin-bottom: 6px; padding-right: 28px; }
+  .janela p { color: var(--suave); font-size: 13px; margin-bottom: 12px; }
+  .janela p b { color: var(--ouro); }
+  .janela label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--suave); margin-bottom: 10px; }
+  .janela input { background: var(--fundo); color: var(--texto); border: 1px solid var(--linha); border-radius: 8px; padding: 11px; font: 500 16px var(--fonte); width: 100%; }
+  .janela input.falta { border-color: var(--alta); box-shadow: 0 0 0 2px rgba(248,113,113,.35); }
+  .janela .fechar { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--suave); font-size: 24px; line-height: 1; cursor: pointer; }
+  .erro { color: var(--alta); font-size: 13px; font-weight: 700; margin: 0 0 10px; }
+  .erro:empty { display: none; }
+  .pronto h3 { color: var(--queda); }
+  .mel { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 </style>
 </head>
 <body>
-<div class="c">
-<h1>Minha Viagem</h1>
-<p>360cruzeiros &middot; agência autorizada CVC</p>
-<p style="margin-top:12px">Página em preparação.</p>
+<div class="wrap">
+  <header class="topo">
+    <div class="barra">
+      <a class="logo" href="https://www.360cruzeiros.com.br" target="_blank" rel="noopener">
+        <img src="https://static.wixstatic.com/media/c17eb2_bd92c19f1aa14666be0f75c50a83609a~mv2.jpg/v1/fill/w_64,h_64,q_90/logo.webp" alt="360cruzeiros" width="28" height="28">
+        <span>360cruzeiros</span>
+      </a>
+      <span class="selo">MINHA VIAGEM</span>
+      <p class="atualizado" id="atualizado">Carregando preços...</p>
+    </div>
+    <h1>Sua pesquisa de cruzeiro, <em>com os preços de hoje</em></h1>
+    <p class="resumo" id="resumo"></p>
+  </header>
+
+  <p class="caixa info"><span><b>Cruzeiros MSC e Costa que saem de Santos e voltam para Santos.</b> Mude a pesquisa à vontade: nada é salvo até você tocar em "Salvar minhas preferências".</span></p>
+
+  <div class="caixa base" id="aviso-criancas" hidden><div><b>Os preços desta página são para adultos.</b> Com criança, o valor muda conforme a idade de cada uma.
+    <a class="btn" id="btn-idades" href="#" target="_blank" rel="noopener">Ver o preço exato com as idades</a></div></div>
+
+  <div class="filtros" id="filtros">
+    <div class="filtro"><span>Quando</span><div class="pilulas" data-f="p">
+      <button data-v="nd26">Nov/dez 2026</button><button data-v="jf27">Jan/fev 2027</button><button data-v="carn27">Carnaval 2027</button><button data-v="ma27">Mar/abr 2027</button><button data-v="todas">Todas as datas</button></div></div>
+    <div class="filtro"><span>Noites</span><div class="pilulas" data-f="t">
+      <button data-v="mini">3 e 4 noites</button><button data-v="longo">5 noites ou mais</button><button data-v="todos">Todas</button></div></div>
+    <div class="filtro"><span>Navio</span><div><select id="navio"><option value="">Todos os navios</option></select></div></div>
+    <div class="filtro"><span>Adultos</span><div class="pilulas num" data-f="a">
+      <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5 ou mais</button></div></div>
+    <div class="filtro"><span>Crianças</span><div class="pilulas num" data-f="c">
+      <button data-v="0">Nenhuma</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div></div>
+    <div class="filtro"><span>Cabine</span><div class="pilulas" data-f="k">
+      <button data-v="int">Interna</button><button data-v="ext">Externa</button><button data-v="var">Varanda</button><button data-v="todas">Comparar todas</button></div></div>
+    <div class="filtro"><span>Bebidas</span><div class="pilulas" data-f="b">
+      <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div></div>
+    <p class="legenda" id="legenda-pacote"></p>
+    <div class="caixa base" id="convite-calc" hidden><div><b>Em dúvida sobre o pacote de bebidas?</b> A calculadora mostra em 1 minuto qual vale mais a pena para você.
+      <a class="btn ouro" id="btn-calc" href="#">Confira se este pacote é o ideal</a></div></div>
+    <div class="acoes-pesq">
+      <button class="btn contorno" id="voltar">Voltar às minhas preferências</button>
+      <button class="btn" id="salvar">Salvar minhas preferências</button>
+      <p class="salvas" id="salvas"></p>
+    </div>
+  </div>
+
+  <div class="ordem"><h2 id="titulo-lista">Saídas</h2>
+    <div class="pilulas" id="ordem"><button data-v="preco" class="ativo">Mais barato primeiro</button><button data-v="data">Por data</button></div></div>
+  <div id="lista"></div>
+
+  <section class="conversa">
+    <h2>Vai com mais de 4 pessoas ou quer sair de outro porto? <em>Me chama no WhatsApp</em></h2>
+    <p>Esta página mostra os cruzeiros que saem e voltam para Santos, para 1 a 4 adultos. Para qualquer outra viagem, eu procuro as opções mais em conta para você.</p>
+    <a class="btn" id="chamar" href="#" target="_blank" rel="noopener">Chamar no WhatsApp</a>
+  </section>
+
+  <p class="rodape">Preços do dia para adultos, com taxas, na categoria mais em conta de cada tipo de cabine. Com pacote de bebidas, o total soma o pacote de cada adulto. Sujeitos a disponibilidade e confirmados no atendimento.<br>360cruzeiros, agência autorizada CVC.</p>
 </div>
+
+<div class="fundo-janela" id="janela" hidden>
+  <div class="janela" role="dialog" aria-modal="true" aria-labelledby="j-titulo">
+    <button class="fechar" id="j-fechar" aria-label="Fechar">×</button>
+    <div id="j-form">
+      <h3 id="j-titulo">Salvar minhas preferências</h3>
+      <p>Confirme seu WhatsApp: é por ele que você recebe o link da sua pesquisa salva.<br><b id="j-resumo"></b></p>
+      <label>Seu WhatsApp, com DDD<input id="j-whats" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999"></label>
+      <div class="mel" aria-hidden="true"><label>Não preencha<input id="j-mel" tabindex="-1" autocomplete="off"></label></div>
+      <p class="erro" id="j-erro"></p>
+      <button class="btn" id="j-enviar">Salvar</button>
+    </div>
+    <div id="j-pronto" class="pronto" hidden>
+      <h3>Pronto!</h3>
+      <p>Sua pesquisa foi salva. Em instantes você recebe no WhatsApp o link dela, para consultar quando quiser.</p>
+    </div>
+    <div id="j-semcodigo" hidden>
+      <h3>Salvar minhas preferências</h3>
+      <p>Para salvar esta pesquisa, me chama no WhatsApp que eu guardo para você.</p>
+      <a class="btn" id="j-chamar" href="#" target="_blank" rel="noopener">Chamar no WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+<script src="mv.js"></script>
+<script>
+(function () {
+  "use strict";
+  var WHATS = '5582993258783';   // número do Leonardo (o mesmo do site da Black)
+  var WEBHOOK_SALVAR = 'https://mkt.enturos.com/api/automations/hooks/2sub5P8fIwKeroFZs7T0l0Zo';   // webhook 53 "preferências salvas (site)"
+  var CALCULADORA = 'calculadora/';   // passo 4B (outra conversa); recebe ?c=<código>&adultos=&cia=&noites=&saida=
+  var NOME = MV.NOME_CABINE;
+
+  function $(id) { return document.getElementById(id); }
+  function reais(n) { return 'R$ ' + Math.round(n).toLocaleString('pt-BR'); }
+  function dm(iso) { return iso.slice(8, 10) + '/' + iso.slice(5, 7); }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function linkWhats(texto) { return 'https://wa.me/' + WHATS + '?text=' + encodeURIComponent(texto); }
+  function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function ler(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  var salva = MV.lerPesquisa(location.search);   // a pesquisa do link = "minhas preferências"
+  var f = Object.assign({}, salva, { navio: '', ordem: 'preco' });
+  // "Quero entender a diferença": a página abre sem pacote e com o convite da calculadora
+  if (f.b === 'entender') f.b = 'sem';
+  var dados = null, hist = null, histPedido = null, abertas = {}, cabDetalhe = {};
+  var favs = {}; try { favs = JSON.parse(ler('mv_favoritas') || '{}') || {}; } catch (e) { favs = {}; }
+
+  function pesquisaAtual() {
+    // "entender" continua salvo enquanto o cliente não escolher um pacote
+    var p = Object.assign({}, f);
+    if (salva.b === 'entender' && f.b === 'sem') p.b = 'entender';
+    return p;
+  }
+  function adultos() { return f.a === '5' ? '4' : f.a; }
+
+  function marcar() {
+    [].forEach.call(document.querySelectorAll('.pilulas[data-f]'), function (g) {
+      [].forEach.call(g.children, function (b) { b.classList.toggle('ativo', b.dataset.v === String(f[g.dataset.f])); });
+    });
+    [].forEach.call($('ordem').children, function (b) { b.classList.toggle('ativo', b.dataset.v === f.ordem); });
+    var p = pesquisaAtual(), igual = MV.mesmaPesquisa(p, salva);
+    $('resumo').innerHTML = '<b>Sua pesquisa:</b> ' + esc(MV.resumo(p));
+    $('voltar').disabled = igual && !f.navio;
+    $('salvar').disabled = igual;
+    $('salvas').textContent = igual ? 'Estas são as suas preferências salvas.' : 'Você mudou a pesquisa: toque em Salvar para guardar.';
+    $('aviso-criancas').hidden = f.c === '0';
+    $('convite-calc').hidden = !(salva.b === 'entender' || f.b !== 'sem');
+    $('legenda-pacote').textContent = f.b === 'sem' ? '' : 'Básico = Easy na MSC e My Drinks na Costa. Premium = Premium Extra na MSC e My Drinks Plus na Costa. Sem álcool = Não Alcoólico na MSC e My Soft Drinks na Costa.';
+    $('btn-calc').href = CALCULADORA + '?c=' + encodeURIComponent(salva.id) + '&adultos=' + adultos();
+    $('btn-idades').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero o preço exato com as idades das crianças.');
+  }
+
+  function periodo(s) { var v = MV.volta(s); return dm(s.embarque) + '<i>a</i>' + dm(v); }
+
+  function card(s, i) {
+    var a = adultos(), o = s.ocup[a], cabs = MV.CABINES.filter(function (c) { return o && (c in o.cab); });
+    var celulas = cabs.map(function (c) {
+      var t = MV.total(s, a, c, f.b), esc1 = c === f.k ? ' escolhida' : '';
+      if (t === null) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>Esgotada</b></div>';
+      if (t === undefined) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>No WhatsApp</b></div>';
+      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '</small><b>' + reais(t) + '</b><span>' + reais(t / a) + ' por adulto</span></div>';
+    }).join('');
+    var pk = MV.pacote(s, f.b);
+    var nota = a + (a === '1' ? ' adulto' : ' adultos') + ', taxas inclusas' +
+      (f.b === 'sem' ? ', sem pacote de bebidas' : pk ? ', com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)' : '') +
+      (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
+    var aberta = abertas[s.id];
+    return '<div class="card" data-i="' + i + '">' +
+      '<div class="c-topo abre"><div class="quando"><span class="data">' + periodo(s) + '</span>' +
+        '<span class="noites">' + s.embarque.slice(0, 4) + ' · ' + s.noites + ' noites · ' + esc(s.cia) + '</span></div>' +
+        '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
+      '<div class="c-navio abre"><span class="navio">' + esc(s.navio) + '</span>' +
+        '<span class="rota"><b>Santos</b> → ' + esc(s.roteiro.replace(/^Santos,\s*/, '').replace(/,\s*Santos$/, '')) + ' → <b>Santos</b></span></div>' +
+      '<div class="cabs">' + celulas + '</div><p class="pp">' + nota + '</p>' +
+      (aberta ? detalhe(s) : '') +
+      '<button class="ver abre">' + (aberta ? 'Fechar a linha do tempo' : 'Ver a linha do tempo do preço') + '</button></div>';
+  }
+
+  // Linha do tempo (abre ao tocar na saída): o preço de cada dia da cabine, para os adultos e o pacote escolhidos.
+  function detalhe(s) {
+    var a = adultos(), cab = cabDetalhe[s.id] || (f.k !== 'todas' ? f.k : 'int');
+    var abas = MV.CABINES.filter(function (c) { return s.ocup[a] && (c in s.ocup[a].cab); }).map(function (c) {
+      return '<button data-cab="' + c + '" data-s="' + esc(s.id) + '"' + (c === cab ? ' class="ativo"' : '') + '>' + NOME[c] + '</button>';
+    }).join('');
+    var corpo;
+    if (!hist) corpo = '<p class="legenda">Carregando a linha do tempo...</p>';
+    else {
+      var pts = MV.linhaDoTempo(hist, s.id, a, cab, f.b);
+      corpo = pts.length < 2 ? '<p class="legenda">Ainda temos poucos dias de leitura desta cabine para mostrar a linha do tempo.</p>' : grafico(pts);
+    }
+    var texto = 'Oi, Leonardo! Vi na minha página o ' + s.navio + ', de ' + dm(s.embarque) + ' a ' + dm(MV.volta(s)) + ', ' + s.noites + ' noites, cabine ' +
+      NOME[cab].toLowerCase() + ', para ' + a + (a === '1' ? ' adulto' : ' adultos') + '. Pode conferir para mim?';
+    return '<div class="detalhe"><h3>Como o preço andou</h3><div class="pilulas abas">' + abas + '</div>' + corpo +
+      '<div class="termometro" hidden></div>' +
+      '<a class="btn" style="margin-top:12px" href="' + linkWhats(texto) + '" target="_blank" rel="noopener">Quero esta saída</a></div>';
+  }
+
+  function grafico(pts) {
+    var W = 320, H = 150, e = 46, d = 8, t = 10, b = 22;
+    var vals = pts.filter(function (p) { return p[1] !== null; }).map(function (p) { return p[1]; });
+    if (!vals.length) return '<p class="legenda">Esgotada em todos os dias lidos.</p>';
+    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+    if (mn === mx) { mn -= 100; mx += 100; }
+    var d0 = new Date(pts[0][0]), d1 = new Date(pts[pts.length - 1][0]), dias = Math.max(1, (d1 - d0) / 864e5);
+    function x(dia) { return e + (W - e - d) * ((new Date(dia) - d0) / 864e5) / dias; }
+    function y(v) { return t + (H - t - b) * (1 - (v - mn) / (mx - mn)); }
+    var linha = '', pontos = '', lista = false;
+    pts.forEach(function (p, k) {
+      if (p[1] === null) { pontos += '<text x="' + x(p[0]) + '" y="' + (H - b + 2) + '" text-anchor="middle" fill="#f87171">×</text>'; return; }
+      linha += (linha && pts[k - 1] && pts[k - 1][1] !== null ? 'L' : 'M') + x(p[0]).toFixed(1) + ' ' + y(p[1]).toFixed(1);
+      if (p[2]) lista = true;
+      pontos += '<circle cx="' + x(p[0]).toFixed(1) + '" cy="' + y(p[1]).toFixed(1) + '" r="2.6" ' + (p[2] ? 'fill="#07161d" stroke="#f8c463"' : 'fill="#f8c463"') + '/>';
+    });
+    var ult = pts.filter(function (p) { return p[1] !== null; }).pop();
+    function mil(v) { return (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil'; }
+    var svg = '<svg class="grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Preço por dia">' +
+      '<line x1="' + e + '" y1="' + y(mx) + '" x2="' + (W - d) + '" y2="' + y(mx) + '" stroke="#1e4250" stroke-dasharray="3 3"/>' +
+      '<line x1="' + e + '" y1="' + y(mn) + '" x2="' + (W - d) + '" y2="' + y(mn) + '" stroke="#1e4250" stroke-dasharray="3 3"/>' +
+      '<text x="' + (e - 4) + '" y="' + (y(mx) + 3) + '" text-anchor="end">' + mil(mx) + '</text>' +
+      '<text x="' + (e - 4) + '" y="' + (y(mn) + 3) + '" text-anchor="end">' + mil(mn) + '</text>' +
+      '<path d="' + linha + '" fill="none" stroke="#f8c463" stroke-width="2"/>' + pontos +
+      '<text x="' + e + '" y="' + (H - 6) + '">' + dm(pts[0][0]) + '</text>' +
+      '<text x="' + (W - d) + '" y="' + (H - 6) + '" text-anchor="end">' + dm(pts[pts.length - 1][0]) + '</text></svg>';
+    return svg + '<p class="legenda">Hoje: <b>' + reais(ult[1]) + '</b> · menor: ' + reais(Math.min.apply(null, vals)) + ' · maior: ' + reais(Math.max.apply(null, vals)) +
+      (lista ? '<br>Bolinha vazia = preço da lista do site, que pode variar um pouco.' : '') + '</p>';
+  }
+
+  var mostradas = [];
+  function desenhar() {
+    marcar();
+    if (!dados) return;
+    var hoje = dados.leitura;
+    if (f.a === '5') {
+      $('titulo-lista').innerHTML = 'Para <em>5 ou mais</em> pessoas';
+      $('lista').innerHTML = '<div class="vazio">Para 5 ou mais pessoas, eu monto as opções pelo WhatsApp, com o valor certinho da cabine de vocês.' +
+        '<a class="btn" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e vamos ser 5 ou mais pessoas. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
+      return;
+    }
+    var g = Object.assign({}, f, { a: adultos() });
+    var r = MV.filtrar(dados.saidas, g, hoje), html = '';
+    mostradas = r.lista;
+    var gente = g.a + (g.a === '1' ? ' adulto' : ' adultos');
+    if (!r.lista.length && r.semPreco.length) {
+      $('titulo-lista').innerHTML = '<em>' + r.semPreco.length + '</em> ' + (r.semPreco.length === 1 ? 'saída' : 'saídas') + ' nesta pesquisa';
+    } else if (!r.lista.length) {
+      var perto = MV.maisProximas(dados.saidas, g, hoje, 5);
+      mostradas = perto;
+      $('titulo-lista').innerHTML = 'Nenhuma saída nesta pesquisa';
+      html = '<div class="vazio">Não achei saída com esses filtros' + (perto.length ? '. Estas são as mais próximas do período que você escolheu:' : '.') +
+        '<a class="btn" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e não achei a data que eu posso. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
+    } else {
+      $('titulo-lista').innerHTML = '<em>' + r.lista.length + '</em> ' + (r.lista.length === 1 ? 'saída' : 'saídas') + ' para você';
+    }
+    html += mostradas.map(card).join('');
+    if (r.semPreco.length) {
+      html += '<div class="vazio">' + (r.lista.length ? 'Mais ' : '') + r.semPreco.length + (r.semPreco.length === 1 ? ' saída' : ' saídas') +
+        ' desta pesquisa ainda sem o preço de hoje para ' + gente + (f.k !== 'todas' ? ' nesta cabine' : '') + '. Eu confiro para você:<a class="btn" href="' +
+        linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero o preço para ' + gente + '.') +
+        '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
+    }
+    $('lista').innerHTML = html;
+  }
+
+  function navios() {
+    var sel = $('navio'), nomes = {};
+    dados.saidas.forEach(function (s) { nomes[s.navio] = 1; });
+    Object.keys(nomes).sort().forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o); });
+  }
+
+  function pedirHistorico() {
+    if (histPedido) return;
+    histPedido = fetch('dados/historico.json').then(function (r) { return r.json(); }).then(function (j) { hist = j; desenhar(); })
+      .catch(function () { hist = { dias: [], saidas: {} }; desenhar(); });
+  }
+
+  // Cliques: filtros, ordem, abrir saída, cabine da linha do tempo, favorita.
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('button, .abre');
+    if (!b) return;
+    var grupo = b.parentNode && b.parentNode.dataset && b.parentNode.dataset.f;
+    if (grupo) { f[grupo] = b.dataset.v; abertas = {}; desenhar(); return; }
+    if (b.parentNode && b.parentNode.id === 'ordem') { f.ordem = b.dataset.v; desenhar(); return; }
+    if (b.dataset.fav) {
+      var id = b.dataset.fav; if (favs[id]) delete favs[id]; else favs[id] = 1;
+      guardar('mv_favoritas', JSON.stringify(favs)); desenhar(); return;
+    }
+    if (b.dataset.cab) { cabDetalhe[b.dataset.s] = b.dataset.cab; desenhar(); return; }
+    var c = b.closest('.card');
+    if (c && b.classList.contains('abre')) {
+      var s = mostradas[+c.dataset.i];
+      abertas[s.id] = !abertas[s.id];
+      if (abertas[s.id]) pedirHistorico();
+      desenhar();
+    }
+  });
+  $('navio').onchange = function () { f.navio = this.value; desenhar(); };
+  $('voltar').onclick = function () {
+    f = Object.assign({}, salva, { navio: '', ordem: f.ordem }); if (f.b === 'entender') f.b = 'sem';
+    $('navio').value = ''; abertas = {}; desenhar(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Salvar: pede o WhatsApp (uma vez, guardado no aparelho) e manda a pesquisa ao webhook 53 com o código do link.
+  function abrirJanela() {
+    $('janela').hidden = false;
+    var sem = !salva.id;
+    $('j-form').hidden = sem; $('j-pronto').hidden = true; $('j-semcodigo').hidden = !sem;
+    $('j-chamar').href = linkWhats('Oi, Leonardo! Quero salvar minha pesquisa de cruzeiro: ' + MV.resumo(pesquisaAtual()) + '.');
+    $('j-resumo').textContent = MV.resumo(pesquisaAtual());
+    $('j-whats').value = ler('mv_whats') || ''; $('j-erro').textContent = ''; $('j-whats').classList.remove('falta');
+    $('j-enviar').disabled = false; $('j-enviar').textContent = 'Salvar';
+  }
+  $('salvar').onclick = abrirJanela;
+  $('j-fechar').onclick = function () { $('janela').hidden = true; };
+  $('janela').onclick = function (ev) { if (ev.target === this) this.hidden = true; };
+  $('j-enviar').onclick = function () {
+    var w = MV.conferirWhats($('j-whats').value);
+    if (!w.num) { $('j-erro').textContent = w.motivo; $('j-whats').classList.add('falta'); return; }
+    var corpo = MV.montarEnvio(pesquisaAtual(), salva.id, w.num, $('j-mel').value);
+    var bt = this; bt.disabled = true; bt.textContent = 'Salvando...';
+    fetch(WEBHOOK_SALVAR, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); })
+      .then(function () {
+        guardar('mv_whats', w.num);
+        salva = MV.lerPesquisa(MV.linkPesquisa(pesquisaAtual(), salva.id));
+        try { history.replaceState(null, '', MV.linkPesquisa(salva, salva.id)); } catch (e) {}
+        $('j-form').hidden = true; $('j-pronto').hidden = false; desenhar();
+      })
+      .catch(function () {
+        bt.disabled = false; bt.textContent = 'Salvar';
+        $('j-erro').textContent = 'Não consegui salvar agora. Tente de novo em instantes ou me chama no WhatsApp.';
+      });
+  };
+
+  $('chamar').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero ajuda com outra viagem.');
+
+  marcar();
+  fetch('dados/precos.json').then(function (r) { return r.json(); }).then(function (j) {
+    dados = j;
+    $('atualizado').innerHTML = 'Preços de <b>' + dm(j.leitura) + '/' + j.leitura.slice(0, 4) + '</b>';
+    navios();
+    desenhar();
+  }).catch(function () {
+    $('atualizado').textContent = 'Não consegui carregar os preços agora.';
+    $('lista').innerHTML = '<div class="vazio">Não consegui carregar os preços agora. Tente de novo em instantes ou me chama no WhatsApp.' +
+      '<a class="btn" href="' + linkWhats('Oi, Leonardo! Tentei abrir minha página de cruzeiros e os preços não carregaram.') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
+  });
+})();
+</script>
 </body>
 </html>
