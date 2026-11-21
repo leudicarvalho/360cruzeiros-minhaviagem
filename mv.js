@@ -313,6 +313,18 @@
   function diaDaSemana(iso) { return SEMANA[new Date(iso + "T12:00:00Z").getUTCDay()]; }
   function nomeMesCurto(iso) { return MESES[+iso.slice(5, 7) - 1]; }
 
+  // Pacote de bebidas ao lado do histórico (Leonardo, 21/11/2026: o histórico é só do cruzeiro, sem bebidas; o pacote vai
+  // numa linha à parte). Do histórico do pacote (pk_<nível>) tira o valor mais recente por adulto, o dia dessa leitura e
+  // desde quando ele não muda (só quando houve mais de uma leitura com o mesmo valor). null = sem leitura.
+  function pacoteNoHistorico(hist, id, a, b) {
+    var h = hist && hist.saidas && hist.saidas[id] && hist.saidas[id][String(a)];
+    var l = h && h["pk_" + b];
+    if (!l || !l.length) return null;
+    var ult = l[l.length - 1], k = l.length - 1;
+    while (k > 0 && l[k - 1][1] === ult[1]) k--;
+    return { v: ult[1], lidoEm: hist.dias[ult[0]], desde: k < l.length - 1 ? hist.dias[l[k][0]] : "" };
+  }
+
   // Faixa do preço, como no Google Flights (Leonardo, 21/11/2026): de pts da linhaDoTempo tira o preço de hoje (o último
   // dia lido), o menor e o maior (com o dia; empate = o dia mais recente), onde o de hoje fica entre eles (pos 0 a 1) e o
   // nível: baixo (terço de baixo), medio, alto (terço de cima) ou estavel (sempre o mesmo). Esgotada hoje = hoje null.
@@ -351,7 +363,7 @@
     return q.length ? "?" + q.join("&") : "";
   }
 
-  var api = { faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+  var api = { pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,

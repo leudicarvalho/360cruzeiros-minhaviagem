@@ -269,6 +269,10 @@
      ele está atualmente e quando que foi o mais barato e o mais caro"; vem aberta). Verde = terço mais barato, amarelo =
      meio, vermelho = terço mais caro; a marca "Hoje" mostra onde o preço de hoje está. Embaixo, o caminho do preço por dia
      com o menor (verde) e o maior (vermelho) marcados. ANTES: só o gráfico de linha, fechado, aberto ao tocar. */
+  .sem-beb { display: inline-block; font-size: 11px; font-weight: 700; color: var(--marca); background: var(--marca-clara); border-radius: 999px; padding: 1px 7px; margin-left: 2px; }
+  .pacote-linha { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--ouro-claro); border: 1px solid #f0cf8a; font-size: 13px; }
+  .pacote-linha b { color: var(--ouro-texto); font-weight: 700; }
+  .pacote-linha span { color: var(--suave); font-size: 12px; }
   .nivel { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; font-size: 13px; margin-bottom: 4px; }
   .nivel b { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
   .nivel.baixo b { background: #dcf5e4; color: #0f6b34; }
@@ -664,13 +668,15 @@
     var corpo;
     if (!hist) corpo = '<p class="legenda">Carregando o histórico do preço...</p>';
     else {
-      var pts = MV.linhaDoTempo(hist, s.id, a, cab, f.b).map(function (p) { return [p[0], p[1] === null ? null : Math.round(p[1] / a), p[2]]; });
+      // Sempre SEM bebidas (Leonardo, 21/11/2026): a bebida muda pouco e foi lida poucas vezes; somada, encurtava o
+      // histórico e escondia a variação da cabine. ANTES: com pacote escolhido, somava o pacote de cada dia.
+      var pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(function (p) { return [p[0], p[1] === null ? null : Math.round(p[1] / a), p[2]]; });
       var fx = MV.faixaPreco(pts);
-      corpo = !fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx);
+      corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx)) + linhaPacote(s, a);
     }
     var texto = 'Oi, Leonardo! Vi na minha página o ' + s.navio + ', de ' + dm(s.embarque) + ' a ' + dm(MV.volta(s)) + ', ' + s.noites + ' noites, cabine ' +
       NOME[cab].toLowerCase() + ', para ' + a + (a === '1' ? ' adulto' : ' adultos') + '. Pode conferir para mim?';
-    return '<div class="detalhe"><h3>Como o preço por pessoa andou</h3><div class="pilulas abas">' + abas + '</div>' + corpo +
+    return '<div class="detalhe"><h3>Histórico do preço do cruzeiro, por pessoa <span class="sem-beb">sem bebidas</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
       '<div class="termometro" hidden></div>' + calcDaSaida(s) +
       '<a class="btn" style="margin-top:12px" href="' + linkWhats(texto) + '" target="_blank" rel="noopener">Quero esta saída</a></div>';
   }
@@ -680,6 +686,15 @@
     var calc = MV.conviteCalc(salva.b, f.b);
     if (!calc) return '';
     return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultos(), s)) + '">' + esc(calc.botao) + '</a>';
+  }
+
+  // Linha do pacote escolhido, à parte do histórico: valor por adulto e desde quando não muda.
+  function linhaPacote(s, a) {
+    if (f.b !== 'soft' && f.b !== 'basico' && f.b !== 'premium') return '';
+    var pk = MV.pacote(s, f.b), ph = MV.pacoteNoHistorico(hist, s.id, a, f.b);
+    if (!pk) return '';
+    var quando = ph && ph.desde ? 'sem mudança desde ' + dm(ph.desde) : 'preço lido em ' + dm((ph && ph.lidoEm) || pk.lidoEm);
+    return '<p class="pacote-linha"><b>+ Pacote ' + esc(pk.nome) + ':</b> ' + reais(pk.v) + ' por pessoa <span>(' + quando + ')</span></p>';
   }
 
   function menorCabine(s) {
