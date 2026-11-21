@@ -112,6 +112,7 @@
      muito para baixo... Nem que para isso a linha desça um pouco"): o − + desce para a última linha (o preço, ou a média
      que entra na conta) e essa linha ganha a altura dele. ANTES: o − + no meio do item, acima do preço. */
   .item.com-marcas { align-items: flex-end; }
+  .preco-dir { color: var(--texto); font-weight: 800; font-size: 16px; white-space: nowrap; }
   .item.com-marcas .marcas li:last-child { min-height: 42px; align-items: center; }
   .item-nome { flex: 1; min-width: 0; }
   /* Preço da bebida sem marcas (sem álcool) em destaque, como o das alcoólicas (Leonardo, 21/11/2026: "os valores do não
@@ -369,8 +370,12 @@
         var varia = precos.some(function (v) { return v !== precos[0]; });
         info = el("ul", { "class": "marcas" }, it.marcas.map(function (m) { return el("li", {}, [el("span", { texto: m.nome }), el("b", { texto: precoMarca(m) })]); })
           .concat(varia ? [el("li", { "class": "media", texto: "Na conta: média de " + reais(avulso) }) ] : []));
-      } else info = el("span", { "class": "preco-item" }, [el("b", { texto: reais(avulso) }), " avulso"]);
-      return el("div", { "class": "item" + (it.marcas && it.marcas.length ? " com-marcas" : "") }, [el("span", { "class": "item-nome" }, [it.nome, info]), span]);
+        return el("div", { "class": "item com-marcas" }, [el("span", { "class": "item-nome" }, [it.nome, info]), span]);
+      }
+      // Sem álcool: o preço à direita, ao lado do − +, sem a palavra "avulso", no mesmo padrão das alcoólicas
+      // (Leonardo, 21/11/2026: "o preço do sem álcool pode ficar ali à direita também e tirar o avulso").
+      // ANTES: "R$ X avulso" embaixo do nome.
+      return el("div", { "class": "item" }, [el("span", { "class": "item-nome" }, [it.nome]), el("b", { "class": "preco-dir", texto: reais(avulso) }), span]);
     }
 
     // Lista do dia conforme o foco: "economia" só os itens do básico, "qualidade" só os do premium, "todos" em blocos
