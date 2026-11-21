@@ -123,6 +123,16 @@
   .filtros:not(.aberto) #convite-calc:not(.forte) { display: none; }
   .filtros.aberto .corpo-filtros { margin-top: 8px; }
   .filtros.sem-pesquisa .mudar { display: none; }
+  /* Preferência salva na própria barra (Leonardo, 21/11/2026: "Juntar esses dois alertas em um só... no fim vai ter o botão
+     refazer"): quando a tela mostra a pesquisa salva, a barra "Sua pesquisa" vira "✓ Sua preferência salva", com fundo azul
+     claro e a dica "Refazer não muda a sua preferência."; a caixa azul de baixo some. ANTES: duas caixas, a barra com o
+     resumo e Refazer e, embaixo, "Você está vendo a sua preferência salva / Quer ver outras datas ou cabines? Toque em
+     Refazer, lá em cima. Sua preferência só muda se você salvar." A caixa dourada (pesquisa diferente, com Salvar) continua. */
+  .mudar.salva { background: #e8f5f8; }
+  .mudar.salva #m-rot { color: var(--marca); font-weight: 700; }
+  .mudar.salva #m-rot::before { content: '✓ '; }
+  .mudar .m-txt .m-dica { margin-top: 2px; }
+  .filtros.aberto .m-dica { display: none; }
   @media (max-width: 699px) {
     /* fechada: só o "Mudar a pesquisa"; a calculadora só para quem respondeu "Quero entender a diferença" no formulário */
     .filtros { padding: 12px; margin-top: 10px; }
@@ -524,7 +534,7 @@
     Com a idade, pode sair menos. Em cada saída tem o botão para o valor exato.</div></div>
 
   <div class="filtros" id="filtros">
-    <button class="mudar" id="mudar" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="m-txt"><small>Sua pesquisa</small><span id="m-resumo"></span></span><span class="m-bt" id="m-bt">Refazer</span></button>
+    <button class="mudar" id="mudar" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="m-txt"><small id="m-rot">Sua pesquisa</small><span id="m-resumo"></span><small class="m-dica" id="m-dica" hidden>Refazer não muda a sua preferência.</small></span><span class="m-bt" id="m-bt">Refazer</span></button>
     <div class="corpo-filtros">
     <!-- Pesquisa nova (Leonardo, 21/11/2026, 7ª rodada: "tá muito pobre esse layout... modernize bastante... não pode ficar
          uma coisa muito larga e as outras menores"): cada filtro num cartão do mesmo tamanho, opções em grade com botões
@@ -881,12 +891,14 @@
     // Caixa das preferências: azul quando a tela mostra a pesquisa salva; dourada, com Salvar e Voltar, quando não.
     // Sem link (sem preferências salvas): só aparece depois de pesquisar, com o Salvar (que leva ao WhatsApp).
     var igualSalva = temPref && igual && !f.navio && f.cia === 'todas';
-    $('prefs').hidden = !pesquisou || semResultado();   // pesquisa sem nada não vira preferência
+    $('prefs').hidden = !pesquisou || semResultado() || igualSalva;   // sem nada não vira preferência; salva = aviso na barra
+    $('mudar').classList.toggle('salva', pesquisou && igualSalva);
+    $('m-rot').textContent = pesquisou && igualSalva ? 'Sua preferência salva' : 'Sua pesquisa';
+    $('m-dica').hidden = !(pesquisou && igualSalva);
     $('ordem').hidden = semResultado();
     $('prefs').className = 'prefs ' + (igualSalva ? 'salva' : 'nova');
     $('prefs-titulo').textContent = igualSalva ? 'Você está vendo a sua preferência salva' : 'Esta pesquisa ainda não é a sua preferência';
-    $('prefs-sub').textContent = igualSalva ? 'Quer ver outras datas ou cabines? Toque em Refazer, lá em cima. Sua preferência só muda se você salvar.' :
-      !temPref ? 'Salve como sua preferência: da próxima vez, a página já abre nela.' :
+    $('prefs-sub').textContent = !temPref ? 'Salve como sua preferência: da próxima vez, a página já abre nela.' :
       igual ? 'Você filtrou a companhia ou o navio, que não ficam salvos; o resto é igual à sua preferência.' :
       'Gostou? Salve como sua preferência: da próxima vez, a página já abre nela. Ou volte à sua preferência.';
     $('salvar').hidden = temPref && igual;
