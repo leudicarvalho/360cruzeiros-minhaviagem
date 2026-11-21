@@ -198,10 +198,12 @@
     return { lista: lista, esgotadas: esgotadas, semPreco: semPreco };
   }
 
-  // Lida hoje para esses adultos e TODAS as cabines escolhidas esgotadas (valor null).
+  // Lida hoje para esses adultos e as cabines escolhidas que foram lidas estão todas esgotadas (valor null; a que não foi
+  // lida não conta, aparece como "Indisponível").
   function esgotadaNa(s, f) {
-    var o = (s.ocup || {})[String(f.a)], cs = cabinesDe(f.k);
-    return !!o && cs.every(function (c) { return (c in o.cab) && o.cab[c] === null; });
+    var o = (s.ocup || {})[String(f.a)];
+    var cs = o ? cabinesDe(f.k).filter(function (c) { return c in o.cab; }) : [];
+    return cs.length > 0 && cs.every(function (c) { return o.cab[c] === null; });
   }
 
   // Cabine fora da pesquisa que ainda tem preço (para o card esgotado): { c, t } da mais em conta, ou null.

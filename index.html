@@ -557,7 +557,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261121b"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261121c"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -733,7 +733,7 @@
   // Quantas saídas o Pesquisar vai mostrar com o que está marcado no painel.
   function contarPainel() {
     if (!dados || e.a === '5') return '';
-    var r = MV.filtrar(dados.saidas, e, dados.leitura), n = r.lista.length + r.semPreco.length;
+    var r = MV.filtrar(dados.saidas, e, dados.leitura), n = r.lista.length + r.esgotadas.length + r.semPreco.length;
     return '(' + n + (n === 1 ? ' saída)' : ' saídas)');
   }
   function mudouPainel() { return !pesquisou || !MV.mesmaPesquisa(e, f) || (e.navio || '') !== (f.navio || '') || e.cia !== f.cia; }
@@ -816,6 +816,9 @@
     var nota = a + (a === '1' ? ' adulto' : ' adultos') + ', taxas inclusas' +
       (f.b === 'sem' ? ', sem pacote de bebidas' : pk ? ', com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)' : '') +
       (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
+    // Esgotada nas cabines escolhidas (Leonardo, 21/11/2026, "Mostrar como Esgotada"): diz a cabine que ainda tem preço.
+    var outra = MV.esgotadaNa(s, Object.assign({}, f, { a: a })) ? MV.outraComPreco(s, Object.assign({}, f, { a: a })) : null;
+    if (outra) nota += '. Ainda tem ' + NOME[outra.c] + ': ' + reais(outra.t / a) + ' por pessoa';
     var aberta = !fechadas[s.id];   // vem aberta (Leonardo, 21/11/2026: "vamos testar ele vindo expandido")
     return '<div class="card" data-i="' + i + '">' +
       '<div class="c-topo"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
@@ -975,18 +978,19 @@
     }
     var g = f2();
     var r = MV.filtrar(dados.saidas, g, hoje), aviso = '';
-    var todas = r.lista;
+    var todas = r.lista.concat(r.esgotadas), nLista = todas.length;
     var gente = g.a + (g.a === '1' ? ' adulto' : ' adultos');
     chamada(r.lista, +g.a);
-    if (!r.lista.length && r.semPreco.length) {
-      $('titulo-lista').innerHTML = '<em>' + r.semPreco.length + '</em> ' + (r.semPreco.length === 1 ? 'saída' : 'saídas') + ' nesta pesquisa';
+    if (!r.lista.length && (r.esgotadas.length || r.semPreco.length)) {
+      var nTit = r.esgotadas.length + r.semPreco.length;
+      $('titulo-lista').innerHTML = '<em>' + nTit + '</em> ' + (nTit === 1 ? 'saída' : 'saídas') + ' nesta pesquisa';
     } else if (!r.lista.length) {
       todas = MV.maisProximas(dados.saidas, g, hoje, 6);
       $('titulo-lista').innerHTML = 'Nenhuma saída nesta pesquisa';
       aviso = '<div class="vazio">Não achei saída com esses filtros' + (todas.length ? '. Estas são as mais próximas do período que você escolheu:' : '.') +
         '<a class="btn" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e não achei a data que eu posso. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
     } else {
-      $('titulo-lista').innerHTML = '<em>' + r.lista.length + '</em> ' + (r.lista.length === 1 ? 'saída' : 'saídas') + ' para você';
+      $('titulo-lista').innerHTML = '<em>' + nLista + '</em> ' + (nLista === 1 ? 'saída' : 'saídas') + ' para você';
     }
     // Celular (Leonardo, 21/11/2026: "quando estiver rodando para a direita, pode ir movendo a paginação automaticamente...
     // Ver mais 3 saídas daí deixaria de existir. E caso o usuário clique na página que quer, rola automaticamente para
@@ -1005,7 +1009,7 @@
       rolarAte(k0, false);
     }
     if (r.semPreco.length) {
-      $('sem-preco').innerHTML = '<div class="vazio">' + (r.lista.length ? 'Mais ' : '') + r.semPreco.length + (r.semPreco.length === 1 ? ' saída' : ' saídas') +
+      $('sem-preco').innerHTML = '<div class="vazio">' + (nLista ? 'Mais ' : '') + r.semPreco.length + (r.semPreco.length === 1 ? ' saída' : ' saídas') +
         ' desta pesquisa ainda sem o preço de hoje para ' + gente + (f.k !== 'todas' ? ' nas cabines escolhidas' : '') + '. Eu confiro para você:<a class="btn" href="' +
         linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero o preço para ' + gente + '.') +
         '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
