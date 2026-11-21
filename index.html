@@ -996,7 +996,7 @@
       else pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(porPessoa);
       var fx = MV.faixaPreco(pts);
       if (fx) fx.desde = pts[0][0];
-      corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx)) + (comPk ? '' : linhaPacote(s, a));
+      corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx, MV.temAlerta(fx))) + (comPk ? '' : linhaPacote(s, a));
     }
     return '<div class="detalhe"><h3>Histórico do preço do cruzeiro, por pessoa <span class="sem-beb">' + (comPk ? 'com o pacote ' + esc(comPk.nome) : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
       '<div class="termometro" hidden></div>' + calcDaSaida(s) +
@@ -1054,10 +1054,12 @@
     // pode ser mais destacada e o fundo tem que ser bem mais destacado"). ANTES: "↓ Menor preço desde dd/mm. Boa hora para
     // garantir." / "↑ Já esteve mais baixo desde dd/mm. Vale acompanhar." em texto sem fundo.
     var alerta = '';
-    if (fx.hoje && fx.min.v !== fx.max.v && (fx.hoje.v === fx.min.v || fx.hoje.v === fx.max.v)) {
+    if (MV.temAlerta(fx)) {
       var barato = fx.hoje.v === fx.min.v;
       alerta = '<p class="alerta-preco ' + (barato ? 'barato' : 'caro') + '">' +
-        (barato ? '<b>↓</b>Menor preço desde ' + dm(fx.desde) : '<b>↑</b>Maior preço desde ' + dm(fx.desde)) + '</p>';
+        // Selo sem data (Leonardo, 21/11/2026: "um diz menor preço desde uma data e outro de outra data"; escolheu "Selo sem
+        // data"). ANTES: "Menor/Maior preço desde dd/mm" (1º dia do histórico), em choque com "menor preço desde" da linha de cima.
+        (barato ? '<b>↓</b>Menor preço do histórico' : '<b>↑</b>Maior preço do histórico') + '</p>';
     }
     html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>menor preço ' + (fx.min.ateHoje ? 'desde ' : 'em ') + dm(fx.min.dia) + '</span>' +
       '<span class="mx"><b>' + reais(fx.max.v) + '</b>maior preço em ' + dm(fx.max.dia) + '</span></div>';
@@ -1068,7 +1070,7 @@
   }
 
   // Caminho do preço por dia (pequeno, cabe no celular): verde no dia mais barato, vermelho no mais caro, escuro hoje.
-  function grafico(pts, fx) {
+  function grafico(pts, fx, semLegenda) {
     var W = 320, H = 96, e = 6, d = 6, t = 12, b = 18;
     var mn = fx.min.v, mx = fx.max.v;
     if (mn === mx) { mn -= 100; mx += 100; }
@@ -1110,7 +1112,9 @@
       '<path d="' + linha + '" fill="none" stroke="#0f4c5c" stroke-width="2.2" stroke-linecap="round"/>' + marcas +
       '<text x="' + e + '" y="' + (H - 4) + '">' + dm(pts[0][0]) + '</text>' + rotulos +
       '<text x="' + (W - d) + '" y="' + (H - 4) + '" text-anchor="end" style="fill:#10252e;font-weight:700">hoje</text></svg>';
-    return '<div class="graf-box">' + svg + '<div class="dica-graf" hidden></div></div>' + (lista ? '<p class="legenda">Alguns dias vêm da lista do site, que pode variar um pouco.</p>' : '');
+    return '<div class="graf-box">' + svg + '<div class="dica-graf" hidden></div></div>' + // Com o alerta de menor/maior preço, a legenda some para os cartões ficarem do mesmo tamanho (Leonardo, 21/11/2026:
+    // "quando tivesse menor preço ou outro alerta de alta, não tem que aparecer aquela mensagem lá embaixo"). ANTES: aparecia sempre.
+    (lista && !semLegenda ? '<p class="legenda">Alguns dias vêm da lista do site, que pode variar um pouco.</p>' : '');
   }
 
   // Chamada do topo: o menor preço por pessoa da pesquisa (cabine e pacote escolhidos).

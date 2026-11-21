@@ -513,6 +513,11 @@
   // Faixa do preço, como no Google Flights (Leonardo, 21/11/2026): de pts da linhaDoTempo tira o preço de hoje (o último
   // dia lido), o menor e o maior (com o dia; empate = o dia mais recente), onde o de hoje fica entre eles (pos 0 a 1) e o
   // nível: baixo (terço de baixo), medio, alto (terço de cima) ou estavel (sempre o mesmo). Esgotada hoje = hoje null.
+  // Alerta de menor/maior preço: hoje igual ao menor ou ao maior, com preços diferentes no histórico.
+  function temAlerta(fx) {
+    return !!(fx && fx.hoje && fx.min.v !== fx.max.v && (fx.hoje.v === fx.min.v || fx.hoje.v === fx.max.v));
+  }
+
   function faixaPreco(pts) {
     var ok = (pts || []).filter(function (p) { return p[1] !== null; });
     if (ok.length < 2) return null;
@@ -542,7 +547,9 @@
     var tem = salvaB === "entender" || telaB === "entender" || telaB === "soft" || telaB === "basico" || telaB === "premium";
     if (!tem) return null;
     return { tipo: "entender", titulo: "Em dúvida sobre o pacote de bebidas?",
-      texto: "A calculadora mostra em 1 minuto qual vale mais a pena para você.", botao: "Descobrir o pacote ideal" };
+      texto: "A calculadora mostra em 1 minuto qual vale mais a pena para você.", botao: "Descobrir o pacote de bebidas ideal" };
+    // "de bebidas" no botão (Leonardo, 21/11/2026: "Descobrir o pacote ideal fica muito vago. Pacote pode ser do cruzeiro").
+    // ANTES: "Descobrir o pacote ideal".
   }
   // Link da calculadora: ?id=<código>&adultos=N e, com a saída, &saida=<id>&cia=msc|costa&noites=N (preço do pacote dela).
   // w = WhatsApp do contato (21/11/2026, Leonardo: o link não pode ficar sem o telefone): a calculadora salva o pacote
@@ -557,7 +564,7 @@
     return q.length ? "?" + q.join("&") : "";
   }
 
-  var api = { caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, lerCabines: lerCabines, cabinesDe: cabinesDe, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+  var api = { temAlerta: temAlerta, caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, lerCabines: lerCabines, cabinesDe: cabinesDe, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
