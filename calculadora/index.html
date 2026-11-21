@@ -122,10 +122,25 @@
      alcoólico não estão tão destacados como no alcoólico"). ANTES: "R$ 26 avulso" pequeno e cinza. */
   .preco-item { display: block; font-size: 12.5px; color: var(--suave); margin-top: 2px; }
   .preco-item b { color: var(--texto); font-weight: 800; font-size: 14px; }
-  /* Pergunta do pacote: três botões com uma linha explicando cada um. */
-  .opcoes.foco button { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+  /* Pergunta do pacote em cartões com preço (Leonardo, 21/11/2026: "deixar claro que as bebidas têm mais qualidade, mas
+     são mais caras... Meu medo é o usuário pegar o premium e se assustar com os valores"): etiqueta ($ / $$$ / na dúvida),
+     nome do pacote, preço por pessoa por dia, total da viagem (premium: quanto a mais por dia que o básico) e o que inclui.
+     ANTES: título e uma linha ("My Drinks, o mais em conta" / "My Drinks Plus, com marcas melhores" / "Básico e premium, para comparar"). */
+  .opcoes.foco button { display: flex; flex-direction: column; gap: 3px; text-align: left; flex: 1 1 180px; padding: 14px; }
   .opcoes.foco button small { font-weight: 500; font-size: 12.5px; color: var(--suave); }
-  .opcoes.foco button[aria-pressed="true"] small { color: #d3e3e9; }
+  .opcoes.foco .f-etq { align-self: flex-start; font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-bottom: 2px; }
+  .opcoes.foco .f-etq.economia { background: #e3f4ea; color: #1d6b3f; }
+  .opcoes.foco .f-etq.qualidade { background: #fbefd6; color: #8a5a00; }
+  .opcoes.foco .f-etq.todos { background: #e4eef2; color: var(--marca); }
+  .opcoes.foco .f-preco { font-size: 22px; font-weight: 800; margin-top: 4px; }
+  .opcoes.foco .f-preco span { font-size: 13px; font-weight: 500; color: var(--suave); }
+  .opcoes.foco .f-total { font-size: 12.5px; font-weight: 500; color: var(--suave); }
+  .opcoes.foco .f-total.mais { color: #8a5a00; font-weight: 700; }
+  .opcoes.foco .f-inclui { font-size: 13px; font-weight: 500; line-height: 1.35; margin-top: 4px; }
+  .opcoes.foco button[aria-pressed="true"] small, .opcoes.foco button[aria-pressed="true"] .f-preco span,
+  .opcoes.foco button[aria-pressed="true"] .f-total { color: #d3e3e9; }
+  .opcoes.foco button[aria-pressed="true"] .f-total.mais { color: #ffd98a; }
+  .foco-nota { font-size: 13px; color: var(--suave); margin: -4px 0 10px; }
   .colunas { display: grid; gap: 14px; }
   @media (min-width: 640px) { .colunas.duas { grid-template-columns: 1fr 1fr; } }
   .avulso { font-size: 15px; margin: 0 0 10px; }
@@ -221,6 +236,7 @@
        tem o pacote (b=basico|premium). -->
   <section id="sec-foco">
     <h2>Quais bebidas alcoólicas você quer ver?</h2>
+    <p class="foco-nota" id="foco-nota">Preço por pessoa, por dia.</p>
     <div class="opcoes foco" id="foco"></div>
   </section>
 
@@ -431,14 +447,45 @@
     // uma ligação desse quero ver todos com as outras duas opções"): os três falam do pacote, e o terceiro é os dois
     // primeiros juntos. ANTES: "O que é mais importante para você a bordo?" Pagar menos / Bebidas de marca melhor /
     // Quero ver todos, e uma linha embaixo explicando.
+    // O que o pacote acrescenta, tirado de CIAS[cia].itens (mudou o pacote de um item no calc.js, muda aqui sozinho).
+    // basico = itens do básico; premium = só os que o básico não cobre.
+    function incluiNivel(nivel) {
+      var itens = C.CIAS[ciaDia].itens;
+      return Object.keys(itens).filter(function (k) { return itens[k].nivel === nivel; })
+        .map(function (k) { return itens[k].nome.replace(/ \(taça\)/, "").toLowerCase(); }).join(", ");
+    }
+    function pacotesDaSaida(ciaId) { return saida && saida.cia === ciaId && estado.noites === saida.noites ? saida.pacotes : null; }
+    // Preço de cada cartão: por pessoa por dia, total da viagem e, no premium, quanto a mais por dia que o básico.
+    function precosFoco() {
+      var caixa = document.getElementById("foco");
+      if (!cia || !caixa.children.length) return;
+      var n = estado.noites, ps = pacotesDaSaida(cia);
+      var bas = C.precoPacote(cia, "basico", n, ps).valor, pre = C.precoPacote(cia, "premium", n, ps).valor;
+      var dia = function (v) { return Math.round(v / n); };
+      var dados = {
+        economia: [reais(dia(bas)), reais(bas) + " na viagem de " + n + " noites", false],
+        qualidade: [reais(dia(pre)), reais(dia(pre) - dia(bas)) + " a mais por dia que o básico", true],
+        todos: [reais(dia(bas)) + " a " + reais(dia(pre)), "", false],
+      };
+      caixa.querySelectorAll("button").forEach(function (b) {
+        var d = dados[b.getAttribute("data-v")], preco = b.querySelector(".f-preco"), total = b.querySelector(".f-total");
+        preco.textContent = d[0] + " ";
+        preco.appendChild(el("span", { texto: "/dia" }));
+        total.textContent = d[1];
+        total.className = "f-total" + (d[2] ? " mais" : "");
+      });
+    }
     function montarFoco() {
       var caixa = document.getElementById("foco");
       caixa.innerHTML = "";
       if (!cia) return;
-      [["economia", "Do pacote básico", nomesNivel("basico") + ", o mais em conta"],
-       ["qualidade", "Do pacote premium", nomesNivel("premium") + ", com marcas melhores"],
-       ["todos", "Dos dois pacotes", "Básico e premium, para comparar"]].forEach(function (o) {
-        var b = el("button", { type: "button", "data-v": o[0], "aria-pressed": String(estado.foco === o[0]) }, [o[1], el("small", { texto: o[2] })]);
+      // Cartões com preço (21/11/2026, ver o CSS .opcoes.foco). Preço e total entram em precosFoco(), a cada atualizar().
+      [["economia", "$ Mais em conta", "Pacote básico", nomesNivel("basico"), "O que inclui: " + incluiNivel("basico") + "."],
+       ["qualidade", "$$$ Marcas top", "Pacote premium", nomesNivel("premium"), "Tudo do básico + " + incluiNivel("premium") + "."],
+       ["todos", "Na dúvida", "Comparar os dois", "Básico e premium", "A calculadora mostra qual vale mais para o que você toma."]].forEach(function (o) {
+        var b = el("button", { type: "button", "data-v": o[0], "aria-pressed": String(estado.foco === o[0]) }, [
+          el("span", { "class": "f-etq " + o[0], texto: o[1] }), o[2], el("small", { texto: o[3] }),
+          el("span", { "class": "f-preco" }), el("span", { "class": "f-total" }), el("span", { "class": "f-inclui", texto: o[4] })]);
         b.onclick = function () {
           caixa.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
           estado.foco = o[0];
@@ -625,8 +672,9 @@
         // Foco escolhido e alguém bebe: compara só o pacote do foco com o sem pacote ("todos" = os três).
         return C.calcular({ cia: ciaId, noites: estado.noites, adultos: estado.adultos, perfis: perfis(),
           niveis: algumBebe() ? C.niveisDoFoco(estado.foco) : null,
-          pacotesSaida: saida && saida.cia === ciaId && estado.noites === saida.noites ? saida.pacotes : null });
+          pacotesSaida: pacotesDaSaida(ciaId) });
       });
+      precosFoco();
       var caixa = document.getElementById("resultados");
       caixa.className = "colunas" + (rs.length > 1 ? " duas" : "");
       caixa.innerHTML = "";
