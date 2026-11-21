@@ -963,9 +963,10 @@
   // Faixa verde/amarela/vermelha com a marca "Hoje", e o menor e o maior com o dia.
   function faixa(fx) {
     fx.desde = fx.desde || fx.min.dia;
+    // Selos curtos "Sem mudança" e "Esgotada" (Leonardo, 21/11/2026: "sim"; ANTES: "Preço sem mudança", "Esgotada hoje").
     // Selo curto ao lado de "Preço de hoje" (Leonardo, 21/11/2026: "Não precisa ser preço em alta, preço em baixa. Pode ser
     // só em alta e ao lado do preço de hoje... as três opções"). ANTES: "Preço em alta/Preço em baixa" à direita do valor.
-    var txt = { baixo: 'Em baixa', medio: 'Na média', alto: 'Em alta', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
+    var txt = { baixo: 'Em baixa', medio: 'Na média', alto: 'Em alta', estavel: 'Sem mudança', esgotada: 'Esgotada' }[fx.nivel];
     var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><span class="nv-topo"><small>Preço de hoje</small><b>' + txt + '</b></span><strong>' +
       reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : '<b>' + txt + '</b>') + '</div>';
     // Marcas na barra (Leonardo, 21/11/2026, 6ª rodada: "não é para ter a linha tracejada... é para só marcar lá em cima...
