@@ -454,15 +454,9 @@
   .faixa .marca.no-min::after { background: #1fa855; }
   .faixa .marca.no-max span { background: var(--vermelho-texto); }
   .faixa .marca.no-max::after { background: #d64535; }
-  .alerta-preco { display: flex; align-items: center; gap: 10px; margin: 10px 0 2px; padding: 9px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.35; }
-  .alerta-preco b { display: block; font-size: 14px; }
-  .alerta-preco .ico { flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font: 800 17px var(--fonte); }
-  .alerta-preco.barato { background: #e9f8ee; border: 1px solid #8fd8a8; color: #0f6b34; }
-  .alerta-preco.barato .ico { background: #1fa855; animation: pulso 1.8s ease-out infinite; }
-  .alerta-preco.caro { background: #fdecea; border: 1px solid #f0a8a0; color: #8f2a1f; }
-  .alerta-preco.caro .ico { background: #d64535; }
-  @keyframes pulso { 0% { box-shadow: 0 0 0 0 rgba(31,168,85,.5); } 70% { box-shadow: 0 0 0 9px rgba(31,168,85,0); } 100% { box-shadow: 0 0 0 0 rgba(31,168,85,0); } }
-  @media (prefers-reduced-motion: reduce) { .alerta-preco .ico { animation: none; } }
+  .alerta-preco { margin: 6px 0 2px; font-size: 13px; font-weight: 600; line-height: 1.35; }
+  .alerta-preco.barato { color: #0f6b34; }
+  .alerta-preco.caro { color: var(--suave); }
   .faixa .marca.ponta-d span { transform: translateX(-40%); }
   .extremos { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12.5px; line-height: 1.25; }
   .extremos span { color: var(--suave); }
@@ -1032,6 +1026,7 @@
     var txt = { baixo: 'Em baixa', medio: 'Na média', alto: 'Em alta', estavel: 'Sem mudança', esgotada: 'Esgotada' }[fx.nivel];
     var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><span class="nv-topo"><small>Preço de hoje</small><b>' + txt + '</b></span><strong>' +
       reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : '<b>' + txt + '</b>') + '</div>';
+    var posAlerta = html.length;
     // Marcas na barra (Leonardo, 21/11/2026, 6ª rodada: "não é para ter a linha tracejada... é para só marcar lá em cima...
     // o mais barato, um risco ali no verde, e o mais caro no vermelho. Se o hoje for igual a qualquer um dos dois, as
     // linhas vão ficar sobrepostas. E vai ter um alerta"). ANTES: só a marca Hoje na barra e riscos tracejados no gráfico.
@@ -1042,16 +1037,20 @@
         '<div class="marca' + lado + ext + '" style="left:' + pct.toFixed(1) + '%"><span>Hoje</span></div>' +
         '<div class="barra-cor"><i></i><i></i><i></i></div></div>';
     }
+    // Alerta numa linha curta logo abaixo do "Preço de hoje" (Leonardo, 21/11/2026: "Esse alerta também está fazendo com que
+    // um card fique maior do que o outro... Coloque uma coisa mais branda"; escolheu a Opção A). ANTES: caixa com título
+    // "Preço mais barato"/"Preço mais caro" e "Hoje está no menor/maior preço desde dd/mm. Boa hora para garantir./Vale
+    // acompanhar: ele já esteve mais baixo.", embaixo do menor e maior preço.
     var alerta = '';
     if (fx.hoje && fx.min.v !== fx.max.v && (fx.hoje.v === fx.min.v || fx.hoje.v === fx.max.v)) {
       var barato = fx.hoje.v === fx.min.v;
-      alerta = '<div class="alerta-preco ' + (barato ? 'barato' : 'caro') + '"><span class="ico">' + (barato ? '↓' : '↑') + '</span><div><b>' +
-        (barato ? 'Preço mais barato' : 'Preço mais caro') + '</b>' + (barato ? 'Hoje está no menor preço' : 'Hoje está no maior preço') +
-        ' desde ' + dm(fx.desde) + (barato ? '. Boa hora para garantir.' : '. Vale acompanhar: ele já esteve mais baixo.') + '</div></div>';
+      alerta = '<p class="alerta-preco ' + (barato ? 'barato' : 'caro') + '">' +
+        (barato ? '↓ Menor preço desde ' + dm(fx.desde) + '. Boa hora para garantir.' : '↑ Já esteve mais baixo desde ' + dm(fx.desde) + '. Vale acompanhar.') + '</p>';
     }
+    html = html.slice(0, posAlerta) + alerta + html.slice(posAlerta);
     html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>menor preço em ' + dm(fx.min.dia) + '</span>' +
       '<span class="mx"><b>' + reais(fx.max.v) + '</b>maior preço em ' + dm(fx.max.dia) + '</span></div>';
-    return html + alerta;
+    return html;
   }
 
   // Caminho do preço por dia (pequeno, cabe no celular): verde no dia mais barato, vermelho no mais caro, escuro hoje.
