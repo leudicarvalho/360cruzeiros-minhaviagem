@@ -1,0 +1,435 @@
+<!doctype html>
+<!-- Calculadora de bebidas do Minha Viagem (passo 4B do plano, textos aprovados pelo Leonardo em 21/11/2026).
+     Endereço: https://minhaviagem.360cruzeiros.com.br/calculadora/?id=<código>&cia=msc|costa&noites=N&adultos=N&saida=<id>
+     (tudo opcional; "c" vale como "id"). Contas em calc.js; WhatsApp conferido por ../mv.js (MV.conferirWhats).
+     Pacotes do dia: ../dados/precos.json (o mesmo arquivo da página, publicado depois de cada leitura do termômetro).
+     Visual: o da página Minha Viagem (fundo branco, topo com o navio). ANTES (até 21/11/2026): fundo escuro, sozinha em
+     minhaviagem-calculadora/ do projeto, com um arquivo de exemplo dos pacotes e o botão sem enviar.
+     Manual: docs/ideias/minha-viagem-4B.md e docs/conversas/passagem_minhaviagem.md. -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Calculadora de bebidas · 360cruzeiros</title>
+<style>
+  :root {
+    --fundo: #f3f6f8; --card: #ffffff; --campo: #ffffff; --linha: #dbe3e8; --texto: #10252e; --suave: #5b707a;
+    --marca: #0f4c5c; --marca-clara: #e6f0f3;
+    --ouro: #f8c463; --ouro-escuro: #e8a635; --ouro-texto: #8a5d08; --ouro-claro: #fff7e6;
+    --verde: #1fa855; --verde-escuro: #178a45; --queda: #16a34a; --alta: #c0392b;
+    --fonte: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--fundo); color: var(--texto); font: 16px/1.45 var(--fonte); }
+  [hidden], .oculto { display: none !important; }
+  main { max-width: 560px; margin: 0 auto; padding: 0 16px 48px; }
+  main.duas { max-width: 900px; }
+
+  .topo { position: relative; margin: 0 -16px 16px; padding: 16px 18px 20px; border-radius: 0 0 24px 24px; overflow: hidden; color: #fff; text-align: center;
+    background: linear-gradient(160deg, rgba(7,22,29,.82) 0%, rgba(10,30,40,.66) 50%, rgba(15,46,58,.85) 100%),
+      url('https://static.wixstatic.com/media/c17eb2_48f6acdc40cc445b941835be15115c99~mv2.jpg') center/cover no-repeat; }
+  .barra { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; }
+  .logo { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.12); border: 1px solid rgba(248,196,99,.4); border-radius: 60px; padding: 3px 12px 3px 3px; text-decoration: none; }
+  .logo img { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ouro); object-fit: cover; }
+  .logo span { font-weight: 800; font-size: 13px; color: var(--ouro); }
+  .selo { display: inline-flex; align-items: center; height: 32px; background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: #10252e; font-weight: 900; letter-spacing: 2px; font-size: 12px; padding: 0 14px; border-radius: 60px; }
+  h1 { font-size: clamp(24px, 5.4vw, 34px); font-weight: 800; line-height: 1.1; letter-spacing: -.5px; }
+  .sub { color: #d3e3e9; margin-top: 6px; font-size: 14px; }
+  .saida-info { display: inline-block; margin-top: 10px; font-size: 12.5px; font-weight: 600; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 4px 12px; }
+
+  section { background: var(--card); border: 1px solid var(--linha); border-radius: 14px; padding: 16px; margin: 0 0 14px; box-shadow: 0 1px 2px rgba(16,37,46,.04); }
+  h2 { font-size: 17px; font-weight: 800; margin: 0 0 10px; }
+  .dica { color: var(--suave); font-size: 14px; margin: -4px 0 10px; }
+  .opcoes { display: flex; gap: 10px; flex-wrap: wrap; }
+  .opcoes button { flex: 1 1 120px; padding: 12px; border-radius: 10px; border: 1px solid #c9d5db; background: #fff; color: var(--texto); font: 600 15px var(--fonte); cursor: pointer; }
+  .opcoes button[aria-pressed="true"] { background: var(--marca); border-color: var(--marca); color: #fff; }
+  .item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--linha); }
+  .grupo + .item { border-top: 0; }
+  .grupo { color: var(--marca); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; margin: 10px 0 2px; }
+  .passo { display: flex; align-items: center; gap: 8px; flex: none; }
+  .passo button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid #c9d5db; background: var(--marca-clara); color: var(--marca); font-size: 20px; font-weight: 700; cursor: pointer; }
+  .passo output { min-width: 22px; text-align: center; font-weight: 800; }
+  .linha-viagem { display: flex; gap: 16px; flex-wrap: wrap; }
+  .linha-viagem .item { border: 0; flex: 1 1 200px; }
+  .colunas { display: grid; gap: 14px; }
+  @media (min-width: 640px) { .colunas.duas { grid-template-columns: 1fr 1fr; } }
+  .avulso { font-size: 15px; margin: 0 0 10px; }
+  .avulso b { color: var(--marca); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 0 0 12px; }
+  td { padding: 6px 0; border-top: 1px solid var(--linha); vertical-align: top; }
+  td:last-child { text-align: right; white-space: nowrap; font-weight: 700; }
+  .nota { color: var(--suave); font-size: 12px; font-weight: 400; }
+  .sugestao { background: var(--ouro-claro); border-left: 4px solid var(--ouro-escuro); border-radius: 8px; padding: 12px; margin: 0 0 4px; }
+  .sugestao p { margin: 0 0 8px; }
+  .sugestao p:last-child { margin: 0; }
+  .escolha { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .escolha > div { border: 1px solid var(--linha); border-radius: 10px; padding: 10px; }
+  .btn { display: block; width: 100%; text-align: center; text-decoration: none; margin-top: 10px; padding: 14px; border: 0; border-radius: 12px; background: var(--verde); color: #fff; font: 700 16px/1.2 var(--fonte); cursor: pointer; }
+  .btn:hover { background: var(--verde-escuro); }
+  .btn.pequeno { padding: 10px; font-size: 14px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .ok { color: var(--queda); font-weight: 700; }
+  .rodape { color: var(--suave); font-size: 13px; }
+  .voltar { display: inline-block; margin: 0 0 14px; color: var(--marca); font-weight: 700; font-size: 14px; text-decoration: none; }
+
+  /* Confirmar o WhatsApp antes de mandar o pacote (o Entur acha o contato pelo telefone; o mesmo do Salvar da página). */
+  .confirmar label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--suave); margin: 10px 0; }
+  .confirmar input { background: var(--campo); color: var(--texto); border: 1px solid #c9d5db; border-radius: 8px; padding: 11px; font: 500 16px var(--fonte); width: 100%; }
+  .confirmar input.falta { border-color: var(--alta); box-shadow: 0 0 0 2px rgba(192,57,43,.25); }
+  .erro { color: var(--alta); font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+  .erro:empty { display: none; }
+  .mel { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+</style>
+</head>
+<body>
+<main id="principal">
+  <header class="topo">
+    <div class="barra">
+      <a class="logo" href="https://www.360cruzeiros.com.br" target="_blank" rel="noopener">
+        <img src="https://static.wixstatic.com/media/c17eb2_bd92c19f1aa14666be0f75c50a83609a~mv2.jpg/v1/fill/w_64,h_64,q_90/logo.webp" alt="360cruzeiros" width="28" height="28">
+        <span>360cruzeiros</span>
+      </a>
+      <span class="selo">MINHA VIAGEM</span>
+    </div>
+    <h1>Calculadora de bebidas</h1>
+    <p class="sub">Veja em 1 minuto se o pacote de bebidas vale a pena para você.</p>
+    <span class="saida-info" id="saida-info" hidden></span>
+  </header>
+
+  <a class="voltar" id="voltar" href="../" hidden>← Voltar para a minha pesquisa</a>
+
+  <section>
+    <h2>Sua viagem</h2>
+    <div class="linha-viagem">
+      <div class="item"><span>Noites</span><span class="passo" data-campo="noites"></span></div>
+      <div class="item"><span>Adultos na cabine</span><span class="passo" data-campo="adultos"></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Você bebe bebida alcoólica?</h2>
+    <div class="opcoes" id="alcool"></div>
+  </section>
+
+  <section>
+    <h2>O que você beberia em um dia a bordo?</h2>
+    <p class="dica">Já deixamos preenchido o mínimo em que o pacote vale a pena. Ajuste com − e + para o que você beberia.</p>
+    <div id="itens-voce"></div>
+  </section>
+
+  <section id="sec-igual">
+    <h2>Os outros adultos da cabine bebem parecido com você?</h2>
+    <div class="opcoes" id="igual"></div>
+  </section>
+
+  <div id="outros"></div>
+
+  <div class="colunas" id="resultados"></div>
+
+  <section id="sec-final" class="oculto">
+    <div id="final"></div>
+  </section>
+
+  <p class="rodape">Valores aproximados: dependem da cotação do dólar no dia. Os preços avulsos já incluem a taxa de serviço de 15%. Todos os adultos da mesma cabine precisam ter o mesmo pacote.</p>
+</main>
+
+<script src="../mv.js"></script>
+<script src="calc.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.CalcBebidas, MV = window.MV;
+  var WHATS = '5582993258783';   // número do Leonardo (o mesmo da página)
+  // Webhook 54 "pacote calculado (calculadora)", fluxo 1425 do Entur (docs/ideias/minha-viagem-4.md, seção 2).
+  // Enquanto o fluxo estiver em rascunho, o Entur recebe e não faz nada.
+  var WEBHOOK_PACOTE = 'https://mkt.enturos.com/api/automations/hooks/FNaWyWa2zK4-BbagQIRvzapo';
+  function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function ler(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function linkWhats(texto) { return 'https://wa.me/' + WHATS + '?text=' + encodeURIComponent(texto); }
+
+  var link = C.lerLink(location.search);
+  // "Voltar" só quando veio da própria página (com a pesquisa dela); quem abriu pelo link da mensagem não vê o botão.
+  var daPagina = document.referrer && document.referrer.indexOf(location.origin + '/') === 0 && document.referrer.indexOf('/calculadora') < 0;
+  if (daPagina) {
+    var v = document.getElementById('voltar');
+    v.href = document.referrer; v.hidden = false;
+  }
+
+  function iniciar(precos) {
+    var saida = C.saidaDoDia(precos, link.saida);
+    var cia = link.cia || (saida && saida.cia) || "";
+    var ciaDia = cia || "msc"; // lado a lado: o mínimo da MSC
+    if (saida && saida.navio) {
+      var info = document.getElementById('saida-info');
+      info.textContent = saida.navio + ' · ' + saida.embarque.slice(8, 10) + '/' + saida.embarque.slice(5, 7) + ' · ' + saida.noites + ' noites';
+      info.hidden = false;
+    }
+    function pessoa() { return { alcool: true, consumo: C.diaMinimo(ciaDia, true) }; }
+    var estado = {
+      noites: link.noites || (saida && saida.noites) || 4,
+      adultos: link.adultos || 2,
+      igual: true,
+      voce: pessoa(),
+      outros: [pessoa(), pessoa(), pessoa()], // adultos 2 a 4, cada um com a própria lista
+      preferencia: null,   // faixa dos 35%: "sem_preocupar" | "controlar"
+    };
+    var cias = cia ? [cia] : ["msc", "costa"];
+    if (cias.length > 1) document.getElementById("principal").classList.add("duas");
+
+    function reais(v) { return "R$ " + Math.round(v).toLocaleString("pt-BR"); }
+    function el(tag, attrs, filhos) {
+      var e = document.createElement(tag);
+      Object.keys(attrs || {}).forEach(function (k) { if (k === "texto") e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); });
+      (filhos || []).forEach(function (f) { if (f) e.appendChild(typeof f === "string" ? document.createTextNode(f) : f); });
+      return e;
+    }
+
+    function passo(valor, min, max, mudar) {
+      var out = el("output", { texto: String(valor) });
+      var menos = el("button", { type: "button", "aria-label": "menos", texto: "−" });
+      var mais = el("button", { type: "button", "aria-label": "mais", texto: "+" });
+      menos.onclick = function () { if (valor > min) { valor--; out.textContent = valor; mudar(valor); } };
+      mais.onclick = function () { if (valor < max) { valor++; out.textContent = valor; mudar(valor); } };
+      return [menos, out, mais];
+    }
+
+    function montarViagem() {
+      document.querySelectorAll(".linha-viagem .passo").forEach(function (span) {
+        var campo = span.getAttribute("data-campo");
+        var lim = campo === "noites" ? [1, 30] : [1, 4];
+        span.innerHTML = "";
+        passo(estado[campo], lim[0], lim[1], function (v) {
+          estado[campo] = v;
+          if (campo === "adultos") montarOutros();
+          atualizar();
+        }).forEach(function (b) { span.appendChild(b); });
+      });
+    }
+
+    function montarItens(caixa, p) {
+      caixa.innerHTML = "";
+      var grupoAtual = null;
+      C.ITENS.forEach(function (it) {
+        if (it.alcool && !p.alcool) return;
+        var g = it.alcool ? "Com álcool" : "Sem álcool";
+        if (g !== grupoAtual) { caixa.appendChild(el("div", { "class": "grupo", texto: g })); grupoAtual = g; }
+        var span = el("span", { "class": "passo" }, passo(p.consumo[it.id], 0, 20, function (v) { p.consumo[it.id] = v; atualizar(); }));
+        caixa.appendChild(el("div", { "class": "item" }, [el("span", { texto: it.nome }), span]));
+      });
+    }
+
+    // Sim/Não. Trocar o álcool volta a lista ao mínimo daquele caso (com ou sem álcool).
+    function simNao(caixa, valor, rotulos, mudar) {
+      caixa.innerHTML = "";
+      [["sim", rotulos[0]], ["nao", rotulos[1]]].forEach(function (o) {
+        var b = el("button", { type: "button", "aria-pressed": String((o[0] === "sim") === valor), texto: o[1] });
+        b.onclick = function () {
+          caixa.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+          mudar(o[0] === "sim");
+        };
+        caixa.appendChild(b);
+      });
+    }
+
+    function trocaAlcool(p, caixaItens) {
+      return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim); montarItens(caixaItens, p); atualizar(); };
+    }
+
+    // Cada adulto a mais ganha o próprio bloco, já preenchido com o mínimo, só quando "Não, quero preencher cada um".
+    function montarOutros() {
+      var caixa = document.getElementById("outros");
+      caixa.innerHTML = "";
+      document.getElementById("sec-igual").classList.toggle("oculto", estado.adultos === 1);
+      if (estado.adultos === 1 || estado.igual) return;
+      for (var i = 0; i < estado.adultos - 1; i++) {
+        var p = estado.outros[i];
+        var itens = el("div", {});
+        var alc = el("div", { "class": "opcoes" });
+        simNao(alc, p.alcool, ["Sim", "Não"], trocaAlcool(p, itens));
+        montarItens(itens, p);
+        caixa.appendChild(el("section", {}, [
+          el("h2", { texto: "Adulto " + (i + 2) }),
+          el("p", { "class": "dica", texto: "Bebe bebida alcoólica?" }), alc,
+          el("p", { "class": "dica", style: "margin-top:12px", texto: "O que essa pessoa beberia em um dia a bordo?" }), itens,
+        ]));
+      }
+    }
+
+    function semAlcool(p) {
+      if (p.alcool) return p.consumo;
+      var c = Object.assign({}, p.consumo);
+      C.ITENS.forEach(function (it) { if (it.alcool) c[it.id] = 0; });
+      return c;
+    }
+
+    function perfis() {
+      if (estado.adultos === 1 || estado.igual) return [{ consumo: semAlcool(estado.voce), pessoas: estado.adultos }];
+      var lista = [{ consumo: semAlcool(estado.voce), pessoas: 1 }];
+      for (var i = 0; i < estado.adultos - 1; i++) lista.push({ consumo: semAlcool(estado.outros[i]), pessoas: 1 });
+      return lista;
+    }
+
+    function rotulo(ciaId, nivel) {
+      if (nivel === "sem_pacote") return "Sem pacote";
+      return C.CIAS[ciaId].niveis[nivel].pacote;
+    }
+
+    function textoSugestao(r) {
+      var nome = r.melhor.pacote;
+      if (r.faixa === "pacote") return ["Com o que você bebe, o " + nome + " sai " + reais(r.valor) + " mais barato que comprar avulso."];
+      if (r.faixa === "sem_pacote") return ["Pelo que você bebe, sem pacote sai mais em conta: você economiza " + reais(r.valor) + " comprando avulso."];
+      return [
+        "Por " + reais(r.aMaisPorDiaPessoa) + " a mais por dia, por pessoa, o " + nome + " deixa você pedir sem olhar o preço.",
+        "A bordo é comum beber mais do que se planeja: tem festa, piscina, show e jantar. Com o pacote, você não precisa fazer conta a cada pedido.",
+      ];
+    }
+
+    function cartao(r) {
+      var c = C.CIAS[r.cia];
+      var linhas = r.pacotes.map(function (p) {
+        var extra = p.foraDoPacote > 0 ? el("div", { "class": "nota", texto: "+ " + reais(p.foraDoPacote) + " do que o pacote não cobre" }) : null;
+        return el("tr", {}, [el("td", {}, [p.pacote, extra]), el("td", { texto: reais(p.total) })]);
+      });
+      var sug = el("div", { "class": "sugestao" }, textoSugestao(r).map(function (t) { return el("p", { texto: t }); }));
+      var temRef = r.pacotes.some(function (p) { return p.fonte === "referencia"; });
+      return el("section", {}, [
+        el("h2", { texto: cias.length > 1 ? "Na " + c.nome : "Resultado na " + c.nome }),
+        el("p", { "class": "avulso" }, ["Comprando avulso: ", el("b", { texto: reais(r.avulsoDiaPessoa) }), " por dia, por pessoa · ", el("b", { texto: reais(r.avulsoViagem) }), " na viagem toda"]),
+        el("table", {}, [el("tr", {}, [el("td", { "class": "nota", texto: "Pacotes para os " + r.adultos + " adulto(s), viagem toda" }), el("td", {})])].concat(linhas)),
+        temRef ? el("p", { "class": "nota", texto: "Pacotes pelo preço médio por dia; o valor exato depende da saída." }) : null,
+        sug,
+      ]);
+    }
+
+    function nivelFinal(rs) {
+      var niveis = rs.map(function (r) { return C.decidir(r, estado.preferencia); });
+      if (niveis.some(function (n) { return n === null; })) return null;
+      return rs.length > 1 ? C.nivelDasDuas(niveis[0], niveis[1]) : niveis[0];
+    }
+
+    function nomeEscolha(nivel, ciaId) {
+      if (nivel === "sem_pacote") return "a opção sem pacote";
+      if (ciaId) return "o " + rotulo(ciaId, nivel);
+      return "o " + rotulo("msc", nivel) + " (MSC) ou " + rotulo("costa", nivel) + " (Costa)";
+    }
+
+    function botaoUsar(nivel, ciaId, pequeno) {
+      var b = el("button", { type: "button", "class": "btn" + (pequeno ? " pequeno" : ""),
+        texto: nivel === "sem_pacote" ? "Seguir sem pacote na minha pesquisa" : "Usar este pacote na minha pesquisa" });
+      b.onclick = function () { usar(nivel, ciaId); };
+      return b;
+    }
+
+    // "Usar este pacote": confirma o WhatsApp (guardado no aparelho, o mesmo do Salvar da página) e manda ao webhook 54.
+    // Sem código no link (não veio da página pessoal): leva ao WhatsApp, como o Salvar da página.
+    function usar(nivel, ciaId) {
+      var final = document.getElementById("final");
+      final.innerHTML = "";
+      var escolha = nomeEscolha(nivel, ciaId);
+      if (!link.codigo) {
+        final.appendChild(el("h2", { texto: "Atualizar minha pesquisa" }));
+        final.appendChild(el("p", { texto: "Para guardar o pacote na sua pesquisa, me chama no WhatsApp que eu atualizo para você." }));
+        var a = el("a", { "class": "btn", target: "_blank", rel: "noopener", texto: "Chamar no WhatsApp",
+          href: linkWhats("Oi, Leonardo! Usei a calculadora de bebidas e o ideal para mim é " + escolha + ". Pode atualizar minha pesquisa?") });
+        final.appendChild(a);
+        return;
+      }
+      var entrada = el("input", { type: "tel", inputmode: "tel", autocomplete: "tel", placeholder: "(11) 99999-9999" });
+      entrada.value = ler("mv_whats") || "";
+      var mel = el("input", { "class": "mel", type: "text", tabindex: "-1", autocomplete: "off", "aria-hidden": "true" });
+      var erro = el("p", { "class": "erro" });
+      var bt = el("button", { type: "button", "class": "btn", texto: "Confirmar" });
+      final.appendChild(el("div", { "class": "confirmar" }, [
+        el("h2", { texto: "Atualizar minha pesquisa com " + escolha }),
+        el("p", { "class": "dica", style: "margin:0", texto: "Confirme seu WhatsApp: é por ele que você recebe o link da sua pesquisa atualizada." }),
+        el("label", {}, ["Seu WhatsApp, com DDD", entrada]), mel, erro, bt,
+      ]));
+      bt.onclick = function () {
+        var w = MV.conferirWhats(entrada.value);
+        if (!w.num) { erro.textContent = w.motivo; entrada.classList.add("falta"); return; }
+        entrada.classList.remove("falta"); erro.textContent = "";
+        var corpo = C.montarEnvio(w.num, link.codigo, nivel, mel.value);
+        bt.disabled = true; bt.textContent = "Enviando...";
+        fetch(WEBHOOK_PACOTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) })
+          .then(function (r) { if (!r.ok) throw new Error(r.status); })
+          .then(function () {
+            guardar("mv_whats", w.num);
+            final.innerHTML = "";
+            final.appendChild(el("p", { "class": "ok", texto: "Pronto! Vou te mandar no WhatsApp o link da sua pesquisa com " + escolha + "." }));
+          })
+          .catch(function () {
+            bt.disabled = false; bt.textContent = "Confirmar";
+            erro.textContent = "Não consegui enviar agora. Tente de novo em instantes ou me chama no WhatsApp.";
+          });
+      };
+      entrada.focus();
+    }
+
+    function atualizar() {
+      var rs = cias.map(function (ciaId) {
+        return C.calcular({ cia: ciaId, noites: estado.noites, adultos: estado.adultos, perfis: perfis(),
+          pacotesSaida: saida && saida.cia === ciaId && estado.noites === saida.noites ? saida.pacotes : null });
+      });
+      var caixa = document.getElementById("resultados");
+      caixa.className = "colunas" + (rs.length > 1 ? " duas" : "");
+      caixa.innerHTML = "";
+      rs.forEach(function (r) { caixa.appendChild(cartao(r)); });
+      montarFinal(rs);
+    }
+
+    function montarFinal(rs) {
+      var sec = document.getElementById("sec-final"), final = document.getElementById("final");
+      sec.classList.remove("oculto");
+      final.innerHTML = "";
+      var naFaixa = rs.some(function (r) { return r.faixa === "considerar"; });
+      if (naFaixa) {
+        final.appendChild(el("h2", { texto: "A bordo, você prefere pedir sem se preocupar com a conta, ou prefere controlar cada pedido?" }));
+        var ops = el("div", { "class": "opcoes" }, [
+          el("button", { type: "button", "data-v": "sem_preocupar", "aria-pressed": String(estado.preferencia === "sem_preocupar"), texto: "Pedir sem me preocupar" }),
+          el("button", { type: "button", "data-v": "controlar", "aria-pressed": String(estado.preferencia === "controlar"), texto: "Controlar cada pedido" }),
+        ]);
+        ops.querySelectorAll("button").forEach(function (b) {
+          b.onclick = function () { estado.preferencia = b.getAttribute("data-v"); montarFinal(rs); };
+        });
+        final.appendChild(ops);
+        if (!estado.preferencia) return;
+      }
+      var nivel = nivelFinal(rs);
+      if (nivel) {
+        var nomes = rs.length > 1
+          ? (nivel === "sem_pacote" ? "Sem pacote" : rotulo("msc", nivel) + " na MSC ou " + rotulo("costa", nivel) + " na Costa")
+          : rotulo(rs[0].cia, nivel);
+        final.appendChild(el("h2", { style: "margin-top:12px", texto: "O ideal para você: " + nomes }));
+        final.appendChild(botaoUsar(nivel, rs.length > 1 ? "" : rs[0].cia));
+        return;
+      }
+      // "controlar": os dois lado a lado, ele escolhe (por companhia na faixa)
+      final.appendChild(el("p", { style: "margin-top:12px", texto: "Então veja os dois lado a lado e escolha:" }));
+      rs.forEach(function (r) {
+        if (r.faixa !== "considerar") return;
+        if (rs.length > 1) final.appendChild(el("div", { "class": "grupo", texto: C.CIAS[r.cia].nome }));
+        final.appendChild(el("div", { "class": "escolha" }, [
+          el("div", {}, [el("b", { texto: r.melhor.pacote }), el("div", { texto: reais(r.melhor.total) + " na viagem" }), botaoUsar(r.melhor.nivel, r.cia, true)]),
+          el("div", {}, [el("b", { texto: "Sem pacote" }), el("div", { texto: reais(r.avulsoViagem) + " na viagem" }), botaoUsar("sem_pacote", r.cia, true)]),
+        ]));
+      });
+    }
+
+    montarViagem();
+    var itensVoce = document.getElementById("itens-voce");
+    montarItens(itensVoce, estado.voce);
+    simNao(document.getElementById("alcool"), true, ["Sim", "Não"], trocaAlcool(estado.voce, itensVoce));
+    simNao(document.getElementById("igual"), true, ["Sim, parecido", "Não, quero preencher cada um"], function (sim) { estado.igual = sim; montarOutros(); atualizar(); });
+    montarOutros();
+    atualizar();
+  }
+
+  // Pacotes do dia: o mesmo arquivo da página. Sem a saída no link (ou sem o arquivo), a conta usa o preço médio por dia.
+  if (link.saida) fetch('../dados/precos.json').then(function (r) { return r.json(); }).then(iniciar).catch(function () { iniciar(null); });
+  else iniciar(null);
+})();
+</script>
+</body>
+</html>

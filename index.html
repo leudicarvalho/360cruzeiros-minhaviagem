@@ -229,6 +229,16 @@
   .grade > .mais { flex-basis: 46%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 2px dashed var(--marca); border-radius: 18px;
     background: var(--marca-clara); color: var(--marca); font: 700 15px var(--fonte); cursor: pointer; text-align: center; padding: 16px; }
   .grade > .mais span { font-size: 30px; line-height: 1; }
+  /* Dica de arrastar (igual ao site da Black, 27/10): seta que anda, só no celular e só com mais de 1 saída. */
+  .dica { display: none; color: var(--marca); font-size: 13px; font-weight: 700; margin: -2px 2px 8px; }
+  .dica .seta { display: inline-block; animation: seta 1.1s ease-in-out infinite; }
+  @keyframes seta { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
+  @media (prefers-reduced-motion: reduce) { .dica .seta { animation: none; } }
+  @media (max-width: 699px) { .dica.tem { display: block; } }
+  /* Voltar à pesquisa (Leonardo, 21/11/2026: "quando faz a pesquisa, tem que ter como retornar para a pesquisa
+     facilmente"): botão preso no pé da tela quando o "Mudar a pesquisa" saiu de vista; sobe e abre a pesquisa. */
+  .flutua { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 9; display: flex; align-items: center; gap: 8px;
+    background: var(--marca); color: #fff; border: 0; border-radius: 999px; padding: 12px 20px; font: 700 14px var(--fonte); box-shadow: 0 8px 24px rgba(16,37,46,.35); cursor: pointer; white-space: nowrap; }
   .pontos { display: flex; justify-content: center; gap: 6px; margin: 2px 0 6px; }
   .pontos i { width: 7px; height: 7px; border-radius: 50%; background: #c9d5db; transition: all .2s; }
   .pontos i.ativo { width: 20px; border-radius: 4px; background: var(--marca); }
@@ -249,11 +259,40 @@
   .cab.escolhida::after { content: 'Sua escolha'; position: absolute; top: -8px; right: 8px; font-size: 9.5px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase;
     padding: 2px 7px; border-radius: 999px; background: var(--ouro-escuro); color: #10252e; }
   .pp { color: var(--suave); font-size: 11.5px; padding: 2px 14px 10px; }
-  .ver { display: block; width: 100%; background: none; border: 0; border-top: 1px dashed var(--linha); color: var(--marca); font: 700 13px var(--fonte); padding: 9px; cursor: pointer; }
-  .detalhe { padding: 4px 14px 14px; border-top: 1px dashed var(--linha); }
-  .detalhe h3 { font-size: 14px; margin: 10px 0 4px; }
-  .detalhe .abas { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 8px; }
-  .grafico { width: 100%; max-width: 520px; height: auto; display: block; }
+  .ver { display: block; width: 100%; margin-top: auto; background: none; border: 0; border-top: 1px dashed var(--linha); color: var(--marca); font: 700 13px var(--fonte); padding: 9px; cursor: pointer; }
+  .detalhe { padding: 4px 12px 12px; border-top: 1px dashed var(--linha); }
+  .detalhe h3 { font-size: 13px; font-weight: 600; color: var(--suave); margin: 10px 0 6px; }
+  .detalhe .abas { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 10px; scrollbar-width: none; }
+  .detalhe .abas::-webkit-scrollbar { display: none; }
+  .detalhe .abas button { padding: 5px 10px; font-size: 12px; font-weight: 600; flex: none; }
+  /* Faixa do preço como no Google Flights (Leonardo, 21/11/2026: "horizontal e com cores verde e vermelho para dizer onde
+     ele está atualmente e quando que foi o mais barato e o mais caro"; vem aberta). Verde = terço mais barato, amarelo =
+     meio, vermelho = terço mais caro; a marca "Hoje" mostra onde o preço de hoje está. Embaixo, o caminho do preço por dia
+     com o menor (verde) e o maior (vermelho) marcados. ANTES: só o gráfico de linha, fechado, aberto ao tocar. */
+  .nivel { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; font-size: 13px; margin-bottom: 4px; }
+  .nivel b { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .nivel.baixo b { background: #dcf5e4; color: #0f6b34; }
+  .nivel.medio b { background: #fff1c7; color: #7a5a00; }
+  .nivel.alto b { background: #fde2df; color: #a12a1d; }
+  .nivel.estavel b, .nivel.esgotada b { background: #eef3f5; color: var(--suave); }
+  .faixa { position: relative; margin: 26px 4px 4px; }
+  .faixa .barra-cor { display: flex; height: 8px; border-radius: 8px; overflow: hidden; }
+  .faixa .barra-cor i { flex: 1; }
+  .faixa .barra-cor i:nth-child(1) { background: #1fa855; }
+  .faixa .barra-cor i:nth-child(2) { background: #f2c230; }
+  .faixa .barra-cor i:nth-child(3) { background: #d64535; }
+  .faixa .marca { position: absolute; top: -24px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+  .faixa .marca span { font-size: 11px; font-weight: 700; color: #fff; background: var(--texto); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
+  .faixa .marca::after { content: ''; width: 3px; height: 18px; background: var(--texto); border-radius: 2px; margin-top: 1px; box-shadow: 0 0 0 2px #fff; }
+  .faixa .marca.ponta-e span { transform: translateX(40%); }
+  .faixa .marca.ponta-d span { transform: translateX(-40%); }
+  .extremos { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 11.5px; line-height: 1.25; }
+  .extremos span { color: var(--suave); }
+  .extremos span b { display: block; font-size: 13px; font-weight: 700; }
+  .extremos .mn b { color: #13843f; }
+  .extremos .mx { text-align: right; }
+  .extremos .mx b { color: #c0392b; }
+  .grafico { width: 100%; max-width: 520px; height: auto; display: block; margin-top: 8px; }
   .grafico text { fill: var(--suave); font: 600 10px var(--fonte); }
   .legenda { color: var(--suave); font-size: 11.5px; margin-top: 4px; }
   .legenda b { color: var(--texto); }
@@ -329,23 +368,26 @@
     <p class="legenda" id="legenda-pacote"></p>
     <div class="barra-pesq">
       <button class="btn pesquisar" id="pesquisar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Pesquisar <span id="n-pesq"></span></button>
-      <p class="dica-pesq" id="dica-pesq">Pesquisar só mostra as saídas. Não salva nada.</p>
+      <p class="dica-pesq" id="dica-pesq">Pesquisar só mostra as saídas. Não muda a sua preferência.</p>
     </div>
     </div>
-    <div class="caixa base" id="convite-calc" hidden><div><b>Em dúvida sobre o pacote de bebidas?</b> A calculadora mostra em 1 minuto qual vale mais a pena para você.
-      <a class="btn ouro" id="btn-calc" href="#">Confira se este pacote é o ideal</a></div></div>
+    <!-- Calculadora (passo 4B, no site desde 21/11/2026): "Quero entender a diferença" = convite; pacote escolhido = conferir.
+         ANTES: um texto só para os dois casos, e a calculadora ainda não estava no site. -->
+    <div class="caixa base" id="convite-calc" hidden><div><span id="calc-txt"></span>
+      <a class="btn ouro" id="btn-calc" href="#"></a></div></div>
   </div>
 
   <div class="prefs" id="prefs">
     <div class="prefs-txt"><b id="prefs-titulo"></b><span id="prefs-sub"></span></div>
     <div class="prefs-acoes" id="prefs-acoes">
-      <button class="btn" id="salvar">Salvar esta pesquisa</button>
-      <button class="volta-prefs" id="voltar">Voltar às minhas preferências</button>
+      <button class="btn" id="salvar">Salvar como minha preferência</button>
+      <button class="volta-prefs" id="voltar">Voltar à minha preferência</button>
     </div>
   </div>
 
   <div class="ordem" id="topo-lista"><h2 id="titulo-lista">Saídas</h2>
     <div class="pilulas" id="ordem"><button data-v="preco" class="ativo">Mais barato primeiro</button><button data-v="data">Por data</button></div></div>
+  <p class="dica" id="dica">Arraste para o lado para ver as outras saídas <span class="seta">→</span></p>
   <div id="lista"></div>
   <div class="pontos" id="pontos"></div>
   <div class="paginador" id="paginador"></div>
@@ -360,6 +402,8 @@
 
   <p class="rodape">Preços do dia para adultos, com taxas, na categoria mais em conta de cada tipo de cabine. Com pacote de bebidas, o total soma o pacote de cada adulto. Sujeitos a disponibilidade e confirmados no atendimento.<br>360cruzeiros, agência autorizada CVC.</p>
 </div>
+
+<button class="flutua" id="flutua" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Mudar a pesquisa</button>
 
 <div class="fundo-cal" id="fundo-cal" hidden>
   <div class="cal" role="dialog" aria-modal="true" aria-labelledby="cal-titulo">
@@ -380,8 +424,8 @@
   <div class="janela" role="dialog" aria-modal="true" aria-labelledby="j-titulo">
     <button class="fechar" id="j-fechar" aria-label="Fechar">×</button>
     <div id="j-form">
-      <h3 id="j-titulo">Salvar minhas preferências</h3>
-      <p>Confirme seu WhatsApp: é por ele que você recebe o link da sua pesquisa salva.<br><b id="j-resumo"></b></p>
+      <h3 id="j-titulo">Salvar como minha preferência</h3>
+      <p>Confirme seu WhatsApp: é por ele que chega o link para você abrir esta pesquisa quando quiser.<br><b id="j-resumo"></b></p>
       <label>Seu WhatsApp, com DDD<input id="j-whats" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999"></label>
       <div class="mel" aria-hidden="true"><label>Não preencha<input id="j-mel" tabindex="-1" autocomplete="off"></label></div>
       <p class="erro" id="j-erro"></p>
@@ -389,11 +433,11 @@
     </div>
     <div id="j-pronto" class="pronto" hidden>
       <h3>Pronto!</h3>
-      <p>Sua pesquisa foi salva. Em instantes você recebe no WhatsApp o link dela, para consultar quando quiser.</p>
+      <p>Esta pesquisa agora é a sua preferência. Em instantes chega no seu WhatsApp o link para abrir ela quando quiser, sempre com o preço do dia.</p>
     </div>
     <div id="j-semcodigo" hidden>
-      <h3>Salvar minhas preferências</h3>
-      <p>Para salvar esta pesquisa, me chama no WhatsApp que eu guardo para você.</p>
+      <h3>Salvar como minha preferência</h3>
+      <p>Me chama no WhatsApp que eu guardo esta pesquisa para você.</p>
       <a class="btn" id="j-chamar" href="#" target="_blank" rel="noopener">Chamar no WhatsApp</a>
     </div>
   </div>
@@ -405,7 +449,7 @@
   "use strict";
   var WHATS = '5582993258783';   // número do Leonardo (o mesmo do site da Black)
   var WEBHOOK_SALVAR = 'https://mkt.enturos.com/api/automations/hooks/2sub5P8fIwKeroFZs7T0l0Zo';   // webhook 53 "preferências salvas (site)"
-  var CALCULADORA = 'calculadora/';   // passo 4B (outra conversa); recebe ?c=<código>&adultos=&cia=&noites=&saida=
+  var CALCULADORA = 'calculadora/';   // passo 4B; recebe ?id=<código>&adultos=&cia=&noites=&saida= (calculadora/calc.js, lerLink)
   var NOME = MV.NOME_CABINE;
 
   function $(id) { return document.getElementById(id); }
@@ -426,7 +470,7 @@
   // f = a pesquisa que está na tela; e = o que o cliente está marcando no painel (só vale ao tocar em Pesquisar).
   var e = Object.assign({}, f);
   function copiarParaPainel() { e = Object.assign({}, f); $('navio').value = f.navio || ''; }
-  var dados = null, hist = null, histPedido = null, abertas = {}, cabDetalhe = {};
+  var dados = null, hist = null, histPedido = null, fechadas = {}, cabDetalhe = {};
   var favs = {}; try { favs = JSON.parse(ler('mv_favoritas') || '{}') || {}; } catch (e) { favs = {}; }
 
   function pesquisaAtual() {
@@ -474,7 +518,7 @@
     e.p = ps.join('.') || 'todas'; e.de = ''; e.ate = '';
     marcar();
   }
-  function novaLista() { abertas = {}; pagina = 1; }
+  function novaLista() { fechadas = {}; pagina = 1; }
 
   // Calendário: c = o que está sendo escolhido (só vale ao tocar em "Ver as saídas").
   var c = { de: '', ate: '', mes: '' };
@@ -550,8 +594,8 @@
     var pend = mudouPainel() && pesquisou;
     $('n-pesq').textContent = contarPainel();
     $('pesquisar').classList.toggle('pendente', pend);
-    $('dica-pesq').innerHTML = pend ? '<b>Você mudou os filtros:</b> toque em Pesquisar para ver as saídas. Pesquisar não salva nada.' :
-      pesquisou ? 'Pesquisar só mostra as saídas. Não salva nada.' : 'Escolha o que procura e toque em Pesquisar.';
+    $('dica-pesq').innerHTML = pend ? '<b>Você mudou os filtros:</b> toque em Pesquisar para ver as saídas.' :
+      pesquisou ? 'Pesquisar só mostra as saídas. Não muda a sua preferência.' : 'Escolha o que procura e toque em Pesquisar.';
     [].forEach.call($('ordem').children, function (b) { b.classList.toggle('ativo', b.dataset.v === f.ordem); });
     var p = pesquisaAtual(), igual = MV.mesmaPesquisa(p, salva);
     $('resumo').innerHTML = '<b>Sua pesquisa:</b> ' + esc(MV.resumo(p));
@@ -561,18 +605,23 @@
     var igualSalva = temLink && igual && !f.navio;
     $('prefs').hidden = !pesquisou;
     $('prefs').className = 'prefs ' + (igualSalva ? 'salva' : 'nova');
-    $('prefs-titulo').textContent = igualSalva ? 'Estas são as suas preferências salvas' : 'Esta pesquisa ainda não está salva';
-    $('prefs-sub').textContent = igualSalva ? 'Para ver outras saídas, toque em Mudar a pesquisa. Suas preferências só mudam se você salvar.' :
-      !temLink ? 'Quer guardar? Toque em Salvar e eu guardo para você pelo WhatsApp.' :
-      igual ? 'Você filtrou um navio. O navio não fica salvo; o resto é igual às suas preferências.' :
-      'Quer guardar? Toque em Salvar e você recebe no WhatsApp o link desta pesquisa. Ou volte às suas preferências.';
+    $('prefs-titulo').textContent = igualSalva ? 'Você está vendo a sua preferência salva' : 'Esta pesquisa ainda não é a sua preferência';
+    $('prefs-sub').textContent = igualSalva ? 'Quer ver outras datas ou cabines? Toque em Mudar a pesquisa. Sua preferência só muda se você salvar.' :
+      !temLink ? 'Gostou? Salve como sua preferência e eu guardo pelo WhatsApp para você.' :
+      igual ? 'Você filtrou um navio. O navio não fica salvo; o resto é igual à sua preferência.' :
+      'Gostou? Salve como sua preferência e receba no WhatsApp o link para voltar nela quando quiser.';
     $('salvar').hidden = temLink && igual;
     $('voltar').hidden = !temLink || igualSalva;
     $('convite-calc').classList.toggle('forte', salva.b === 'entender');
     $('aviso-criancas').hidden = f.c === '0';
-    $('convite-calc').hidden = !(salva.b === 'entender' || f.b !== 'sem');
+    $('convite-calc').hidden = !MV.conviteCalc(salva.b, f.b);
     $('legenda-pacote').textContent = e.b === 'sem' ? '' : 'Básico = Easy na MSC e My Drinks na Costa. Premium = Premium Extra na MSC e My Drinks Plus na Costa. Sem álcool = Não Alcoólico na MSC e My Soft Drinks na Costa.';
-    $('btn-calc').href = CALCULADORA + '?c=' + encodeURIComponent(salva.id) + '&adultos=' + adultos();
+    var calc = MV.conviteCalc(salva.b, f.b);
+    if (calc) {
+      $('calc-txt').innerHTML = '<b>' + esc(calc.titulo) + '</b> ' + esc(calc.texto);
+      $('btn-calc').textContent = calc.botao;
+    }
+    $('btn-calc').href = CALCULADORA + MV.linkCalc(salva.id, adultos());
     $('btn-idades').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero o preço exato com as idades das crianças.');
   }
 
@@ -593,9 +642,9 @@
     var nota = a + (a === '1' ? ' adulto' : ' adultos') + ', taxas inclusas' +
       (f.b === 'sem' ? ', sem pacote de bebidas' : pk ? ', com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)' : '') +
       (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
-    var aberta = abertas[s.id];
+    var aberta = !fechadas[s.id];   // vem aberta (Leonardo, 21/11/2026: "vamos testar ele vindo expandido")
     return '<div class="card" data-i="' + i + '">' +
-      '<div class="c-topo abre"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
+      '<div class="c-topo"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
         MV.nomeMesCurto(s.embarque) + ' ' + s.embarque.slice(2, 4) + '</span></div>' +
         '<div class="c-info"><span class="navio">' + esc(s.navio) + '</span>' +
         '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : 'msc') + '">' + esc(s.cia) + '</span>' + s.noites + ' noites · volta ' + dm(MV.volta(s)) + '</span>' +
@@ -603,56 +652,82 @@
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
       '<div class="cabs">' + celulas + '</div><p class="pp">' + nota + '</p>' +
       (aberta ? detalhe(s) : '') +
-      '<button class="ver abre">' + (aberta ? 'Fechar a linha do tempo' : 'Ver a linha do tempo do preço') + '</button></div>';
+      '<button class="ver abre">' + (aberta ? 'Esconder o histórico do preço' : 'Ver o histórico do preço') + '</button></div>';
   }
 
   // Linha do tempo (abre ao tocar na saída): o preço de cada dia da cabine, para os adultos e o pacote escolhidos.
   function detalhe(s) {
-    var a = adultos(), cab = cabDetalhe[s.id] || (f.k !== 'todas' ? f.k : 'int');
+    var a = adultos(), cab = cabDetalhe[s.id] || (f.k !== 'todas' ? f.k : menorCabine(s));
     var abas = MV.CABINES.filter(function (c) { return s.ocup[a] && (c in s.ocup[a].cab); }).map(function (c) {
       return '<button data-cab="' + c + '" data-s="' + esc(s.id) + '"' + (c === cab ? ' class="ativo"' : '') + '>' + NOME[c] + '</button>';
     }).join('');
     var corpo;
-    if (!hist) corpo = '<p class="legenda">Carregando a linha do tempo...</p>';
+    if (!hist) corpo = '<p class="legenda">Carregando o histórico do preço...</p>';
     else {
-      var pts = MV.linhaDoTempo(hist, s.id, a, cab, f.b);
-      corpo = pts.length < 2 ? '<p class="legenda">Ainda temos poucos dias de leitura desta cabine para mostrar a linha do tempo.</p>' : grafico(pts);
+      var pts = MV.linhaDoTempo(hist, s.id, a, cab, f.b).map(function (p) { return [p[0], p[1] === null ? null : Math.round(p[1] / a), p[2]]; });
+      var fx = MV.faixaPreco(pts);
+      corpo = !fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx);
     }
     var texto = 'Oi, Leonardo! Vi na minha página o ' + s.navio + ', de ' + dm(s.embarque) + ' a ' + dm(MV.volta(s)) + ', ' + s.noites + ' noites, cabine ' +
       NOME[cab].toLowerCase() + ', para ' + a + (a === '1' ? ' adulto' : ' adultos') + '. Pode conferir para mim?';
-    return '<div class="detalhe"><h3>Como o preço andou</h3><div class="pilulas abas">' + abas + '</div>' + corpo +
-      '<div class="termometro" hidden></div>' +
+    return '<div class="detalhe"><h3>Como o preço por pessoa andou</h3><div class="pilulas abas">' + abas + '</div>' + corpo +
+      '<div class="termometro" hidden></div>' + calcDaSaida(s) +
       '<a class="btn" style="margin-top:12px" href="' + linkWhats(texto) + '" target="_blank" rel="noopener">Quero esta saída</a></div>';
   }
 
-  function grafico(pts) {
-    var W = 320, H = 150, e = 46, d = 8, t = 10, b = 22;
-    var vals = pts.filter(function (p) { return p[1] !== null; }).map(function (p) { return p[1]; });
-    if (!vals.length) return '<p class="legenda">Esgotada em todos os dias lidos.</p>';
-    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+  // Na saída aberta: a calculadora com o preço do pacote DESTA saída (quem escolheu pacote ou marcou "Quero entender").
+  function calcDaSaida(s) {
+    var calc = MV.conviteCalc(salva.b, f.b);
+    if (!calc) return '';
+    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultos(), s)) + '">' + esc(calc.botao) + '</a>';
+  }
+
+  function menorCabine(s) {
+    var a = adultos(), m = null;
+    MV.CABINES.forEach(function (c) { var t = MV.total(s, a, c, f.b); if (typeof t === 'number' && (m === null || t < MV.total(s, a, m, f.b))) m = c; });
+    return m || 'int';
+  }
+
+  // Faixa verde/amarela/vermelha com a marca "Hoje", e o menor e o maior com o dia.
+  function faixa(fx) {
+    var txt = { baixo: 'Preço baixo agora', medio: 'Preço na média', alto: 'Preço alto agora', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
+    var html = '<p class="nivel ' + fx.nivel + '"><b>' + txt + '</b>' + (fx.hoje ? '<span>Hoje: ' + reais(fx.hoje.v) + ' por pessoa</span>' : '') + '</p>';
+    if (fx.pos !== null && fx.min.v !== fx.max.v) {
+      var pct = Math.max(2, Math.min(98, fx.pos * 100)), lado = pct < 15 ? ' ponta-e' : pct > 85 ? ' ponta-d' : '';
+      html += '<div class="faixa"><div class="marca' + lado + '" style="left:' + pct.toFixed(1) + '%"><span>Hoje</span></div>' +
+        '<div class="barra-cor"><i></i><i></i><i></i></div></div>';
+    }
+    html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>mais barato, em ' + dm(fx.min.dia) + '</span>' +
+      '<span class="mx"><b>' + reais(fx.max.v) + '</b>mais caro, em ' + dm(fx.max.dia) + '</span></div>';
+    return html;
+  }
+
+  // Caminho do preço por dia (pequeno, cabe no celular): verde no dia mais barato, vermelho no mais caro, escuro hoje.
+  function grafico(pts, fx) {
+    var W = 320, H = 86, e = 6, d = 6, t = 10, b = 18;
+    var mn = fx.min.v, mx = fx.max.v;
     if (mn === mx) { mn -= 100; mx += 100; }
     var d0 = new Date(pts[0][0]), d1 = new Date(pts[pts.length - 1][0]), dias = Math.max(1, (d1 - d0) / 864e5);
     function x(dia) { return e + (W - e - d) * ((new Date(dia) - d0) / 864e5) / dias; }
     function y(v) { return t + (H - t - b) * (1 - (v - mn) / (mx - mn)); }
-    var linha = '', pontos = '', lista = false;
+    var linha = '', area = '', marcas = '', lista = false, ini = null, fimX = null;
     pts.forEach(function (p, k) {
-      if (p[1] === null) { pontos += '<text x="' + x(p[0]) + '" y="' + (H - b + 2) + '" text-anchor="middle" fill="#c0392b">×</text>'; return; }
-      linha += (linha && pts[k - 1] && pts[k - 1][1] !== null ? 'L' : 'M') + x(p[0]).toFixed(1) + ' ' + y(p[1]).toFixed(1);
+      if (p[1] === null) { marcas += '<text x="' + x(p[0]).toFixed(1) + '" y="' + (H - b + 1) + '" text-anchor="middle" fill="#c0392b">×</text>'; return; }
+      var novo = !(linha && pts[k - 1] && pts[k - 1][1] !== null);
+      linha += (novo ? 'M' : 'L') + x(p[0]).toFixed(1) + ' ' + y(p[1]).toFixed(1);
+      if (ini === null) ini = x(p[0]);
+      fimX = x(p[0]);
       if (p[2]) lista = true;
-      pontos += '<circle cx="' + x(p[0]).toFixed(1) + '" cy="' + y(p[1]).toFixed(1) + '" r="2.6" ' + (p[2] ? 'fill="#ffffff" stroke="#d4901f"' : 'fill="#d4901f"') + '/>';
     });
-    var ult = pts.filter(function (p) { return p[1] !== null; }).pop();
-    function mil(v) { return (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil'; }
-    var svg = '<svg class="grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Preço por dia">' +
-      '<line x1="' + e + '" y1="' + y(mx) + '" x2="' + (W - d) + '" y2="' + y(mx) + '" stroke="#dbe3e8" stroke-dasharray="3 3"/>' +
-      '<line x1="' + e + '" y1="' + y(mn) + '" x2="' + (W - d) + '" y2="' + y(mn) + '" stroke="#dbe3e8" stroke-dasharray="3 3"/>' +
-      '<text x="' + (e - 4) + '" y="' + (y(mx) + 3) + '" text-anchor="end">' + mil(mx) + '</text>' +
-      '<text x="' + (e - 4) + '" y="' + (y(mn) + 3) + '" text-anchor="end">' + mil(mn) + '</text>' +
-      '<path d="' + linha + '" fill="none" stroke="#d4901f" stroke-width="2"/>' + pontos +
-      '<text x="' + e + '" y="' + (H - 6) + '">' + dm(pts[0][0]) + '</text>' +
-      '<text x="' + (W - d) + '" y="' + (H - 6) + '" text-anchor="end">' + dm(pts[pts.length - 1][0]) + '</text></svg>';
-    return svg + '<p class="legenda">Hoje: <b>' + reais(ult[1]) + '</b> · menor: ' + reais(Math.min.apply(null, vals)) + ' · maior: ' + reais(Math.max.apply(null, vals)) +
-      (lista ? '<br>Bolinha vazia = preço da lista do site, que pode variar um pouco.' : '') + '</p>';
+    function ponto(dia, v, cor, r) { return '<circle cx="' + x(dia).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="' + r + '" fill="' + cor + '" stroke="#fff" stroke-width="2"/>'; }
+    marcas += ponto(fx.min.dia, fx.min.v, '#1fa855', 5) + ponto(fx.max.dia, fx.max.v, '#d64535', 5);
+    if (fx.hoje) marcas += ponto(fx.hoje.dia, fx.hoje.v, '#10252e', 4.5);
+    var svg = '<svg class="grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Preço por pessoa, dia a dia">' +
+      '<line x1="' + e + '" y1="' + (H - b) + '" x2="' + (W - d) + '" y2="' + (H - b) + '" stroke="#dbe3e8"/>' +
+      '<path d="' + linha + '" fill="none" stroke="#0f4c5c" stroke-width="2" stroke-linejoin="round"/>' + marcas +
+      '<text x="' + e + '" y="' + (H - 4) + '">' + dm(pts[0][0]) + '</text>' +
+      '<text x="' + (W - d) + '" y="' + (H - 4) + '" text-anchor="end">hoje</text></svg>';
+    return svg + (lista ? '<p class="legenda">Alguns dias vêm da lista do site, que pode variar um pouco.</p>' : '');
   }
 
   // Chamada do topo: o menor preço por pessoa da pesquisa (cabine e pacote escolhidos).
@@ -670,6 +745,7 @@
     var hoje = dados.leitura;
     $('paginador').innerHTML = ''; $('pontos').innerHTML = ''; $('contagem').textContent = ''; $('sem-preco').innerHTML = '';
     $('topo-lista').hidden = !pesquisou;
+    $('dica').classList.remove('tem');
     if (!pesquisou) { $('lista').innerHTML = ''; $('chamada').innerHTML = '<small>Cruzeiros com o preço de hoje</small>'; return; }
     if (f.a === '5') {
       $('chamada').innerHTML = '<small>Para 5 ou mais pessoas, eu monto as opções pelo WhatsApp</small>';
@@ -702,6 +778,7 @@
       $('paginador').innerHTML = paginas(pg);
       $('contagem').textContent = 'Saídas ' + pg.de + ' a ' + pg.ate + ' de ' + pg.total;
     }
+    $('dica').classList.toggle('tem', mostradas.length > 1 || pg.pagina < pg.paginas);
     if (mostradas.length > 1) $('pontos').innerHTML = mostradas.map(function (s, k) { return '<i' + (k ? '' : ' class="ativo"') + '></i>'; }).join('');
     ligarCarrossel();
     if (r.semPreco.length) {
@@ -724,7 +801,7 @@
       '<button class="seta" data-pag="' + (p + 1) + '"' + (p >= n ? ' disabled' : '') + ' aria-label="Próxima página">›</button>';
   }
   function irPagina(n) {
-    pagina = n; abertas = {}; desenhar();
+    pagina = n; fechadas = {}; desenhar();
     var t = $('topo-lista').getBoundingClientRect().top + window.pageYOffset - 8;
     if (window.pageYOffset > t) window.scrollTo({ top: t, behavior: 'smooth' });
   }
@@ -783,12 +860,22 @@
     var cd = b.closest('.card');
     if (cd && b.classList.contains('abre')) {
       var s = mostradas[+cd.dataset.i];
-      abertas[s.id] = !abertas[s.id];
-      if (abertas[s.id]) pedirHistorico();
+      fechadas[s.id] = !fechadas[s.id];
       desenhar();
     }
   });
   // Pesquisar: o que está marcado no painel vai para a tela; o painel recolhe e a página desce até as saídas.
+  // Botão "Mudar a pesquisa" que flutua quando o do painel sai de vista (só depois de ter saídas na tela).
+  function verFlutua() {
+    var r = $('filtros').getBoundingClientRect();
+    $('flutua').hidden = !pesquisou || $('filtros').classList.contains('aberto') || r.bottom > 0 || !$('fundo-cal').hidden || !$('janela').hidden;
+  }
+  window.addEventListener('scroll', verFlutua, { passive: true });
+  $('flutua').onclick = function () {
+    $('flutua').hidden = true;
+    if (!$('filtros').classList.contains('aberto')) $('mudar').onclick();
+    window.scrollTo({ top: $('filtros').getBoundingClientRect().top + window.pageYOffset - 8, behavior: 'smooth' });
+  };
   $('pesquisar').onclick = function () {
     f = Object.assign({}, e, { ordem: f.ordem });
     pesquisou = true;
@@ -865,6 +952,7 @@
     navios();
     montarQuando();
     desenhar();
+    pedirHistorico();
   }).catch(function () {
     $('atualizado').textContent = 'Não consegui carregar os preços agora.';
     $('lista').innerHTML = '<div class="vazio">Não consegui carregar os preços agora. Tente de novo em instantes ou me chama no WhatsApp.' +

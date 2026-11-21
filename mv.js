@@ -313,7 +313,45 @@
   function diaDaSemana(iso) { return SEMANA[new Date(iso + "T12:00:00Z").getUTCDay()]; }
   function nomeMesCurto(iso) { return MESES[+iso.slice(5, 7) - 1]; }
 
-  var api = { temporada: temporada, temporadas: temporadas, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+  // Faixa do preço, como no Google Flights (Leonardo, 21/11/2026): de pts da linhaDoTempo tira o preço de hoje (o último
+  // dia lido), o menor e o maior (com o dia; empate = o dia mais recente), onde o de hoje fica entre eles (pos 0 a 1) e o
+  // nível: baixo (terço de baixo), medio, alto (terço de cima) ou estavel (sempre o mesmo). Esgotada hoje = hoje null.
+  function faixaPreco(pts) {
+    var ok = (pts || []).filter(function (p) { return p[1] !== null; });
+    if (ok.length < 2) return null;
+    var min = ok[0], max = ok[0];
+    ok.forEach(function (p) { if (p[1] <= min[1]) min = p; if (p[1] >= max[1]) max = p; });
+    var ult = pts[pts.length - 1], hoje = ult[1] === null ? null : { v: ult[1], dia: ult[0] };
+    var r = { hoje: hoje, min: { v: min[1], dia: min[0] }, max: { v: max[1], dia: max[0] }, pos: null, nivel: "estavel" };
+    if (hoje && max[1] > min[1]) {
+      r.pos = (hoje.v - min[1]) / (max[1] - min[1]);
+      r.nivel = r.pos <= 1 / 3 ? "baixo" : r.pos >= 2 / 3 ? "alto" : "medio";
+    } else if (hoje) r.pos = 0.5;
+    else r.nivel = "esgotada";
+    return r;
+  }
+
+  // Convite da calculadora de bebidas (passo 4B). salvaB = pacote do link ("entender" = marcou "Quero entender a
+  // diferença"); telaB = o pacote que está na tela. Sem pacote e sem "entender" = sem convite (null).
+  function conviteCalc(salvaB, telaB) {
+    if (salvaB === "entender" && (telaB === "sem" || telaB === "entender")) return { tipo: "entender", titulo: "Em dúvida sobre o pacote de bebidas?",
+      texto: "A calculadora mostra em 1 minuto qual vale mais a pena para você.", botao: "Descobrir o pacote ideal" };
+    var nome = { soft: "sem álcool", basico: "básico", premium: "premium" }[telaB];
+    if (!nome) return null;
+    return { tipo: "conferir", titulo: "Escolheu o pacote " + nome + "?", texto: "A calculadora mostra em 1 minuto se ele vale a pena para o que você bebe.",
+      botao: "Confira se este pacote é o ideal" };
+  }
+  // Link da calculadora: ?id=<código>&adultos=N e, com a saída, &saida=<id>&cia=msc|costa&noites=N (preço do pacote dela).
+  function linkCalc(id, adultos, s) {
+    var q = [];
+    if (/^[A-Za-z0-9_-]{1,40}$/.test(String(id || ""))) q.push("id=" + id);
+    var a = parseInt(adultos, 10);
+    if (a >= 1 && a <= 4) q.push("adultos=" + a);
+    if (s && s.id) q.push("saida=" + encodeURIComponent(s.id), "cia=" + (String(s.cia).toLowerCase() === "costa" ? "costa" : "msc"), "noites=" + s.noites);
+    return q.length ? "?" + q.join("&") : "";
+  }
+
+  var api = { faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
