@@ -258,7 +258,64 @@
     return out;
   }
 
-  var api = { LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
+  // Temporada (Leonardo, 21/11/2026: "separar por 2027 ou 2028"): a temporada de Santos vai de novembro a abril e leva o
+  // nome do ano do verão. nov/dez 2026 e jan a abr 2027 = "2027"; nov/dez 2027 e jan a abr 2028 = "2028".
+  function temporada(x) {
+    if (CARNAVAL[x]) return CARNAVAL[x].de.slice(0, 4);
+    var a = 2000 + +x.slice(1, 3), m = +x.slice(3, 5);
+    return String(m >= 7 ? a + 1 : a);
+  }
+  function temporadas(saidas, hoje) {
+    var t = {};
+    mesesComSaida(saidas, hoje).forEach(function (m) { t[temporada(m)] = 1; });
+    return Object.keys(t).sort();
+  }
+
+  // Paginador (Leonardo, 21/11/2026: "3 por página, por conta do celular"): pagina começa em 1; fora do limite = a mais perto.
+  function paginar(lista, pagina, por) {
+    por = por || 3;
+    var total = Math.max(1, Math.ceil(lista.length / por)), p = Math.min(Math.max(1, Math.floor(+pagina) || 1), total);
+    return { itens: lista.slice((p - 1) * por, p * por), pagina: p, paginas: total, de: lista.length ? (p - 1) * por + 1 : 0,
+      ate: Math.min(p * por, lista.length), total: lista.length };
+  }
+
+  // Data digitada à mão: máscara dd/mm/aaaa enquanto digita, e a leitura ("05/01/2027", "5/1/27", "05012027") para AAAA-MM-DD.
+  function mascaraData(t) {
+    var d = String(t || "").replace(/\D/g, "").slice(0, 8);
+    return d.length > 4 ? d.slice(0, 2) + "/" + d.slice(2, 4) + "/" + d.slice(4) : d.length > 2 ? d.slice(0, 2) + "/" + d.slice(2) : d;
+  }
+  function lerDataBR(t) {
+    var m = String(t || "").trim().match(/^(\d{1,2})\D?(\d{1,2})\D?(\d{2}|\d{4})$/);
+    if (!m) { var d = String(t || "").replace(/\D/g, ""); if (d.length !== 8) return ""; m = [0, d.slice(0, 2), d.slice(2, 4), d.slice(4)]; }
+    var a = m[3].length === 2 ? "20" + m[3] : m[3];
+    return lerData(a + ("0" + m[2]).slice(-2) + ("0" + m[1]).slice(-2));
+  }
+  function dataBR(iso) { return iso ? iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4) : ""; }
+
+  // Calendário: as semanas do mês (domingo primeiro), com "" nos dias de fora. mes = "AAAA-MM".
+  function semanasDoMes(mes) {
+    var a = +mes.slice(0, 4), m = +mes.slice(5, 7), ini = new Date(Date.UTC(a, m - 1, 1)).getUTCDay(),
+      dias = new Date(Date.UTC(a, m, 0)).getUTCDate(), cel = [], sem = [];
+    for (var i = 0; i < ini; i++) cel.push("");
+    for (var d = 1; d <= dias; d++) cel.push(mes + "-" + ("0" + d).slice(-2));
+    while (cel.length % 7) cel.push("");
+    for (var k = 0; k < cel.length; k += 7) sem.push(cel.slice(k, k + 7));
+    return sem;
+  }
+  function somaMes(mes, n) { var d = new Date(Date.UTC(+mes.slice(0, 4), +mes.slice(5, 7) - 1 + n, 1)); return d.toISOString().slice(0, 7); }
+  // Toque no calendário: 1º toque = embarque a partir de; 2º = volta até (antes do 1º = recomeça daquele dia).
+  function tocarDia(de, ate, dia) {
+    if (!de || ate) return { de: dia, ate: "" };
+    if (dia < de) return { de: dia, ate: "" };
+    return { de: de, ate: dia };
+  }
+  var SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+  function diaDaSemana(iso) { return SEMANA[new Date(iso + "T12:00:00Z").getUTCDay()]; }
+  function nomeMesCurto(iso) { return MESES[+iso.slice(5, 7) - 1]; }
+
+  var api = { temporada: temporada, temporadas: temporadas, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+    semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
+    LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
     lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, total: total, precoOrdem: precoOrdem,
     filtrar: filtrar, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,

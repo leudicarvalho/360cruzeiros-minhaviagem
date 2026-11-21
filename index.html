@@ -27,7 +27,7 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--fundo); color: var(--texto); font-family: var(--fonte); line-height: 1.4; }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 40px; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px 40px; }
   [hidden] { display: none !important; }
 
   .topo { position: relative; margin: 0 -16px 4px; padding: 16px 18px 18px; border-radius: 0 0 24px 24px; overflow: hidden; color: #fff;
@@ -41,10 +41,17 @@
   .atualizado { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 5px 12px; border-radius: 60px; background: rgba(37,211,102,.16); border: 1px solid rgba(37,211,102,.6); color: #fff; font-size: 12px; font-weight: 600; text-align: center; }
   .atualizado b { color: #8ff5b5; white-space: nowrap; }
   .atualizado::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #25d366; box-shadow: 0 0 0 4px rgba(37,211,102,.25); flex: none; }
-  h1 { font-size: clamp(22px, 4.6vw, 32px); font-weight: 900; line-height: 1.1; letter-spacing: -.5px; text-align: center; }
-  h1 em { font-style: normal; color: var(--ouro); }
-  .resumo { margin: 8px auto 0; max-width: 620px; text-align: center; color: #d3e3e9; font-size: 13px; }
-  .resumo b { color: #fff; }
+  /* Topo que vende (Leonardo, 21/11/2026: "sua pesquisa... está horrível. Tem que ter algo que venda muito mais"): o navio
+     e o menor preço por pessoa da pesquisa em destaque. ANTES: "Sua pesquisa de cruzeiro, com os preços de hoje". */
+  h1 { font-size: clamp(24px, 5.4vw, 38px); font-weight: 800; line-height: 1.08; letter-spacing: -.6px; text-align: center; }
+  .chamada { display: block; margin-top: 10px; text-align: center; }
+  .chamada small { display: block; color: #d3e3e9; font-size: 13px; font-weight: 500; }
+  .chamada strong { display: inline-block; margin-top: 2px; font-size: clamp(30px, 7vw, 44px); font-weight: 900; letter-spacing: -1px; color: var(--ouro); line-height: 1; }
+  .chamada strong span { font-size: 15px; font-weight: 600; letter-spacing: 0; color: #fff; margin-left: 4px; }
+  .selos { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px; }
+  .selos span { font-size: 12px; font-weight: 600; color: #fff; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 4px 10px; }
+  .resumo { margin: 10px auto 0; max-width: 620px; text-align: center; color: #d3e3e9; font-size: 12.5px; }
+  .resumo b { color: #fff; font-weight: 600; }
   @media (min-width: 700px) { .barra { justify-content: flex-start; } .atualizado { margin-left: auto; } }
 
   /* Caixas de aviso: info (azul claro, ✓) e base (dourado claro, i). */
@@ -70,66 +77,173 @@
   .pilulas button.carnaval:not(.ativo) { border-color: var(--ouro-escuro); color: var(--ouro-texto); }
   .pilulas.num button { min-width: 40px; padding: 7px 10px; }
   select { background: var(--campo); color: var(--texto); border: 1px solid #c9d5db; border-radius: 8px; padding: 9px; font: 500 14px var(--fonte); width: 100%; }
-  .mudar { display: none; width: 100%; background: #fff; border: 2px solid var(--marca); color: var(--marca); border-radius: 8px;
+  .mudar { display: block; width: 100%; background: #fff; border: 2px solid var(--marca); color: var(--marca); border-radius: 8px;
     padding: 10px; font: 800 14px var(--fonte); cursor: pointer; }
   .mudar span { display: inline-block; transition: transform .2s; }
   .filtros.aberto .mudar span { transform: rotate(180deg); }
-  /* Celular (Leonardo, 21/11/2026: "funcionar no mobile, igual o site da Black"): os filtros ficam recolhidos e os preços
-     aparecem logo abaixo do topo, como na Black ("a pesquisa deve ir mais pra cima", 27/10). Computador: sempre abertos. */
+  /* Saídas primeiro (Leonardo, 21/11/2026: "quando a pessoa já tiver o link pronto... mostrar primeiro as saídas
+     disponíveis, para depois poder modificar a pesquisa"): o painel fica recolhido atrás do "Mudar a pesquisa" em
+     qualquer tela; sem link ele já abre aberto. ANTES: recolhido só no celular; no computador sempre aberto. */
+  .filtros:not(.aberto) .corpo-filtros { display: none; }
+  .filtros:not(.aberto) #convite-calc:not(.forte) { display: none; }
+  .filtros.aberto .corpo-filtros { margin-top: 8px; }
+  .filtros.sem-link .mudar { display: none; }
   @media (max-width: 699px) {
-    .mudar { display: block; }
-    .filtros:not(.aberto) .corpo-filtros { display: none; }
-    /* fechada: só o "Mudar a pesquisa"; Salvar/Voltar aparecem quando a pesquisa mudou; a calculadora só para quem
-       respondeu "Quero entender a diferença" no formulário */
-    .filtros.igual:not(.aberto) .acoes-pesq { display: none; }
-    .filtros:not(.aberto) #convite-calc:not(.forte) { display: none; }
-    .filtros.aberto .corpo-filtros { margin-top: 8px; }
+    /* fechada: só o "Mudar a pesquisa"; a calculadora só para quem respondeu "Quero entender a diferença" no formulário */
     .filtros { padding: 12px; margin-top: 10px; }
     .caixa { font-size: 12px; padding: 8px 10px; margin-top: 10px; }
     .topo { padding: 12px 14px 14px; }
     .ordem { margin-top: 14px; }
   }
+  /* Quando (Leonardo, 21/11/2026: "muito desorganizado... separar por 2027 ou 2028"): abas por temporada, os meses dela
+     em grade (com quantas saídas tem), o Carnaval dentro da temporada, e um botão que abre o calendário. ANTES: todos os
+     meses numa fila só, e dois campos de data do navegador ("Ou diga os dias que você pode"). */
   .filtro.quando { align-items: start; }
-  .filtro.quando > span { padding-top: 8px; }
-  .sub { color: var(--suave); font-size: 12px; margin: 10px 0 6px; }
-  .datas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .datas label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--suave); }
-  .datas input { background: var(--campo); color: var(--texto); border: 1px solid #c9d5db; border-radius: 8px; padding: 8px; font: 600 14px var(--fonte); width: 100%; min-width: 0; }
-  .limpar { background: none; border: 0; color: var(--destaque); font: 700 12px var(--fonte); padding: 6px 0 0; cursor: pointer; text-decoration: underline; }
-  .acoes-pesq { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-  .acoes-pesq .btn { margin: 0; }
+  .filtro.quando > span { padding-top: 10px; }
+  .temporadas { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: #eef3f5; border-radius: 12px; padding: 4px; }
+  .temporadas button { border: 0; background: none; border-radius: 9px; padding: 8px 6px; font: 600 13px var(--fonte); color: var(--suave); cursor: pointer; line-height: 1.15; }
+  .temporadas button b { display: block; font-size: 16px; font-weight: 800; color: var(--texto); }
+  .temporadas button.ativo { background: #fff; color: var(--marca); box-shadow: 0 1px 4px rgba(16,37,46,.15); }
+  .temporadas button.ativo b { color: var(--marca); }
+  .temporadas button i { font-style: normal; display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 5px; border-radius: 9px; background: var(--ouro); color: #10252e; font-size: 11px; font-weight: 800; }
+  .meses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+  @media (min-width: 520px) { .meses { grid-template-columns: repeat(4, 1fr); } }
+  .meses button { background: #fff; border: 1px solid #c9d5db; border-radius: 10px; padding: 7px 4px; cursor: pointer; font: 600 14px var(--fonte); color: var(--texto); line-height: 1.15; }
+  .meses button small { display: block; font-size: 11px; font-weight: 500; color: var(--suave); }
+  .meses button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; }
+  .meses button.ativo small { color: #cfe3ea; }
+  .meses button.carnaval { grid-column: span 2; border-color: var(--ouro-escuro); background: var(--ouro-claro); color: var(--ouro-texto); }
+  .meses button.carnaval.ativo { background: var(--ouro-escuro); color: #10252e; }
+  .meses button.carnaval.ativo small { color: #10252e; }
+  .linha-datas { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .abrir-cal { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; border: 2px dashed var(--marca); color: var(--marca);
+    border-radius: 10px; padding: 9px 10px; font: 700 14px var(--fonte); cursor: pointer; }
+  .abrir-cal.tem { border-style: solid; background: var(--marca-clara); }
+  .abrir-cal svg { flex: none; }
+  .todas-datas { background: none; border: 1px solid #c9d5db; border-radius: 10px; padding: 9px 12px; font: 600 13px var(--fonte); color: var(--suave); cursor: pointer; }
+  .todas-datas.ativo { background: var(--marca); border-color: var(--marca); color: #fff; }
+
+  /* Calendário (Leonardo, 21/11/2026: "abrir um calendário para poder selecionar... fácil de utilizar e que dê para informar
+     manualmente também... facilidade no celular"): no celular sobe de baixo, no computador abre no meio. Dois campos para
+     digitar (dd/mm/aaaa, teclado numérico) e o mês com os dias que têm saída marcados; 1º toque = embarque, 2º = volta. */
+  .fundo-cal { position: fixed; inset: 0; background: rgba(16,37,46,.55); z-index: 11; display: flex; align-items: flex-end; justify-content: center; }
+  .cal { width: 100%; max-width: 440px; max-height: 94vh; overflow: auto; background: #fff; border-radius: 20px 20px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(16,37,46,.3); }
+  @media (min-width: 700px) { .fundo-cal { align-items: center; } .cal { border-radius: 20px; } }
+  .cal-pega { width: 40px; height: 4px; border-radius: 4px; background: #c9d5db; margin: 0 auto 10px; }
+  .cal h3 { font-size: 18px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+  .cal h3 button { background: none; border: 0; font-size: 26px; line-height: 1; color: var(--suave); cursor: pointer; }
+  .cal-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 12px; }
+  .cal-campos label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: var(--suave); border: 2px solid #c9d5db; border-radius: 10px; padding: 6px 10px; cursor: text; }
+  .cal-campos label.foco { border-color: var(--marca); }
+  .cal-campos input { border: 0; outline: 0; font: 700 17px var(--fonte); color: var(--texto); width: 100%; min-width: 0; padding: 0; background: none; }
+  .cal-campos input.falta { color: var(--alta); }
+  .cal-mes { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .cal-mes b { font-size: 16px; font-weight: 700; text-transform: capitalize; }
+  .cal-mes button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #c9d5db; background: #fff; font-size: 20px; color: var(--marca); cursor: pointer; }
+  .cal-mes button:disabled { opacity: .3; cursor: default; }
+  .cal-grade { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 2px; text-align: center; }
+  .cal-grade .sem { font-size: 11px; font-weight: 600; color: var(--suave); padding: 4px 0; text-transform: uppercase; }
+  .cal-grade button { position: relative; height: 42px; border: 0; background: none; font: 500 15px var(--fonte); color: var(--texto); cursor: pointer; }
+  .cal-grade button:disabled { color: #c3ccd1; cursor: default; }
+  .cal-grade button.saida::after { content: ''; position: absolute; left: 50%; bottom: 5px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--ouro-escuro); }
+  .cal-grade button.meio { background: var(--marca-clara); }
+  .cal-grade button.ponta { background: var(--marca); color: #fff; font-weight: 800; border-radius: 10px; }
+  .cal-grade button.ponta::after { background: #fff; }
+  .cal-legenda { font-size: 12px; color: var(--suave); margin: 8px 0 12px; display: flex; align-items: center; gap: 6px; }
+  .cal-legenda::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ouro-escuro); }
+  .cal-acoes { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+  /* Pesquisar x Salvar (Leonardo, 21/11/2026: "um botão para fazer a pesquisa, mas ainda não é o de salvar... bem
+     didático... principalmente no celular"): os filtros só valem ao tocar em Pesquisar (o botão diz quantas saídas vai
+     mostrar e fica preso no pé da tela no celular); Salvar e Voltar ficam numa caixa à parte, fora do painel, que só
+     pede para salvar quando a pesquisa na tela é diferente da salva. ANTES: cada toque num filtro já mudava as saídas, e
+     Salvar/Voltar ficavam no mesmo painel, lado a lado com os filtros. */
+  .barra-pesq { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--linha); background: #fff; }
+  .btn.pesquisar { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--marca); font-size: 16px; padding: 13px; border-radius: 12px; }
+  .btn.pesquisar:hover { background: #0b3a47; }
+  .btn.pesquisar span { font-weight: 500; opacity: .85; }
+  .btn.pesquisar.pendente { box-shadow: 0 0 0 4px rgba(248,196,99,.7); }
+  .dica-pesq { text-align: center; color: var(--suave); font-size: 12px; margin-top: 6px; }
+  .dica-pesq b { color: var(--ouro-texto); font-weight: 700; }
+  @media (max-width: 699px) { .barra-pesq { position: sticky; bottom: 0; z-index: 2; margin: 12px -12px -12px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border-radius: 0 0 20px 20px; box-shadow: 0 -6px 14px rgba(16,37,46,.08); } }
+  .prefs { margin-top: 12px; border-radius: 16px; padding: 12px 14px; display: flex; gap: 10px 14px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+  .prefs-txt { flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px; }
+  .prefs-txt b { font-size: 14px; font-weight: 700; }
+  .prefs-txt span { color: var(--suave); }
+  .prefs.salva { background: #e8f5f8; border: 1px solid #a9d5e0; }
+  .prefs.salva b::before { content: '✓ '; color: var(--marca); }
+  .prefs.salva .prefs-acoes { display: none; }
+  .prefs.nova { background: var(--ouro-claro); border: 2px solid var(--ouro-escuro); }
+  .prefs.nova b { color: var(--ouro-texto); }
+  .prefs-acoes { flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px; }
+  .prefs-acoes .btn { margin: 0; }
+  .volta-prefs { background: none; border: 0; color: var(--marca); font: 600 13px var(--fonte); text-decoration: underline; padding: 6px; cursor: pointer; }
   .btn { display: block; text-align: center; text-decoration: none; background: var(--verde); color: #fff; font-weight: 700; font-size: 14px; padding: 11px; border-radius: 8px; border: 0; cursor: pointer; font-family: inherit; width: 100%; }
   .btn:hover { background: var(--verde-escuro); }
   .btn.ouro { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: #10252e; }
   .btn.contorno { background: #fff; border: 2px solid var(--marca); color: var(--marca); }
   .btn:disabled { opacity: .45; cursor: default; }
-  .salvas { grid-column: 1 / -1; text-align: center; color: var(--suave); font-size: 12px; }
   @media (max-width: 420px) { .filtro { grid-template-columns: 1fr; gap: 6px; } .pilulas button { padding: 7px 10px; font-size: 12.5px; } }
 
   .ordem { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 18px 2px 8px; flex-wrap: wrap; }
   .ordem h2 { font-size: 19px; font-weight: 800; }
   .ordem h2 em { font-style: normal; color: var(--marca); }
 
-  /* Cartão de cada saída: data, navio, cabines, e a linha do tempo ao tocar. */
-  .card { border: 1px solid var(--linha); border-radius: 16px; overflow: hidden; margin-bottom: 12px; background: var(--card); box-shadow: 0 2px 10px rgba(16,37,46,.06); }
-  .c-topo { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--marca-clara); border-bottom: 1px solid var(--linha); cursor: pointer; }
-  .c-topo .quando { flex: 1; min-width: 0; }
-  .data { display: block; color: var(--marca); font-weight: 800; font-size: 16px; white-space: nowrap; }
-  .data i { font-style: normal; font-weight: 700; font-size: 14px; color: var(--suave); margin: 0 4px; }
-  .noites { display: block; color: var(--suave); font-size: 12px; font-weight: 600; }
-  .fav { background: none; border: 0; color: #9aaab2; font-size: 22px; line-height: 1; cursor: pointer; padding: 2px 4px; }
+  /* Cartão de cada saída (Leonardo, 21/11/2026: "destacar mais quando sai um do outro... muito negrito... destacar o preço
+     por pessoa"): a data vira um bloco grande à esquerda (dia, mês, dia da semana), o navio ao lado; negrito só no preço por
+     pessoa, que fica grande; o total da cabine vai menor embaixo. ANTES: data e navio em duas faixas, tudo em negrito, e
+     o total grande com o "por adulto" pequeno. */
+  .card { border: 1px solid var(--linha); border-radius: 18px; overflow: hidden; background: var(--card); box-shadow: 0 4px 16px rgba(16,37,46,.08); display: flex; flex-direction: column; min-width: 0; }
+  .c-topo { display: flex; align-items: stretch; gap: 12px; padding: 12px; cursor: pointer; border-bottom: 1px solid var(--linha); }
+  .dia-bloco { flex: none; width: 64px; border-radius: 12px; background: var(--marca); color: #fff; text-align: center; padding: 6px 0 7px; line-height: 1; }
+  .dia-bloco small { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; opacity: .85; }
+  .dia-bloco b { display: block; font-size: 26px; font-weight: 800; margin: 3px 0 2px; }
+  .dia-bloco span { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--ouro); }
+  .c-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+  .navio { display: block; font-weight: 700; font-size: 16px; line-height: 1.2; }
+  .periodo { display: block; color: var(--texto); font-size: 13px; }
+  .rota { display: block; color: var(--suave); font-size: 12px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .cia { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .5px; padding: 1px 7px; border-radius: 999px; margin-right: 4px; vertical-align: 1px; }
+  .cia.msc { background: #e3ecf8; color: #1d3f72; }
+  .cia.costa { background: #fff3c7; color: #7a5a00; }
+  .fav { align-self: flex-start; background: none; border: 0; color: #9aaab2; font-size: 22px; line-height: 1; cursor: pointer; padding: 2px; }
   .fav.sim { color: var(--ouro-escuro); }
-  .c-navio { padding: 10px 14px; border-bottom: 1px dashed var(--linha); cursor: pointer; }
-  .navio { display: block; font-weight: 800; font-size: 16px; }
-  .rota { display: block; color: var(--suave); font-size: 12px; margin-top: 2px; }
-  .rota b { color: var(--texto); font-weight: 700; }
-  .cabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 12px 12px 4px; }
-  @media (min-width: 620px) { .cabs { grid-template-columns: repeat(4, 1fr); } }
-  .cab { position: relative; border: 1px solid var(--linha); border-radius: 10px; padding: 8px 9px; background: #f7fafb; min-width: 0; }
-  .cab small { display: block; color: var(--suave); font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
-  .cab b { display: block; font-size: 18px; font-weight: 900; letter-spacing: -.3px; margin-top: 1px; color: var(--texto); }
-  .cab span { display: block; color: var(--suave); font-size: 11px; }
-  .cab.esg b { color: var(--suave); font-size: 14px; }
+  .cabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px 12px 4px; }
+  .cab { position: relative; border: 1px solid var(--linha); border-radius: 12px; padding: 9px 10px; background: #f7fafb; min-width: 0; }
+  .cab small { display: block; color: var(--suave); font-size: 12px; font-weight: 500; }
+  .cab b { display: block; font-size: 21px; font-weight: 800; letter-spacing: -.4px; margin-top: 2px; color: var(--texto); line-height: 1.1; white-space: nowrap; }
+  .cab b em { display: block; font-style: normal; font-size: 11px; font-weight: 500; color: var(--suave); letter-spacing: 0; }
+  .cab span { display: block; color: var(--suave); font-size: 11.5px; margin-top: 2px; }
+  .cab.esg b { color: var(--suave); font-size: 14px; font-weight: 600; }
+  .cab.menor { border-color: var(--verde); background: #eefaf2; }
+  .cab.menor::before { content: 'Mais em conta'; position: absolute; top: -8px; left: 8px; font-size: 9.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 999px; background: var(--verde); color: #fff; }
+
+  /* Resultado (Leonardo, 21/11/2026: "paginador... 3 por página, por conta do celular. E o celular vai ter que ter um
+     carrossel para que rode para o lado, como era no site da Black Friday"): 3 saídas por página; no celular as 3 ficam
+     num carrossel que arrasta para o lado (o último cartão leva à próxima página); no computador, 3 lado a lado.
+     ANTES: todas as saídas uma embaixo da outra. */
+  .grade { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 10px; margin: 0 -2px; scrollbar-width: none; }
+  .grade::-webkit-scrollbar { display: none; }
+  .grade > * { flex: 0 0 86%; scroll-snap-align: center; }
+  .grade > .vazio { flex-basis: 100%; margin: 0; }
+  .grade > .mais { flex-basis: 46%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 2px dashed var(--marca); border-radius: 18px;
+    background: var(--marca-clara); color: var(--marca); font: 700 15px var(--fonte); cursor: pointer; text-align: center; padding: 16px; }
+  .grade > .mais span { font-size: 30px; line-height: 1; }
+  .pontos { display: flex; justify-content: center; gap: 6px; margin: 2px 0 6px; }
+  .pontos i { width: 7px; height: 7px; border-radius: 50%; background: #c9d5db; transition: all .2s; }
+  .pontos i.ativo { width: 20px; border-radius: 4px; background: var(--marca); }
+  @media (min-width: 700px) {
+    .grade { display: grid; grid-template-columns: repeat(3, 1fr); overflow: visible; align-items: start; }
+    .grade > .vazio { grid-column: 1 / -1; }
+    .grade > .mais, .pontos { display: none; }
+  }
+  .paginador { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 6px 0 14px; flex-wrap: wrap; }
+  .paginador button { min-width: 40px; height: 40px; border-radius: 10px; border: 1px solid #c9d5db; background: #fff; font: 600 14px var(--fonte); color: var(--texto); cursor: pointer; padding: 0 10px; }
+  .paginador button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; }
+  .paginador button:disabled { opacity: .35; cursor: default; }
+  .paginador .seta { font-size: 18px; color: var(--marca); }
+  .paginador .reti { color: var(--suave); padding: 0 2px; }
+  .contagem { text-align: center; color: var(--suave); font-size: 12px; margin-top: -8px; margin-bottom: 8px; }
   .cab.escolhida { border: 2px solid var(--ouro-escuro); background: var(--ouro-claro); }
   .cab.escolhida b { color: var(--ouro-texto); }
   .cab.escolhida::after { content: 'Sua escolha'; position: absolute; top: -8px; right: 8px; font-size: 9.5px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase;
@@ -181,11 +295,11 @@
       <span class="selo">MINHA VIAGEM</span>
       <p class="atualizado" id="atualizado">Carregando preços...</p>
     </div>
-    <h1>Sua pesquisa de cruzeiro, <em>com os preços de hoje</em></h1>
+    <h1>Seu cruzeiro saindo de Santos</h1>
+    <p class="chamada" id="chamada"><small>Carregando os preços de hoje...</small></p>
+    <div class="selos"><span>MSC e Costa</span><span>Ida e volta por Santos</span><span>Taxas inclusas</span></div>
     <p class="resumo" id="resumo"></p>
   </header>
-
-  <p class="caixa info"><span><b>Cruzeiros MSC e Costa que saem de Santos e voltam para Santos.</b> Mude a pesquisa à vontade: nada é salvo até você tocar em "Salvar minhas preferências".</span></p>
 
   <div class="caixa base" id="aviso-criancas" hidden><div><b>Os preços desta página são para adultos.</b> Com criança, o valor muda conforme a idade de cada uma.
     <a class="btn" id="btn-idades" href="#" target="_blank" rel="noopener">Ver o preço exato com as idades</a></div></div>
@@ -194,13 +308,12 @@
     <button class="mudar" id="mudar" aria-expanded="false">Mudar a pesquisa <span>▾</span></button>
     <div class="corpo-filtros">
     <div class="filtro quando"><span>Quando</span><div>
-      <div class="pilulas" id="quando"><button data-q="todas">Todas as datas</button></div>
-      <p class="sub">Ou diga os dias que você pode:</p>
-      <div class="datas">
-        <label>Embarcar a partir de<input type="date" id="de"></label>
-        <label>Voltar até<input type="date" id="ate"></label>
+      <div class="temporadas" id="temporadas"></div>
+      <div class="meses" id="quando"></div>
+      <div class="linha-datas">
+        <button class="abrir-cal" id="abrir-cal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="txt-cal">Escolher os dias no calendário</span></button>
+        <button class="todas-datas" id="todas-datas" data-q="todas">Todas as datas</button>
       </div>
-      <button class="limpar" id="limpar-datas" hidden>Limpar as datas</button>
     </div></div>
     <div class="filtro"><span>Noites</span><div class="pilulas" data-f="t">
       <button data-v="mini">3 e 4 noites</button><button data-v="longo">5 noites ou mais</button><button data-v="todos">Todas</button></div></div>
@@ -214,19 +327,30 @@
     <div class="filtro"><span>Bebidas</span><div class="pilulas" data-f="b">
       <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div></div>
     <p class="legenda" id="legenda-pacote"></p>
+    <div class="barra-pesq">
+      <button class="btn pesquisar" id="pesquisar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Pesquisar <span id="n-pesq"></span></button>
+      <p class="dica-pesq" id="dica-pesq">Pesquisar só mostra as saídas. Não salva nada.</p>
+    </div>
     </div>
     <div class="caixa base" id="convite-calc" hidden><div><b>Em dúvida sobre o pacote de bebidas?</b> A calculadora mostra em 1 minuto qual vale mais a pena para você.
       <a class="btn ouro" id="btn-calc" href="#">Confira se este pacote é o ideal</a></div></div>
-    <div class="acoes-pesq">
-      <button class="btn contorno" id="voltar">Voltar às minhas preferências</button>
-      <button class="btn" id="salvar">Salvar minhas preferências</button>
-      <p class="salvas" id="salvas"></p>
+  </div>
+
+  <div class="prefs" id="prefs">
+    <div class="prefs-txt"><b id="prefs-titulo"></b><span id="prefs-sub"></span></div>
+    <div class="prefs-acoes" id="prefs-acoes">
+      <button class="btn" id="salvar">Salvar esta pesquisa</button>
+      <button class="volta-prefs" id="voltar">Voltar às minhas preferências</button>
     </div>
   </div>
 
-  <div class="ordem"><h2 id="titulo-lista">Saídas</h2>
+  <div class="ordem" id="topo-lista"><h2 id="titulo-lista">Saídas</h2>
     <div class="pilulas" id="ordem"><button data-v="preco" class="ativo">Mais barato primeiro</button><button data-v="data">Por data</button></div></div>
   <div id="lista"></div>
+  <div class="pontos" id="pontos"></div>
+  <div class="paginador" id="paginador"></div>
+  <p class="contagem" id="contagem"></p>
+  <div id="sem-preco"></div>
 
   <section class="conversa">
     <h2>Quer sair de outro porto? <em>Me chama no WhatsApp</em></h2>
@@ -235,6 +359,21 @@
   </section>
 
   <p class="rodape">Preços do dia para adultos, com taxas, na categoria mais em conta de cada tipo de cabine. Com pacote de bebidas, o total soma o pacote de cada adulto. Sujeitos a disponibilidade e confirmados no atendimento.<br>360cruzeiros, agência autorizada CVC.</p>
+</div>
+
+<div class="fundo-cal" id="fundo-cal" hidden>
+  <div class="cal" role="dialog" aria-modal="true" aria-labelledby="cal-titulo">
+    <div class="cal-pega"></div>
+    <h3><span id="cal-titulo">Quais dias você pode?</span><button id="cal-fechar" aria-label="Fechar">×</button></h3>
+    <div class="cal-campos">
+      <label id="lb-de">Embarcar a partir de<input id="cal-de" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10"></label>
+      <label id="lb-ate">Voltar até<input id="cal-ate" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10"></label>
+    </div>
+    <div class="cal-mes"><button id="cal-ant" aria-label="Mês anterior">‹</button><b id="cal-nome"></b><button id="cal-prox" aria-label="Próximo mês">›</button></div>
+    <div class="cal-grade" id="cal-grade"></div>
+    <p class="cal-legenda">Dia com saída de cruzeiro. Toque no dia do embarque e depois no dia da volta, ou digite as datas acima.</p>
+    <div class="cal-acoes"><button class="btn contorno" id="cal-limpar">Limpar</button><button class="btn" id="cal-ok">Ver as saídas</button></div>
+  </div>
 </div>
 
 <div class="fundo-janela" id="janela" hidden>
@@ -281,6 +420,12 @@
   var f = Object.assign({}, salva, { navio: '', ordem: 'preco' });
   // "Quero entender a diferença": a página abre sem pacote e com o convite da calculadora
   if (f.b === 'entender') f.b = 'sem';
+  // Link com a pesquisa (99% dos casos, quem respondeu o formulário): abre direto nas saídas, com a pesquisa recolhida.
+  // Só o endereço, sem pesquisa: abre com o painel aberto e nenhuma saída até tocar em Pesquisar (Leonardo, 21/11/2026).
+  var temLink = /[?&](t|p|a|c|k|b|de|ate|id)=/.test(location.search), pesquisou = temLink;
+  // f = a pesquisa que está na tela; e = o que o cliente está marcando no painel (só vale ao tocar em Pesquisar).
+  var e = Object.assign({}, f);
+  function copiarParaPainel() { e = Object.assign({}, f); $('navio').value = f.navio || ''; }
   var dados = null, hist = null, histPedido = null, abertas = {}, cabDetalhe = {};
   var favs = {}; try { favs = JSON.parse(ler('mv_favoritas') || '{}') || {}; } catch (e) { favs = {}; }
 
@@ -294,69 +439,155 @@
 
   // Quando (Leonardo, 21/11/2026): um botão por mês com saída, os Carnavais à parte e as datas de/até. Pode marcar vários
   // meses; marcar mês limpa as datas, e escolher data desmarca os meses (as datas valem sobre os meses).
+  // Temporada (abas 2027 / 2028): abre na temporada do 1º mês marcado, ou na primeira com saída.
+  var temporadaAberta = '';
+  function contarSaidas(q) {
+    return dados.saidas.filter(function (s) { return s.embarque > dados.leitura && MV.noPeriodo(s, { p: q }); }).length;
+  }
   function montarQuando() {
-    var html = '<button data-q="todas">Todas as datas</button>', ano = '';
+    var ts = MV.temporadas(dados.saidas, dados.leitura), ps = MV.lerPeriodo(e.p);
+    if (ts.indexOf(temporadaAberta) < 0) temporadaAberta = ps.length && ts.indexOf(MV.temporada(ps[0])) >= 0 ? MV.temporada(ps[0]) : ts[0];
+    $('temporadas').innerHTML = ts.map(function (t) {
+      var marcados = ps.filter(function (x) { return MV.temporada(x) === t; }).length;
+      return '<button data-temp="' + t + '"' + (t === temporadaAberta ? ' class="ativo"' : '') + '>Temporada<b>' + t +
+        (marcados ? '<i>' + marcados + '</i>' : '') + '</b></button>';
+    }).join('');
+    var html = '';
     MV.mesesComSaida(dados.saidas, dados.leitura).forEach(function (m) {
-      var a = '20' + m.slice(1, 3), nome = MV.nomeMes(m).split(' ')[0];
-      html += '<button data-q="' + m + '">' + nome.charAt(0).toUpperCase() + nome.slice(1) + (a !== ano || m.slice(3, 5) === '11' ? ' ' + a : '') + '</button>';
-      ano = a;
+      if (MV.temporada(m) !== temporadaAberta) return;
+      var nome = MV.nomeMes(m), n = contarSaidas(m);
+      html += '<button data-q="' + m + '">' + nome.charAt(0).toUpperCase() + nome.slice(1, 3) + ' ' + nome.slice(-2) +
+        '<small>' + n + (n === 1 ? ' saída' : ' saídas') + '</small></button>';
     });
     Object.keys(MV.CARNAVAL).forEach(function (k) {
-      if (dados.saidas.some(function (s) { return MV.noPeriodo(s, { p: k }) && s.embarque > dados.leitura; }))
-        html += '<button data-q="' + k + '" class="carnaval">' + MV.CARNAVAL[k].nome + '</button>';
+      var n = contarSaidas(k);
+      if (n && MV.temporada(k) === temporadaAberta)
+        html += '<button data-q="' + k + '" class="carnaval">' + MV.CARNAVAL[k].nome + '<small>' + n + (n === 1 ? ' saída' : ' saídas') + '</small></button>';
     });
     $('quando').innerHTML = html;
-    $('de').min = $('ate').min = dados.leitura;
   }
   function clicarQuando(q) {
-    var ps = MV.lerPeriodo(f.p);
+    var ps = MV.lerPeriodo(e.p);
     if (q === 'todas') ps = [];
     else if (ps.indexOf(q) >= 0) ps.splice(ps.indexOf(q), 1);
     else ps.push(q);
-    f.p = ps.join('.') || 'todas'; f.de = ''; f.ate = '';
-    abertas = {}; desenhar();
+    e.p = ps.join('.') || 'todas'; e.de = ''; e.ate = '';
+    marcar();
   }
-  function mudarDatas() {
-    f.de = $('de').value || ''; f.ate = $('ate').value || '';
-    if (f.de && f.ate && f.ate < f.de) { var x = f.de; f.de = f.ate; f.ate = x; }
-    if (f.de || f.ate) f.p = 'todas';
-    abertas = {}; desenhar();
+  function novaLista() { abertas = {}; pagina = 1; }
+
+  // Calendário: c = o que está sendo escolhido (só vale ao tocar em "Ver as saídas").
+  var c = { de: '', ate: '', mes: '' };
+  function abrirCal() {
+    c.de = e.de || ''; c.ate = e.ate || '';
+    var p0 = MV.lerPeriodo(e.p)[0];
+    c.mes = (c.de || (p0 && !MV.CARNAVAL[p0] ? '20' + p0.slice(1, 3) + '-' + p0.slice(3, 5) : '') || dados.leitura).slice(0, 7);
+    $('fundo-cal').hidden = false;
+    desenharCal(true);
+  }
+  function fecharCal() { $('fundo-cal').hidden = true; }
+  function desenharCal(campos) {
+    var hoje = dados.leitura, embarques = {}, ultimo = hoje.slice(0, 7);
+    dados.saidas.forEach(function (s) { if (s.embarque > hoje) { embarques[s.embarque] = 1; if (s.embarque.slice(0, 7) > ultimo) ultimo = s.embarque.slice(0, 7); } });
+    if (c.mes < hoje.slice(0, 7)) c.mes = hoje.slice(0, 7);
+    if (c.mes > ultimo) c.mes = ultimo;
+    var nome = MV.MESES[+c.mes.slice(5, 7) - 1];
+    $('cal-nome').textContent = { jan: 'janeiro', fev: 'fevereiro', mar: 'março', abr: 'abril', mai: 'maio', jun: 'junho', jul: 'julho', ago: 'agosto', set: 'setembro', out: 'outubro', nov: 'novembro', dez: 'dezembro' }[nome] + ' ' + c.mes.slice(0, 4);
+    $('cal-ant').disabled = c.mes <= hoje.slice(0, 7);
+    $('cal-prox').disabled = c.mes >= ultimo;
+    var html = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'].map(function (d) { return '<span class="sem">' + d.charAt(0) + '</span>'; }).join('');
+    MV.semanasDoMes(c.mes).forEach(function (sem) {
+      sem.forEach(function (dia) {
+        if (!dia) { html += '<span></span>'; return; }
+        var cls = [];
+        if (embarques[dia]) cls.push('saida');
+        if (dia === c.de || dia === c.ate) cls.push('ponta');
+        else if (c.de && c.ate && dia > c.de && dia < c.ate) cls.push('meio');
+        html += '<button data-dia="' + dia + '"' + (cls.length ? ' class="' + cls.join(' ') + '"' : '') + (dia <= hoje ? ' disabled' : '') + '>' + (+dia.slice(8)) + '</button>';
+      });
+    });
+    $('cal-grade').innerHTML = html;
+    if (campos) { $('cal-de').value = MV.dataBR(c.de); $('cal-ate').value = MV.dataBR(c.ate); }
+    $('lb-de').classList.toggle('foco', !c.de || !!c.ate);
+    $('lb-ate').classList.toggle('foco', !!c.de && !c.ate);
+    $('cal-ok').textContent = c.de || c.ate ? 'Usar estas datas' : 'Usar todas as datas';
+  }
+  function digitarCal(campo) {
+    var el = $('cal-' + campo);
+    el.value = MV.mascaraData(el.value);
+    var iso = MV.lerDataBR(el.value);
+    el.classList.toggle('falta', el.value.length === 10 && !iso);
+    if (el.value.length === 10 && iso) { c[campo] = iso; c.mes = iso.slice(0, 7); }
+    else if (!el.value) c[campo] = '';
+    desenharCal(false);
+  }
+  function aplicarCal() {
+    var de = c.de, ate = c.ate;
+    if (de && ate && ate < de) { var x = de; de = ate; ate = x; }
+    e.de = de; e.ate = ate;
+    if (de || ate) e.p = 'todas';
+    fecharCal(); marcar();
   }
 
+  // Quantas saídas o Pesquisar vai mostrar com o que está marcado no painel.
+  function contarPainel() {
+    if (!dados || e.a === '5') return '';
+    var r = MV.filtrar(dados.saidas, e, dados.leitura), n = r.lista.length + r.semPreco.length;
+    return '(' + n + (n === 1 ? ' saída)' : ' saídas)');
+  }
+  function mudouPainel() { return !pesquisou || !MV.mesmaPesquisa(e, f) || (e.navio || '') !== (f.navio || ''); }
+
   function marcar() {
-    var ps = MV.lerPeriodo(f.p), datas = !!(f.de || f.ate);
-    [].forEach.call($('quando').children, function (b) {
-      b.classList.toggle('ativo', b.dataset.q === 'todas' ? (!ps.length && !datas) : ps.indexOf(b.dataset.q) >= 0);
-    });
-    $('de').value = f.de || ''; $('ate').value = f.ate || '';
-    $('limpar-datas').hidden = !datas;
+    var ps = MV.lerPeriodo(e.p), datas = !!(e.de || e.ate);
+    if (dados) montarQuando();
+    [].forEach.call($('quando').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
+    $('todas-datas').classList.toggle('ativo', !ps.length && !datas);
+    $('abrir-cal').classList.toggle('tem', datas);
+    $('txt-cal').textContent = datas ? (e.de && e.ate ? MV.dataBR(e.de).slice(0, 5) + ' a ' + MV.dataBR(e.ate).slice(0, 5) : e.de ? 'A partir de ' + MV.dataBR(e.de).slice(0, 5) : 'Voltando até ' + MV.dataBR(e.ate).slice(0, 5)) + ' · mudar' : 'Escolher os dias no calendário';
     [].forEach.call(document.querySelectorAll('.pilulas[data-f]'), function (g) {
-      [].forEach.call(g.children, function (b) { b.classList.toggle('ativo', b.dataset.v === String(f[g.dataset.f])); });
+      [].forEach.call(g.children, function (b) { b.classList.toggle('ativo', b.dataset.v === String(e[g.dataset.f])); });
     });
+    var pend = mudouPainel() && pesquisou;
+    $('n-pesq').textContent = contarPainel();
+    $('pesquisar').classList.toggle('pendente', pend);
+    $('dica-pesq').innerHTML = pend ? '<b>Você mudou os filtros:</b> toque em Pesquisar para ver as saídas. Pesquisar não salva nada.' :
+      pesquisou ? 'Pesquisar só mostra as saídas. Não salva nada.' : 'Escolha o que procura e toque em Pesquisar.';
     [].forEach.call($('ordem').children, function (b) { b.classList.toggle('ativo', b.dataset.v === f.ordem); });
     var p = pesquisaAtual(), igual = MV.mesmaPesquisa(p, salva);
     $('resumo').innerHTML = '<b>Sua pesquisa:</b> ' + esc(MV.resumo(p));
-    $('voltar').disabled = igual && !f.navio;
-    $('salvar').disabled = igual;
-    $('filtros').classList.toggle('igual', igual && !f.navio);
+    if (!pesquisou) $('resumo').innerHTML = 'Escolha a data, as pessoas e a cabine, e veja os preços de hoje.';
+    // Caixa das preferências: azul quando a tela mostra a pesquisa salva; dourada, com Salvar e Voltar, quando não.
+    // Sem link (sem preferências salvas): só aparece depois de pesquisar, com o Salvar (que leva ao WhatsApp).
+    var igualSalva = temLink && igual && !f.navio;
+    $('prefs').hidden = !pesquisou;
+    $('prefs').className = 'prefs ' + (igualSalva ? 'salva' : 'nova');
+    $('prefs-titulo').textContent = igualSalva ? 'Estas são as suas preferências salvas' : 'Esta pesquisa ainda não está salva';
+    $('prefs-sub').textContent = igualSalva ? 'Para ver outras saídas, toque em Mudar a pesquisa. Suas preferências só mudam se você salvar.' :
+      !temLink ? 'Quer guardar? Toque em Salvar e eu guardo para você pelo WhatsApp.' :
+      igual ? 'Você filtrou um navio. O navio não fica salvo; o resto é igual às suas preferências.' :
+      'Quer guardar? Toque em Salvar e você recebe no WhatsApp o link desta pesquisa. Ou volte às suas preferências.';
+    $('salvar').hidden = temLink && igual;
+    $('voltar').hidden = !temLink || igualSalva;
     $('convite-calc').classList.toggle('forte', salva.b === 'entender');
-    $('salvas').textContent = igual ? 'Estas são as suas preferências salvas.' : 'Você mudou a pesquisa: toque em Salvar para guardar.';
     $('aviso-criancas').hidden = f.c === '0';
     $('convite-calc').hidden = !(salva.b === 'entender' || f.b !== 'sem');
-    $('legenda-pacote').textContent = f.b === 'sem' ? '' : 'Básico = Easy na MSC e My Drinks na Costa. Premium = Premium Extra na MSC e My Drinks Plus na Costa. Sem álcool = Não Alcoólico na MSC e My Soft Drinks na Costa.';
+    $('legenda-pacote').textContent = e.b === 'sem' ? '' : 'Básico = Easy na MSC e My Drinks na Costa. Premium = Premium Extra na MSC e My Drinks Plus na Costa. Sem álcool = Não Alcoólico na MSC e My Soft Drinks na Costa.';
     $('btn-calc').href = CALCULADORA + '?c=' + encodeURIComponent(salva.id) + '&adultos=' + adultos();
     $('btn-idades').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero o preço exato com as idades das crianças.');
   }
 
-  function periodo(s) { var v = MV.volta(s); return dm(s.embarque) + '<i>a</i>' + dm(v); }
+  function periodo(s) { var v = MV.volta(s); return MV.diaDaSemana(s.embarque) + ', ' + dm(s.embarque) + ' a ' + MV.diaDaSemana(v) + ', ' + dm(v); }
 
   function card(s, i) {
     var a = adultos(), o = s.ocup[a], cabs = MV.CABINES.filter(function (c) { return o && (c in o.cab); });
+    var menor = null;
+    cabs.forEach(function (c) { var t = MV.total(s, a, c, f.b); if (typeof t === 'number' && (menor === null || t < MV.total(s, a, menor, f.b))) menor = c; });
     var celulas = cabs.map(function (c) {
-      var t = MV.total(s, a, c, f.b), esc1 = c === f.k ? ' escolhida' : '';
+      var t = MV.total(s, a, c, f.b), esc1 = (c === f.k ? ' escolhida' : '') + (c === menor && f.k === 'todas' && cabs.length > 1 ? ' menor' : '');
       if (t === null) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>Esgotada</b></div>';
       if (t === undefined) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>No WhatsApp</b></div>';
-      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '</small><b>' + reais(t) + '</b><span>' + reais(t / a) + ' por adulto</span></div>';
+      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '</small><b>' + reais(t / a) + '<em>por pessoa</em></b>' +
+        (a === '1' ? '' : '<span>Total ' + reais(t) + '</span>') + '</div>';
     }).join('');
     var pk = MV.pacote(s, f.b);
     var nota = a + (a === '1' ? ' adulto' : ' adultos') + ', taxas inclusas' +
@@ -364,11 +595,12 @@
       (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
     var aberta = abertas[s.id];
     return '<div class="card" data-i="' + i + '">' +
-      '<div class="c-topo abre"><div class="quando"><span class="data">' + periodo(s) + '</span>' +
-        '<span class="noites">' + s.embarque.slice(0, 4) + ' · ' + s.noites + ' noites · ' + esc(s.cia) + '</span></div>' +
+      '<div class="c-topo abre"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
+        MV.nomeMesCurto(s.embarque) + ' ' + s.embarque.slice(2, 4) + '</span></div>' +
+        '<div class="c-info"><span class="navio">' + esc(s.navio) + '</span>' +
+        '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : 'msc') + '">' + esc(s.cia) + '</span>' + s.noites + ' noites · volta ' + dm(MV.volta(s)) + '</span>' +
+        '<span class="rota">Santos → ' + esc(s.roteiro.replace(/^Santos,\s*/, '').replace(/,\s*Santos$/, '')) + ' → Santos</span></div>' +
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
-      '<div class="c-navio abre"><span class="navio">' + esc(s.navio) + '</span>' +
-        '<span class="rota"><b>Santos</b> → ' + esc(s.roteiro.replace(/^Santos,\s*/, '').replace(/,\s*Santos$/, '')) + ' → <b>Santos</b></span></div>' +
       '<div class="cabs">' + celulas + '</div><p class="pp">' + nota + '</p>' +
       (aberta ? detalhe(s) : '') +
       '<button class="ver abre">' + (aberta ? 'Fechar a linha do tempo' : 'Ver a linha do tempo do preço') + '</button></div>';
@@ -423,40 +655,101 @@
       (lista ? '<br>Bolinha vazia = preço da lista do site, que pode variar um pouco.' : '') + '</p>';
   }
 
-  var mostradas = [];
+  // Chamada do topo: o menor preço por pessoa da pesquisa (cabine e pacote escolhidos).
+  function chamada(lista, a) {
+    if (!lista.length) { $('chamada').innerHTML = '<small>Com o preço de hoje, para a sua pesquisa</small>'; return; }
+    var m = MV.precoOrdem(lista.slice().sort(function (x, y) { return MV.precoOrdem(x, f2()) - MV.precoOrdem(y, f2()); })[0], f2());
+    $('chamada').innerHTML = '<small>Na sua pesquisa, a partir de</small><strong>' + reais(m / a) + '<span>por pessoa</span></strong>';
+  }
+  function f2() { return Object.assign({}, f, { a: adultos() }); }
+
+  var mostradas = [], pagina = 1, POR_PAGINA = 3;
   function desenhar() {
     marcar();
     if (!dados) return;
     var hoje = dados.leitura;
+    $('paginador').innerHTML = ''; $('pontos').innerHTML = ''; $('contagem').textContent = ''; $('sem-preco').innerHTML = '';
+    $('topo-lista').hidden = !pesquisou;
+    if (!pesquisou) { $('lista').innerHTML = ''; $('chamada').innerHTML = '<small>Cruzeiros com o preço de hoje</small>'; return; }
     if (f.a === '5') {
+      $('chamada').innerHTML = '<small>Para 5 ou mais pessoas, eu monto as opções pelo WhatsApp</small>';
       $('titulo-lista').innerHTML = 'Para <em>5 ou mais</em> pessoas';
       $('lista').innerHTML = '<div class="vazio">Para 5 ou mais pessoas, eu monto as opções pelo WhatsApp, com o valor certinho da cabine de vocês.' +
         '<a class="btn" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e vamos ser 5 ou mais pessoas. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
       return;
     }
-    var g = Object.assign({}, f, { a: adultos() });
-    var r = MV.filtrar(dados.saidas, g, hoje), html = '';
-    mostradas = r.lista;
+    var g = f2();
+    var r = MV.filtrar(dados.saidas, g, hoje), aviso = '';
+    var todas = r.lista;
     var gente = g.a + (g.a === '1' ? ' adulto' : ' adultos');
+    chamada(r.lista, +g.a);
     if (!r.lista.length && r.semPreco.length) {
       $('titulo-lista').innerHTML = '<em>' + r.semPreco.length + '</em> ' + (r.semPreco.length === 1 ? 'saída' : 'saídas') + ' nesta pesquisa';
     } else if (!r.lista.length) {
-      var perto = MV.maisProximas(dados.saidas, g, hoje, 5);
-      mostradas = perto;
+      todas = MV.maisProximas(dados.saidas, g, hoje, 6);
       $('titulo-lista').innerHTML = 'Nenhuma saída nesta pesquisa';
-      html = '<div class="vazio">Não achei saída com esses filtros' + (perto.length ? '. Estas são as mais próximas do período que você escolheu:' : '.') +
+      aviso = '<div class="vazio">Não achei saída com esses filtros' + (todas.length ? '. Estas são as mais próximas do período que você escolheu:' : '.') +
         '<a class="btn" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e não achei a data que eu posso. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
     } else {
       $('titulo-lista').innerHTML = '<em>' + r.lista.length + '</em> ' + (r.lista.length === 1 ? 'saída' : 'saídas') + ' para você';
     }
-    html += mostradas.map(card).join('');
+    var pg = MV.paginar(todas, pagina, POR_PAGINA);
+    pagina = pg.pagina; mostradas = pg.itens;
+    var html = mostradas.map(card).join('');
+    if (pg.pagina < pg.paginas) html += '<button class="mais" data-pag="' + (pg.pagina + 1) + '"><span>→</span>Ver mais ' + Math.min(POR_PAGINA, pg.total - pg.ate) + ' saídas</button>';
+    $('lista').innerHTML = aviso + '<div class="grade" id="grade">' + html + '</div>';
+    if (pg.paginas > 1) {
+      $('paginador').innerHTML = paginas(pg);
+      $('contagem').textContent = 'Saídas ' + pg.de + ' a ' + pg.ate + ' de ' + pg.total;
+    }
+    if (mostradas.length > 1) $('pontos').innerHTML = mostradas.map(function (s, k) { return '<i' + (k ? '' : ' class="ativo"') + '></i>'; }).join('');
+    ligarCarrossel();
     if (r.semPreco.length) {
-      html += '<div class="vazio">' + (r.lista.length ? 'Mais ' : '') + r.semPreco.length + (r.semPreco.length === 1 ? ' saída' : ' saídas') +
+      $('sem-preco').innerHTML = '<div class="vazio">' + (r.lista.length ? 'Mais ' : '') + r.semPreco.length + (r.semPreco.length === 1 ? ' saída' : ' saídas') +
         ' desta pesquisa ainda sem o preço de hoje para ' + gente + (f.k !== 'todas' ? ' nesta cabine' : '') + '. Eu confiro para você:<a class="btn" href="' +
         linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero o preço para ' + gente + '.') +
         '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
     }
-    $('lista').innerHTML = html;
+  }
+
+  // Botões do paginador: ‹ 1 2 3 … 13 › (3 números em volta da página, a 1ª e a última, para caber numa linha no celular).
+  function paginas(pg) {
+    var n = pg.paginas, p = pg.pagina, lista = [];
+    var ini = Math.max(1, Math.min(p - 1, n - 2)), fim = Math.min(n, ini + 2);
+    if (ini > 1) { lista.push(1); if (ini > 2) lista.push('…'); }
+    for (var k = ini; k <= fim; k++) lista.push(k);
+    if (fim < n) { if (fim < n - 1) lista.push('…'); lista.push(n); }
+    return '<button class="seta" data-pag="' + (p - 1) + '"' + (p <= 1 ? ' disabled' : '') + ' aria-label="Página anterior">‹</button>' +
+      lista.map(function (x) { return x === '…' ? '<span class="reti">…</span>' : '<button data-pag="' + x + '"' + (x === p ? ' class="ativo"' : '') + '>' + x + '</button>'; }).join('') +
+      '<button class="seta" data-pag="' + (p + 1) + '"' + (p >= n ? ' disabled' : '') + ' aria-label="Próxima página">›</button>';
+  }
+  function irPagina(n) {
+    pagina = n; abertas = {}; desenhar();
+    var t = $('topo-lista').getBoundingClientRect().top + window.pageYOffset - 8;
+    if (window.pageYOffset > t) window.scrollTo({ top: t, behavior: 'smooth' });
+  }
+
+  // Carrossel do celular: os pontinhos acompanham o cartão à vista; na 1ª vez ele anda um pouco e volta, para mostrar
+  // que arrasta (igual ao site da Black, 27/10).
+  var mostrouArraste = false;
+  function ligarCarrossel() {
+    var g = $('grade'); if (!g) return;
+    g.onscroll = function () {
+      var w = g.firstElementChild ? g.firstElementChild.getBoundingClientRect().width + 12 : 1, k = Math.round(g.scrollLeft / w);
+      [].forEach.call($('pontos').children, function (p, j) { p.classList.toggle('ativo', j === Math.min(k, mostradas.length - 1)); });
+    };
+    if (mostrouArraste || g.scrollWidth <= g.clientWidth + 10 || !window.IntersectionObserver) return;
+    var obs = new IntersectionObserver(function (itens) {
+      if (!itens[0].isIntersecting) return;
+      obs.disconnect(); mostrouArraste = true;
+      setTimeout(function () {
+        if (g.scrollLeft > 0) return;
+        g.style.scrollSnapType = 'none';
+        g.scrollTo({ left: 70, behavior: 'smooth' });
+        setTimeout(function () { if (g.scrollLeft <= 80) g.scrollTo({ left: 0, behavior: 'smooth' }); setTimeout(function () { g.style.scrollSnapType = ''; }, 700); }, 700);
+      }, 400);
+    }, { threshold: 0.6 });
+    obs.observe(g);
   }
 
   function navios() {
@@ -476,34 +769,54 @@
     var b = ev.target.closest && ev.target.closest('button, .abre');
     if (!b) return;
     var grupo = b.parentNode && b.parentNode.dataset && b.parentNode.dataset.f;
-    if (grupo) { f[grupo] = b.dataset.v; abertas = {}; desenhar(); return; }
+    if (grupo) { e[grupo] = b.dataset.v; marcar(); return; }
     if (b.dataset.q) { clicarQuando(b.dataset.q); return; }
-    if (b.parentNode && b.parentNode.id === 'ordem') { f.ordem = b.dataset.v; desenhar(); return; }
+    if (b.dataset.temp) { temporadaAberta = b.dataset.temp; marcar(); return; }
+    if (b.dataset.pag) { if (!b.disabled) irPagina(+b.dataset.pag); return; }
+    if (b.dataset.dia) { var t = MV.tocarDia(c.de, c.ate, b.dataset.dia); c.de = t.de; c.ate = t.ate; desenharCal(true); return; }
+    if (b.parentNode && b.parentNode.id === 'ordem') { f.ordem = b.dataset.v; novaLista(); desenhar(); return; }
     if (b.dataset.fav) {
       var id = b.dataset.fav; if (favs[id]) delete favs[id]; else favs[id] = 1;
       guardar('mv_favoritas', JSON.stringify(favs)); desenhar(); return;
     }
     if (b.dataset.cab) { cabDetalhe[b.dataset.s] = b.dataset.cab; desenhar(); return; }
-    var c = b.closest('.card');
-    if (c && b.classList.contains('abre')) {
-      var s = mostradas[+c.dataset.i];
+    var cd = b.closest('.card');
+    if (cd && b.classList.contains('abre')) {
+      var s = mostradas[+cd.dataset.i];
       abertas[s.id] = !abertas[s.id];
       if (abertas[s.id]) pedirHistorico();
       desenhar();
     }
   });
+  // Pesquisar: o que está marcado no painel vai para a tela; o painel recolhe e a página desce até as saídas.
+  $('pesquisar').onclick = function () {
+    f = Object.assign({}, e, { ordem: f.ordem });
+    pesquisou = true;
+    novaLista(); desenhar();
+    if ($('filtros').classList.contains('aberto')) $('mudar').onclick();
+    var t = $('prefs').getBoundingClientRect().top + window.pageYOffset - 8;
+    window.scrollTo({ top: t, behavior: 'smooth' });
+  };
   $('mudar').onclick = function () {
+    if (!$('filtros').classList.contains('aberto')) copiarParaPainel();   // abre com a pesquisa da tela (fechar sem Pesquisar descarta)
     var ab = $('filtros').classList.toggle('aberto');
     this.setAttribute('aria-expanded', ab ? 'true' : 'false');
-    this.firstChild.nodeValue = ab ? 'Fechar a pesquisa ' : 'Mudar a pesquisa ';
+    $('mudar').firstChild.nodeValue = ab ? 'Fechar sem pesquisar ' : 'Mudar a pesquisa ';
+    if (!ab) marcar();
   };
-  $('de').onchange = mudarDatas;
-  $('ate').onchange = mudarDatas;
-  $('limpar-datas').onclick = function () { f.de = ''; f.ate = ''; abertas = {}; desenhar(); };
-  $('navio').onchange = function () { f.navio = this.value; desenhar(); };
+  $('abrir-cal').onclick = abrirCal;
+  $('cal-fechar').onclick = fecharCal;
+  $('fundo-cal').onclick = function (ev) { if (ev.target === this) fecharCal(); };
+  $('cal-ant').onclick = function () { c.mes = MV.somaMes(c.mes, -1); desenharCal(false); };
+  $('cal-prox').onclick = function () { c.mes = MV.somaMes(c.mes, 1); desenharCal(false); };
+  $('cal-de').oninput = function () { digitarCal('de'); };
+  $('cal-ate').oninput = function () { digitarCal('ate'); };
+  $('cal-limpar').onclick = function () { c.de = ''; c.ate = ''; desenharCal(true); };
+  $('cal-ok').onclick = aplicarCal;
+  $('navio').onchange = function () { e.navio = this.value; marcar(); };
   $('voltar').onclick = function () {
     f = Object.assign({}, salva, { navio: '', ordem: f.ordem }); if (f.b === 'entender') f.b = 'sem';
-    $('navio').value = ''; abertas = {}; desenhar(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    copiarParaPainel(); novaLista(); desenhar(); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Salvar: pede o WhatsApp (uma vez, guardado no aparelho) e manda a pesquisa ao webhook 53 com o código do link.
@@ -522,7 +835,7 @@
   // Leonardo, 21/11/2026: depois de tocar em "Chamar no WhatsApp" a janela fecha sozinha (o WhatsApp abre e a página
   // volta limpa). Esc também fecha.
   $('j-chamar').onclick = function () { $('janela').hidden = true; };
-  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') $('janela').hidden = true; });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') $('janela').hidden = true; if (ev.key === 'Escape') fecharCal(); });
   $('j-enviar').onclick = function () {
     var w = MV.conferirWhats($('j-whats').value);
     if (!w.num) { $('j-erro').textContent = w.motivo; $('j-whats').classList.add('falta'); return; }
@@ -544,6 +857,7 @@
 
   $('chamar').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero sair de outro porto.');
 
+  if (!temLink) $('filtros').classList.add('aberto', 'sem-link');
   marcar();
   fetch('dados/precos.json').then(function (r) { return r.json(); }).then(function (j) {
     dados = j;
