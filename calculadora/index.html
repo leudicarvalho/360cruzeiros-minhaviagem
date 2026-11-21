@@ -133,6 +133,7 @@
   .opcoes.foco .f-etq.qualidade { background: #fbefd6; color: #8a5a00; }
   .opcoes.foco .f-etq.todos { background: #e4eef2; color: var(--marca); }
   .opcoes.foco .f-preco { font-size: 22px; font-weight: 800; margin-top: 4px; }
+  .opcoes.foco button[data-v="todos"] .f-preco { font-size: 18px; }
   .opcoes.foco .f-preco span { font-size: 13px; font-weight: 500; color: var(--suave); }
   .opcoes.foco .f-total { font-size: 12.5px; font-weight: 500; color: var(--suave); }
   .opcoes.foco .f-total.mais { color: #8a5a00; font-weight: 700; }
@@ -465,7 +466,8 @@
       var dados = {
         economia: [reais(dia(bas)), reais(bas) + " na viagem de " + n + " noites", false],
         qualidade: [reais(dia(pre)), reais(dia(pre) - dia(bas)) + " a mais por dia que o básico", true],
-        todos: [reais(dia(bas)) + " a " + reais(dia(pre)), "", false],
+        // Espaço que não quebra dentro de cada valor: a faixa quebra no "a", nunca entre o R$ e o número.
+        todos: [reais(dia(bas)).replace(" ", " ") + " a " + reais(dia(pre)).replace(" ", " "), "", false],
       };
       caixa.querySelectorAll("button").forEach(function (b) {
         var d = dados[b.getAttribute("data-v")], preco = b.querySelector(".f-preco"), total = b.querySelector(".f-total");
