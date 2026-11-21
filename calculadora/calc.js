@@ -201,6 +201,10 @@
       noites: p.noites ? inteiro(p.noites, 1, 30, null) : null,
       adultos: p.adultos ? inteiro(p.adultos, 1, 4, null) : null,
       saida: String(p.saida || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 60),
+      // WhatsApp do contato no link (w), o mesmo da página (mv.js): só os dígitos; "{{...}}" não trocado = vazio.
+      // Quem confere o número é o MV.conferirWhats na tela. (Leonardo, 21/11/2026: o WhatsApp vem no link, a
+      // calculadora não pede de novo.) ANTES: a calculadora não lia o w e pedia o WhatsApp num formulário.
+      whats: /^\{\{.*\}\}$/.test(String(p.w || "")) ? "" : String(p.w || "").replace(/\D/g, "").slice(0, 15),
     };
   }
 

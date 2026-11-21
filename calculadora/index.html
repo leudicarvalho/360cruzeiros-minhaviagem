@@ -143,13 +143,19 @@
   var C = window.CalcBebidas, MV = window.MV;
   var WHATS = '5582993258783';   // número do Leonardo (o mesmo da página)
   // Webhook 54 "pacote calculado (calculadora)", fluxo 1425 do Entur (docs/ideias/minha-viagem-4.md, seção 2).
-  // Enquanto o fluxo estiver em rascunho, o Entur recebe e não faz nada.
+  // Fluxo em rascunho = o Entur recusa e a calculadora cai no botão do WhatsApp (21/11/2026).
   var WEBHOOK_PACOTE = 'https://mkt.enturos.com/api/automations/hooks/FNaWyWa2zK4-BbagQIRvzapo';
   function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   function ler(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function linkWhats(texto) { return 'https://wa.me/' + WHATS + '?text=' + encodeURIComponent(texto); }
 
   var link = C.lerLink(location.search);
+  // WhatsApp do link (w): guarda no aparelho (mv_whats, o mesmo da página) e tira da barra de endereço, como a página faz.
+  var wLink = MV.conferirWhats(link.whats).num;
+  if (wLink) {
+    guardar("mv_whats", wLink);
+    try { history.replaceState(null, '', location.pathname + location.search.replace(/([?&])w=[^&]*&?/, '$1').replace(/[?&]$/, '') + location.hash); } catch (e) {}
+  }
   // "Voltar" só quando veio da própria página (com a pesquisa dela); quem abriu pelo link da mensagem não vê o botão.
   var daPagina = document.referrer && document.referrer.indexOf(location.origin + '/') === 0 && document.referrer.indexOf('/calculadora') < 0;
   if (daPagina) {
@@ -322,49 +328,37 @@
       return b;
     }
 
-    // "Usar este pacote": confirma o WhatsApp (guardado no aparelho, o mesmo do Salvar da página) e manda ao webhook 54.
-    // Sem código no link (não veio da página pessoal): leva ao WhatsApp, como o Salvar da página.
+    // "Usar este pacote": manda direto ao webhook 54 com o WhatsApp do link ou o que a página já guardou no aparelho
+    // (mv_whats), sem pedir nada. Sem código no link, ou sem WhatsApp, ou se o envio falhar: leva ao WhatsApp com o pacote.
+    // ANTES (até 21/11/2026): pedia o WhatsApp num formulário "Confirmar" (Leonardo: "eu havia pedido para ser diferente
+    // disso. Para o WhatsApp da pessoa já estar entre os parâmetros da pesquisa").
     function usar(nivel, ciaId) {
       var final = document.getElementById("final");
       final.innerHTML = "";
       var escolha = nomeEscolha(nivel, ciaId);
-      if (!link.codigo) {
+      function peloWhats(aviso) {
+        final.innerHTML = "";
         final.appendChild(el("h2", { texto: "Atualizar minha pesquisa" }));
+        if (aviso) final.appendChild(el("p", { "class": "erro", texto: aviso }));
         final.appendChild(el("p", { texto: "Para guardar o pacote na sua pesquisa, me chama no WhatsApp que eu atualizo para você." }));
-        var a = el("a", { "class": "btn", target: "_blank", rel: "noopener", texto: "Chamar no WhatsApp",
-          href: linkWhats("Oi, Leonardo! Usei a calculadora de bebidas e o ideal para mim é " + escolha + ". Pode atualizar minha pesquisa?") });
-        final.appendChild(a);
-        return;
+        final.appendChild(el("a", { "class": "btn", target: "_blank", rel: "noopener", texto: "Chamar no WhatsApp",
+          href: linkWhats("Oi, Leonardo! Usei a calculadora de bebidas e o ideal para mim é " + escolha + ". Pode atualizar minha pesquisa?") }));
       }
-      var entrada = el("input", { type: "tel", inputmode: "tel", autocomplete: "tel", placeholder: "(11) 99999-9999" });
-      entrada.value = ler("mv_whats") || "";
-      var mel = el("input", { "class": "mel", type: "text", tabindex: "-1", autocomplete: "off", "aria-hidden": "true" });
-      var erro = el("p", { "class": "erro" });
-      var bt = el("button", { type: "button", "class": "btn", texto: "Confirmar" });
-      final.appendChild(el("div", { "class": "confirmar" }, [
-        el("h2", { texto: "Atualizar minha pesquisa com " + escolha }),
-        el("p", { "class": "dica", style: "margin:0", texto: "Confirme seu WhatsApp: é por ele que você recebe o link da sua pesquisa atualizada." }),
-        el("label", {}, ["Seu WhatsApp, com DDD", entrada]), mel, erro, bt,
-      ]));
-      bt.onclick = function () {
-        var w = MV.conferirWhats(entrada.value);
-        if (!w.num) { erro.textContent = w.motivo; entrada.classList.add("falta"); return; }
-        entrada.classList.remove("falta"); erro.textContent = "";
-        var corpo = C.montarEnvio(w.num, link.codigo, nivel, mel.value);
-        bt.disabled = true; bt.textContent = "Enviando...";
-        fetch(WEBHOOK_PACOTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) })
-          .then(function (r) { if (!r.ok) throw new Error(r.status); })
-          .then(function () {
-            guardar("mv_whats", w.num);
-            final.innerHTML = "";
-            final.appendChild(el("p", { "class": "ok", texto: "Pronto! Vou te mandar no WhatsApp o link da sua pesquisa com " + escolha + "." }));
-          })
-          .catch(function () {
-            bt.disabled = false; bt.textContent = "Confirmar";
-            erro.textContent = "Não consegui enviar agora. Tente de novo em instantes ou me chama no WhatsApp.";
-          });
-      };
-      entrada.focus();
+      // Vai a pesquisa inteira (a que a página guardou no aparelho, mv_pref) com o pacote trocado, no formato do Salvar
+      // (MV.montarEnvio): o Entur não lê os campos mv_* do contato numa expressão, então o fluxo usa o que chega.
+      var w = MV.conferirWhats(ler("mv_whats") || "").num, pref = ler("mv_pref");
+      if (!link.codigo || !w || !pref) { peloWhats(""); return; }
+      var pesquisa = MV.lerPesquisa(pref);
+      pesquisa.b = C.NIVEL_PARA_B[nivel];
+      final.appendChild(el("p", { "class": "dica", texto: "Enviando..." }));
+      var corpo = MV.montarEnvio(pesquisa, link.codigo, w, "");
+      fetch(WEBHOOK_PACOTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); })
+        .then(function () {
+          final.innerHTML = "";
+          final.appendChild(el("p", { "class": "ok", texto: "Pronto! Vou te mandar no WhatsApp o link da sua pesquisa com " + escolha + "." }));
+        })
+        .catch(function () { peloWhats("Não consegui enviar agora."); });
     }
 
     function atualizar() {
