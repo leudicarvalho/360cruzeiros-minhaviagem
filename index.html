@@ -143,11 +143,16 @@
   .sec-quando { background: #f6f9fa; border: 1px solid #e3eaee; border-radius: 18px; padding: 14px; }
   .quando-topo { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
   .quando-topo .cartao-tit { margin-right: 2px; }
-  .quando-topo .temporadas { flex: 0 1 300px; }
+  .quando-topo .temporadas { flex: 0 1 400px; }
   .quando-topo .linha-datas { margin: 0 0 0 auto; }
   @media (max-width: 699px) { .quando-topo .temporadas { flex: 1 1 100%; } .quando-topo .linha-datas { margin: 0; width: 100%; } .quando-topo .linha-datas > * { flex: 1 1 0; justify-content: center; } }
-  .temporadas button { padding: 6px 8px; white-space: nowrap; }
-  .temporadas button b { display: inline; font-size: 15px; margin-left: 3px; }
+  .temporadas button { padding: 9px 14px; white-space: nowrap; font-size: 14px; }
+  .temporadas button b { display: inline; font-size: 16px; margin-left: 3px; }
+  /* Temporada escolhida em destaque (Leonardo, 21/11/2026: "dá mais destaque para qual temporada está selecionada... um
+     pouquinho mais largo"): fundo azul da marca e texto branco. ANTES: fundo branco sobre cinza, quase igual à outra. */
+  .temporadas button.ativo { background: var(--marca); color: #fff; box-shadow: 0 3px 10px rgba(15,76,92,.3); }
+  .temporadas button.ativo b { color: #fff; }
+  .temporadas button:not(.ativo):hover { background: #fff; }
   .sec-quando .meses { margin-top: 12px; gap: 8px; }
   @media (min-width: 700px) { .sec-quando .meses { grid-template-columns: repeat(6, 1fr); } }
   .sec-quando .meses button { background: #fff; border: 1px solid #dbe4e8; border-radius: 12px; padding: 9px 4px; font: 700 14px var(--fonte); transition: border-color .15s, box-shadow .15s; }
@@ -176,6 +181,8 @@
     .quando-topo .linha-datas { flex-wrap: nowrap; }
     .so-pc { display: none; }
     .quando-topo .linha-datas > * { white-space: nowrap; font-size: 12px; padding: 8px 8px; min-width: 0; }
+    .abrir-cal span { overflow: hidden; text-overflow: ellipsis; }
+    .quando-topo .linha-datas > .abrir-cal { flex: 1.6 1 0; gap: 5px; }
     .festas button { font-size: 12.5px; }
     .festas button .emo { font-size: 15px; letter-spacing: -3px; }
   }
@@ -734,8 +741,10 @@
     if (temporadaAberta) $('todas-datas').innerHTML = 'Todas as datas<span class="so-pc"> de ' + MV.nomeTemporada(temporadaAberta) + '</span>';
     $('abrir-cal').classList.toggle('tem', datas);
     var d5 = function (x) { return MV.dataBR(x).slice(0, 5); };
-    $('txt-cal').innerHTML = !datas ? 'Escolher os dias' : e.de && e.ate ? 'Embarque ' + d5(e.de) + ' <em>·</em> Volta ' + d5(e.ate) :
-      e.de ? 'Embarque a partir de ' + d5(e.de) : 'Volta até ' + d5(e.ate);
+    // "17/12 até 05/01" (Leonardo, 21/11/2026: no celular "Embarque... Volta" saía da área; "tira o De, fica não sei o que
+    // até a outra data"). ANTES: "Embarque 17/12 · Volta 05/01".
+    $('txt-cal').innerHTML = !datas ? 'Escolher os dias' : e.de && e.ate ? d5(e.de) + ' até ' + d5(e.ate) :
+      e.de ? 'A partir de ' + d5(e.de) : 'Até ' + d5(e.ate);
     [].forEach.call(document.querySelectorAll('.pilulas[data-f]'), function (g) {
       [].forEach.call(g.children, function (b) {
         var on = g.dataset.f === 'k' ? (e.k === 'todas' ? b.dataset.v === 'todas' : e.k.split('.').indexOf(b.dataset.v) >= 0) : b.dataset.v === String(e[g.dataset.f]);
