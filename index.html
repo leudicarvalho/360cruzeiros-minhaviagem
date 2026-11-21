@@ -626,6 +626,18 @@
 <div class="fundo-janela" id="janela" hidden>
   <div class="janela" role="dialog" aria-modal="true" aria-labelledby="j-titulo">
     <button class="fechar" id="j-fechar" aria-label="Fechar">×</button>
+    <!-- Quem abriu o site por fora (sem o link da mensagem) e o aparelho não tem o WhatsApp: o Salvar pede o WhatsApp
+         para gravar no CRM (Leonardo, 21/11/2026: "quem abrir por fora também quero que salve"; texto aprovado).
+         ANTES: sem WhatsApp o Salvar só guardava no aparelho. -->
+    <div id="j-pedir" hidden>
+      <h3>Salvar minha pesquisa</h3>
+      <p>Coloque seu WhatsApp para eu guardar a sua pesquisa e já saber o que você quer quando a gente conversar.</p>
+      <label for="j-whats"><b>Seu WhatsApp, com DDD</b></label>
+      <input id="j-whats" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999">
+      <input id="j-hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+      <p class="erro" id="j-erro"></p>
+      <button class="btn" id="j-salvar">Salvar</button>
+    </div>
     <div id="j-pronto" class="pronto">
       <h3 id="j-titulo">Pronto, salvo!</h3>
       <!-- Leonardo, 21/11/2026: "vamos retirar essa frase... só deixa salvo e pronto". ANTES: "...Da próxima vez que
@@ -1336,22 +1348,41 @@
   // Salvar como minha preferência: grava NESTE aparelho na hora (sem pedir nada). Quem veio pelo link do WhatsApp (código
   // + WhatsApp do link, guardados no aparelho) também manda ao CRM, sem aparecer nada: o webhook 53 acha o contato pelo
   // telefone, a trava confere o código, e o CRM atualiza os campos mv_* (o próximo link já sai certo).
-  $('salvar').onclick = function () {
+  // Quem abriu o site por fora (Leonardo, 21/11/2026, aprovado): sem WhatsApp no aparelho, o Salvar pede o WhatsApp;
+  // sem código do link vai com o código "site" (o 1424 grava e cria a tarefa para o Leonardo). O endereço passa a ter a
+  // pesquisa, o código e o WhatsApp SEMPRE (ANTES: só quando a página veio por um link).
+  function salvarAgora(hp) {
     var p = pesquisaAtual();
     guardar('mv_pref', MV.linkPesquisa(p, ''));
     Object.keys(links).forEach(function (k) { links[k] = 'superado'; });
     guardar('mv_links', JSON.stringify(links));
     salva = MV.lerPesquisa(MV.linkPesquisa(p, salva.id)); temPref = true;
     var w = whatsLink || ler('mv_whats');
+    var id = salva.id || 'site';
     // endereço com a pesquisa salva E o WhatsApp (&w=), para o link copiado da barra continuar salvando no CRM
-    try { if (temLink) history.replaceState(null, '', MV.linkPesquisa(salva, salva.id) + (w ? '&w=' + w : '')); } catch (e) {}
-    if (salva.id && w) {
-      try { fetch(WEBHOOK_SALVAR, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(MV.montarEnvio(p, salva.id, w, '')) }).catch(function () {}); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname + MV.linkPesquisa(salva, id) + (w ? '&w=' + w : '')); } catch (e) {}
+    if (w) {
+      try { fetch(WEBHOOK_SALVAR, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(MV.montarEnvio(p, id, w, hp || '')) }).catch(function () {}); } catch (e) {}
     }
     $('j-resumo').textContent = MV.resumo(p);
+    $('j-pedir').hidden = true; $('j-pronto').hidden = false;
     $('janela').hidden = false;
     desenhar();
+  }
+  $('salvar').onclick = function () {
+    if (whatsLink || ler('mv_whats')) { salvarAgora(''); return; }
+    $('j-erro').textContent = ''; $('j-whats').classList.remove('falta');
+    $('j-pronto').hidden = true; $('j-pedir').hidden = false;
+    $('janela').hidden = false;
+    try { $('j-whats').focus(); } catch (e) {}
   };
+  $('j-salvar').onclick = function () {
+    var r = MV.conferirWhats($('j-whats').value);
+    if (!r.num) { $('j-erro').textContent = r.motivo; $('j-whats').classList.add('falta'); return; }
+    whatsLink = r.num; guardar('mv_whats', r.num);
+    salvarAgora($('j-hp').value);
+  };
+  $('j-whats').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') $('j-salvar').onclick(); });
   function abrirPerguntas(id, cab) {
     var s = dados.saidas.filter(function (x) { return x.id === id; })[0]; if (!s) return;
     $('q-lista').innerHTML = MV.PERGUNTAS_SAIDA.map(function (q) {
