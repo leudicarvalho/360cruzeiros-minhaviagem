@@ -162,9 +162,12 @@
   .festas button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16,37,46,.15); }
   .festas button .emo { font-size: 22px; letter-spacing: -4px; padding-right: 4px; white-space: nowrap; flex: none; }
   .festas button small { display: block; font-size: 11px; font-weight: 600; opacity: .8; }
-  .festas button.reveillon { background: linear-gradient(135deg, #10252e, #1d5566); color: #f8d27a; }
+  /* Réveillon claro (Leonardo, 21/11/2026: "não pode ficar com essa cor de fundo, parece que está selecionado"); marcado = azul
+     da marca, como os outros botões. ANTES: fundo escuro, igual a um botão marcado. */
+  .festas button.reveillon { background: linear-gradient(135deg, #e6f1fb, #fff4d6); color: #1d3f72; border-color: #c9dcef; }
+  .festas button.carnaval { border-color: #f3c6d8; }
   .festas button.carnaval { background: linear-gradient(135deg, #fff1c2, #ffd3e4); color: #6b2a4a; }
-  .festas button.ativo { border-color: var(--ouro-escuro); box-shadow: 0 0 0 3px rgba(248,196,99,.55); }
+  .festas button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; box-shadow: 0 3px 10px rgba(15,76,92,.3); }
   .festas button.ativo::after { content: '✓'; margin-left: 2px; font-size: 15px; }
   @media (max-width: 699px) {
     .festas { flex-wrap: nowrap; gap: 8px; }
