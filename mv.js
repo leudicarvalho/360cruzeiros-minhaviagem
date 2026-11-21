@@ -534,7 +534,13 @@
       r.pos = (hoje.v - min[1]) / (max[1] - min[1]);
       r.nivel = r.pos <= 1 / 3 ? "baixo" : r.pos >= 2 / 3 ? "alto" : "medio";
     } else if (hoje) r.pos = 0.5;
-    else r.nivel = "esgotada";
+    else {
+      r.nivel = "esgotada";
+      // Último preço antes de esgotar, para o quadro dizer "último preço R$ X em dd/mm" (Leonardo, 21/11/2026: "Se é
+      // esgotada, tem que dizer que tá esgotado"). ANTES: só o selo "Esgotada", sem o último preço.
+      var u = ok[ok.length - 1];
+      r.ultimo = { v: u[1], dia: u[0] };
+    }
     return r;
   }
 

@@ -114,6 +114,9 @@
   .item.com-marcas { align-items: flex-end; }
   .preco-dir { color: var(--texto); font-weight: 800; font-size: 16px; white-space: nowrap; }
   .item.com-marcas .marcas li:last-child { min-height: 42px; align-items: center; }
+  /* Marca longa em várias linhas (drink premium MSC numa linha só, 21/11/2026, Leonardo: "Ficou desalinhado"): o preço
+     desce para a altura do − + (embaixo, 42px). ANTES: o preço ficava no meio do texto e o − + embaixo. */
+  .item.com-marcas .marcas li:last-child b { align-self: flex-end; line-height: 42px; }
   .item-nome { flex: 1; min-width: 0; }
   /* Preço da bebida sem marcas (sem álcool) em destaque, como o das alcoólicas (Leonardo, 21/11/2026: "os valores do não
      alcoólico não estão tão destacados como no alcoólico"). ANTES: "R$ 26 avulso" pequeno e cinza. */

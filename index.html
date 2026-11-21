@@ -430,7 +430,11 @@
      mudar o preço alto ali"). ANTES (21/11, 15:27 a esta mudança): quadro neutro, sem selo, e a ajuda "Quer pagar menos?";
      ANTES disso: selo "Preço alto". */
   .nivel.alto { background: #fdecea; border-color: #f0a79e; } .nivel.alto small { color: #a12a1d; } .nivel.alto b { background: var(--vermelho-texto); }
-  .nivel.estavel, .nivel.esgotada { background: #eef3f5; border-color: var(--linha); } .nivel.estavel b, .nivel.esgotada b { background: var(--suave); }
+  .nivel.estavel { background: #eef3f5; border-color: var(--linha); } .nivel.estavel b { background: var(--suave); }
+  /* Esgotada em vermelho claro, com "Esgotada" no lugar do valor (Leonardo, 21/11/2026). ANTES: quadro cinza com selo. */
+  .nivel.esgotada { background: #fdecea; border-color: #f0a79e; } .nivel.esgotada small { color: #a12a1d; } .nivel.esgotada b { background: var(--vermelho-texto); }
+  .nivel.esgotada .hoje-v strong { color: var(--vermelho-texto); }
+  .nivel.esgotada .hoje-v strong em { display: block; margin: 2px 0 0; }
   .faixa { position: relative; margin: 26px 4px 4px; }
   .faixa .barra-cor { display: flex; height: 8px; border-radius: 8px; overflow: hidden; }
   .faixa .barra-cor i { flex: 1; }
@@ -657,7 +661,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261121h"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261121i"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -1034,8 +1038,11 @@
     // Selo curto ao lado de "Preço de hoje" (Leonardo, 21/11/2026: "Não precisa ser preço em alta, preço em baixa. Pode ser
     // só em alta e ao lado do preço de hoje... as três opções"). ANTES: "Preço em alta/Preço em baixa" à direita do valor.
     var txt = { baixo: 'Em baixa', medio: 'Na média', alto: 'Em alta', estavel: 'Sem mudança', esgotada: 'Esgotada' }[fx.nivel];
+    // Esgotada hoje (Leonardo, 21/11/2026: "Por que que hoje não tem nada? Se é esgotada, tem que dizer que tá esgotado"):
+    // quadro vermelho claro, "Esgotada" no lugar do valor e o último preço com o dia. ANTES: só um selo cinza "Esgotada".
     var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><span class="nv-topo"><small>Preço de hoje</small><b>' + txt + '</b></span><strong>' +
-      reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : '<b>' + txt + '</b>') + '</div>';
+      reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : fx.ultimo ? '<span class="hoje-v"><span class="nv-topo"><small>Hoje</small></span><strong>Esgotada<em>' +
+      'último preço ' + reais(fx.ultimo.v) + ' em ' + dm(fx.ultimo.dia) + '</em></strong></span>' : '<b>' + txt + '</b>') + '</div>';
     // Marcas na barra (Leonardo, 21/11/2026, 6ª rodada: "não é para ter a linha tracejada... é para só marcar lá em cima...
     // o mais barato, um risco ali no verde, e o mais caro no vermelho. Se o hoje for igual a qualquer um dos dois, as
     // linhas vão ficar sobrepostas. E vai ter um alerta"). ANTES: só a marca Hoje na barra e riscos tracejados no gráfico.
@@ -1080,7 +1087,10 @@
     // Linha arredondada (MV.caminhoSuave): cada trecho sem dia esgotado vira uma curva que passa por todos os pontos.
     var linha = '', marcas = '', lista = false, trecho = [];
     function fechaTrecho() { if (trecho.length) linha += MV.caminhoSuave(trecho); trecho = []; }
-    pts.forEach(function (p) {
+    pts.forEach(function (p, i) {
+      // Esgotada hoje: "Esgotada" escrito em vermelho em hoje (Leonardo, 21/11/2026). ANTES: um "×" minúsculo, que parecia
+      // defeito. Dias esgotados no meio continuam com o "×".
+      if (p[1] === null && i === pts.length - 1) { fechaTrecho(); marcas += '<text class="esg-hoje" x="' + (W - d) + '" y="' + (H - b - 5) + '" text-anchor="end" style="fill:#b3372a;font-weight:800">Esgotada</text>'; return; }
       if (p[1] === null) { fechaTrecho(); marcas += '<text x="' + x(p[0]).toFixed(1) + '" y="' + (H - b + 1) + '" text-anchor="middle" fill="#c0392b">×</text>'; return; }
       trecho.push([x(p[0]), y(p[1])]);
       if (p[2]) lista = true;
