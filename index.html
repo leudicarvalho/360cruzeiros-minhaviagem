@@ -14,126 +14,155 @@
 <link rel="preload" href="dados/precos.json" as="fetch" crossorigin>
 <link rel="preconnect" href="https://static.wixstatic.com" crossorigin>
 <style>
+  /* Fundo branco (Leonardo, 21/11/2026: "Teste um layout com fundo branco. Acho que esse preto ficou muito carregado e era
+     mais para Black Friday mesmo"). Topo com a foto do navio (identidade 360cruzeiros); o resto claro, azul-petróleo nos
+     botões e dourado só no destaque (cabine escolhida, selo). ANTES: tudo no fundo escuro da Black. */
   :root {
-    --fundo: #07161d; --card: #0f2a35; --linha: #1e4250; --texto: #ffffff; --suave: #9fb6bf;
-    --ouro: #f8c463; --ouro-escuro: #e8a635; --verde: #25d366; --verde-escuro: #1da851; --queda: #4ade80; --alta: #f87171;
-    --alerta: #e84118; --ciano: #7ee8fa;
+    --fundo: #f3f6f8; --card: #ffffff; --campo: #ffffff; --linha: #dbe3e8; --texto: #10252e; --suave: #5b707a;
+    --marca: #0f4c5c; --marca-clara: #e6f0f3; --destaque: #0f4c5c;
+    --ouro: #f8c463; --ouro-escuro: #e8a635; --ouro-texto: #8a5d08; --ouro-claro: #fff7e6;
+    --verde: #1fa855; --verde-escuro: #178a45; --queda: #16a34a; --alta: #c0392b;
     --fonte: system-ui, -apple-system, 'Segoe UI', sans-serif;
-    color-scheme: dark;
+    color-scheme: light;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--fundo); color: var(--texto); font-family: var(--fonte); line-height: 1.4; }
   .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 40px; }
   [hidden] { display: none !important; }
 
-  .topo { position: relative; margin: 0 -16px 4px; padding: 16px 18px 18px; border-radius: 0 0 24px 24px; overflow: hidden;
-    background: linear-gradient(160deg, rgba(7,22,29,.9) 0%, rgba(10,30,40,.8) 50%, rgba(15,46,58,.92) 100%),
+  .topo { position: relative; margin: 0 -16px 4px; padding: 16px 18px 18px; border-radius: 0 0 24px 24px; overflow: hidden; color: #fff;
+    background: linear-gradient(160deg, rgba(7,22,29,.82) 0%, rgba(10,30,40,.66) 50%, rgba(15,46,58,.85) 100%),
       url('https://static.wixstatic.com/media/c17eb2_48f6acdc40cc445b941835be15115c99~mv2.jpg') center/cover no-repeat; }
-  .topo::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(248,196,99,.6), transparent); }
   .barra { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; }
-  .logo { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.08); border: 1px solid rgba(248,196,99,.3); border-radius: 60px; padding: 3px 12px 3px 3px; text-decoration: none; }
+  .logo { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.12); border: 1px solid rgba(248,196,99,.4); border-radius: 60px; padding: 3px 12px 3px 3px; text-decoration: none; }
   .logo img { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ouro); object-fit: cover; }
   .logo span { font-weight: 800; font-size: 13px; color: var(--ouro); }
-  .selo { display: inline-flex; align-items: center; height: 32px; background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: var(--fundo); font-weight: 900; letter-spacing: 2px; font-size: 12px; padding: 0 14px; border-radius: 60px; }
-  .atualizado { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 5px 12px; border-radius: 60px; background: rgba(37,211,102,.12); border: 1px solid rgba(37,211,102,.5); color: #fff; font-size: 12px; font-weight: 600; text-align: center; }
-  .atualizado b { color: #7ef0a8; white-space: nowrap; }
-  .atualizado::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--verde); box-shadow: 0 0 0 4px rgba(37,211,102,.25); flex: none; }
+  .selo { display: inline-flex; align-items: center; height: 32px; background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: #10252e; font-weight: 900; letter-spacing: 2px; font-size: 12px; padding: 0 14px; border-radius: 60px; }
+  .atualizado { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 5px 12px; border-radius: 60px; background: rgba(37,211,102,.16); border: 1px solid rgba(37,211,102,.6); color: #fff; font-size: 12px; font-weight: 600; text-align: center; }
+  .atualizado b { color: #8ff5b5; white-space: nowrap; }
+  .atualizado::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #25d366; box-shadow: 0 0 0 4px rgba(37,211,102,.25); flex: none; }
   h1 { font-size: clamp(22px, 4.6vw, 32px); font-weight: 900; line-height: 1.1; letter-spacing: -.5px; text-align: center; }
   h1 em { font-style: normal; color: var(--ouro); }
-  .resumo { margin: 8px auto 0; max-width: 620px; text-align: center; color: var(--suave); font-size: 13px; }
+  .resumo { margin: 8px auto 0; max-width: 620px; text-align: center; color: #d3e3e9; font-size: 13px; }
   .resumo b { color: #fff; }
   @media (min-width: 700px) { .barra { justify-content: flex-start; } .atualizado { margin-left: auto; } }
 
-  /* Caixas de aviso (mesmas da Black): info ciano, base ouro, aviso vermelho. */
-  .caixa { border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.4; color: #fff; display: flex; gap: 10px; align-items: center; margin-top: 12px; }
-  .caixa::before { flex: 0 0 22px; height: 22px; border-radius: 50%; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  /* Caixas de aviso: info (azul claro, ✓) e base (dourado claro, i). */
+  .caixa { border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.4; color: var(--texto); display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+  .caixa::before { flex: 0 0 22px; height: 22px; border-radius: 50%; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center; color: #fff; }
   .caixa > div { flex: 1; }
-  .info { background: rgba(126,232,250,.10); border: 1px solid rgba(126,232,250,.5); }
-  .info b { color: var(--ciano); }
-  .info::before { content: '✓'; background: var(--ciano); color: var(--fundo); }
-  .base { background: rgba(248,196,99,.10); border: 1px solid rgba(248,196,99,.5); }
-  .base b { color: var(--ouro); }
-  .base::before { content: 'i'; background: var(--ouro); color: var(--fundo); font-family: Georgia, serif; }
+  .info { background: #e8f5f8; border: 1px solid #a9d5e0; }
+  .info b { color: var(--marca); }
+  .info::before { content: '✓'; background: var(--marca); }
+  .base { background: var(--ouro-claro); border: 1px solid #f0cf8a; }
+  .base b { color: var(--ouro-texto); }
+  .base::before { content: 'i'; background: var(--ouro-escuro); font-family: Georgia, serif; }
   .caixa .btn { margin-top: 8px; }
 
-  /* Painel dos filtros: uma linha por filtro, botões em pílula (os da Black). */
-  .filtros { margin-top: 14px; background: #0b222c; border: 1px solid var(--linha); border-top: 4px solid var(--ouro); border-radius: 20px; padding: 14px 14px 12px; }
-  .filtro { display: grid; grid-template-columns: 86px 1fr; gap: 8px; align-items: center; padding: 7px 0; border-bottom: 1px dashed var(--linha); }
+  /* Painel dos filtros: uma linha por filtro, botões em pílula. */
+  .filtros { margin-top: 14px; background: var(--card); border: 1px solid var(--linha); border-top: 4px solid var(--marca); border-radius: 20px; padding: 14px 14px 12px; box-shadow: 0 2px 10px rgba(16,37,46,.05); }
+  .filtro { display: grid; grid-template-columns: 86px 1fr; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--linha); }
   .filtro:last-of-type { border-bottom: 0; }
   .filtro > span { color: var(--suave); font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
   .pilulas { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pilulas button { background: transparent; color: var(--texto); border: 1px solid var(--linha); border-radius: 999px; padding: 7px 12px; font: 700 13px var(--fonte); cursor: pointer; white-space: nowrap; }
-  .pilulas button.ativo { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); border-color: var(--ouro); color: var(--fundo); }
+  .pilulas button { background: #fff; color: var(--texto); border: 1px solid #c9d5db; border-radius: 999px; padding: 7px 12px; font: 700 13px var(--fonte); cursor: pointer; white-space: nowrap; }
+  .pilulas button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; }
+  .pilulas button.carnaval:not(.ativo) { border-color: var(--ouro-escuro); color: var(--ouro-texto); }
   .pilulas.num button { min-width: 40px; padding: 7px 10px; }
-  select { background: var(--fundo); color: var(--texto); border: 1px solid var(--linha); border-radius: 8px; padding: 9px; font: 500 14px var(--fonte); width: 100%; }
+  select { background: var(--campo); color: var(--texto); border: 1px solid #c9d5db; border-radius: 8px; padding: 9px; font: 500 14px var(--fonte); width: 100%; }
+  .mudar { display: none; width: 100%; background: #fff; border: 2px solid var(--marca); color: var(--marca); border-radius: 8px;
+    padding: 10px; font: 800 14px var(--fonte); cursor: pointer; }
+  .mudar span { display: inline-block; transition: transform .2s; }
+  .filtros.aberto .mudar span { transform: rotate(180deg); }
+  /* Celular (Leonardo, 21/11/2026: "funcionar no mobile, igual o site da Black"): os filtros ficam recolhidos e os preços
+     aparecem logo abaixo do topo, como na Black ("a pesquisa deve ir mais pra cima", 27/10). Computador: sempre abertos. */
+  @media (max-width: 699px) {
+    .mudar { display: block; }
+    .filtros:not(.aberto) .corpo-filtros { display: none; }
+    /* fechada: só o "Mudar a pesquisa"; Salvar/Voltar aparecem quando a pesquisa mudou; a calculadora só para quem
+       respondeu "Quero entender a diferença" no formulário */
+    .filtros.igual:not(.aberto) .acoes-pesq { display: none; }
+    .filtros:not(.aberto) #convite-calc:not(.forte) { display: none; }
+    .filtros.aberto .corpo-filtros { margin-top: 8px; }
+    .filtros { padding: 12px; margin-top: 10px; }
+    .caixa { font-size: 12px; padding: 8px 10px; margin-top: 10px; }
+    .topo { padding: 12px 14px 14px; }
+    .ordem { margin-top: 14px; }
+  }
+  .filtro.quando { align-items: start; }
+  .filtro.quando > span { padding-top: 8px; }
+  .sub { color: var(--suave); font-size: 12px; margin: 10px 0 6px; }
+  .datas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .datas label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--suave); }
+  .datas input { background: var(--campo); color: var(--texto); border: 1px solid #c9d5db; border-radius: 8px; padding: 8px; font: 600 14px var(--fonte); width: 100%; min-width: 0; }
+  .limpar { background: none; border: 0; color: var(--destaque); font: 700 12px var(--fonte); padding: 6px 0 0; cursor: pointer; text-decoration: underline; }
   .acoes-pesq { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
   .acoes-pesq .btn { margin: 0; }
   .btn { display: block; text-align: center; text-decoration: none; background: var(--verde); color: #fff; font-weight: 700; font-size: 14px; padding: 11px; border-radius: 8px; border: 0; cursor: pointer; font-family: inherit; width: 100%; }
   .btn:hover { background: var(--verde-escuro); }
-  .btn.ouro { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: var(--fundo); }
-  .btn.contorno { background: transparent; border: 2px solid var(--ouro); color: var(--ouro); }
-  .btn:disabled { opacity: .55; cursor: default; }
+  .btn.ouro { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: #10252e; }
+  .btn.contorno { background: #fff; border: 2px solid var(--marca); color: var(--marca); }
+  .btn:disabled { opacity: .45; cursor: default; }
   .salvas { grid-column: 1 / -1; text-align: center; color: var(--suave); font-size: 12px; }
   @media (max-width: 420px) { .filtro { grid-template-columns: 1fr; gap: 6px; } .pilulas button { padding: 7px 10px; font-size: 12.5px; } }
 
   .ordem { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 18px 2px 8px; flex-wrap: wrap; }
   .ordem h2 { font-size: 19px; font-weight: 800; }
-  .ordem h2 em { font-style: normal; color: var(--ouro); }
+  .ordem h2 em { font-style: normal; color: var(--marca); }
 
-  /* Cartão de cada saída (faixas da Black): data, navio, cabines, e a linha do tempo ao tocar. */
-  .card { border: 1px solid color-mix(in srgb, var(--ouro) 24%, var(--linha)); border-radius: 16px; overflow: hidden; margin-bottom: 12px;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--ouro) 6%, #0f2a35) 0%, #0b2029 100%); }
-  .c-topo { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: color-mix(in srgb, var(--ouro) 14%, transparent);
-    border-bottom: 1px solid color-mix(in srgb, var(--ouro) 28%, transparent); cursor: pointer; }
+  /* Cartão de cada saída: data, navio, cabines, e a linha do tempo ao tocar. */
+  .card { border: 1px solid var(--linha); border-radius: 16px; overflow: hidden; margin-bottom: 12px; background: var(--card); box-shadow: 0 2px 10px rgba(16,37,46,.06); }
+  .c-topo { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--marca-clara); border-bottom: 1px solid var(--linha); cursor: pointer; }
   .c-topo .quando { flex: 1; min-width: 0; }
-  .data { display: block; color: var(--ouro); font-weight: 800; font-size: 16px; white-space: nowrap; }
-  .data i { font-style: normal; font-weight: 700; font-size: 14px; color: #fff; opacity: .75; margin: 0 4px; }
+  .data { display: block; color: var(--marca); font-weight: 800; font-size: 16px; white-space: nowrap; }
+  .data i { font-style: normal; font-weight: 700; font-size: 14px; color: var(--suave); margin: 0 4px; }
   .noites { display: block; color: var(--suave); font-size: 12px; font-weight: 600; }
-  .fav { background: none; border: 0; color: var(--suave); font-size: 22px; line-height: 1; cursor: pointer; padding: 2px 4px; }
-  .fav.sim { color: var(--ouro); }
+  .fav { background: none; border: 0; color: #9aaab2; font-size: 22px; line-height: 1; cursor: pointer; padding: 2px 4px; }
+  .fav.sim { color: var(--ouro-escuro); }
   .c-navio { padding: 10px 14px; border-bottom: 1px dashed var(--linha); cursor: pointer; }
   .navio { display: block; font-weight: 800; font-size: 16px; }
   .rota { display: block; color: var(--suave); font-size: 12px; margin-top: 2px; }
-  .rota b { color: #fff; font-weight: 700; }
-  .cabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 10px 12px 4px; }
+  .rota b { color: var(--texto); font-weight: 700; }
+  .cabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 12px 12px 4px; }
   @media (min-width: 620px) { .cabs { grid-template-columns: repeat(4, 1fr); } }
-  .cab { position: relative; border: 1px solid var(--linha); border-radius: 10px; padding: 8px 9px; background: rgba(0,0,0,.18); min-width: 0; }
+  .cab { position: relative; border: 1px solid var(--linha); border-radius: 10px; padding: 8px 9px; background: #f7fafb; min-width: 0; }
   .cab small { display: block; color: var(--suave); font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
-  .cab b { display: block; font-size: 18px; font-weight: 900; letter-spacing: -.3px; margin-top: 1px; }
+  .cab b { display: block; font-size: 18px; font-weight: 900; letter-spacing: -.3px; margin-top: 1px; color: var(--texto); }
   .cab span { display: block; color: var(--suave); font-size: 11px; }
   .cab.esg b { color: var(--suave); font-size: 14px; }
-  .cab.escolhida { border: 2px solid var(--ouro); background: color-mix(in srgb, var(--ouro) 14%, #0d2530); }
-  .cab.escolhida b { color: var(--ouro); }
+  .cab.escolhida { border: 2px solid var(--ouro-escuro); background: var(--ouro-claro); }
+  .cab.escolhida b { color: var(--ouro-texto); }
   .cab.escolhida::after { content: 'Sua escolha'; position: absolute; top: -8px; right: 8px; font-size: 9.5px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase;
-    padding: 2px 7px; border-radius: 999px; background: var(--ouro); color: var(--fundo); }
+    padding: 2px 7px; border-radius: 999px; background: var(--ouro-escuro); color: #10252e; }
   .pp { color: var(--suave); font-size: 11.5px; padding: 2px 14px 10px; }
-  .ver { display: block; width: 100%; background: none; border: 0; border-top: 1px dashed var(--linha); color: var(--ciano); font: 700 13px var(--fonte); padding: 9px; cursor: pointer; }
+  .ver { display: block; width: 100%; background: none; border: 0; border-top: 1px dashed var(--linha); color: var(--marca); font: 700 13px var(--fonte); padding: 9px; cursor: pointer; }
   .detalhe { padding: 4px 14px 14px; border-top: 1px dashed var(--linha); }
   .detalhe h3 { font-size: 14px; margin: 10px 0 4px; }
   .detalhe .abas { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 8px; }
   .grafico { width: 100%; max-width: 520px; height: auto; display: block; }
   .grafico text { fill: var(--suave); font: 600 10px var(--fonte); }
   .legenda { color: var(--suave); font-size: 11.5px; margin-top: 4px; }
-  .vazio { background: var(--card); border: 1px dashed var(--linha); border-radius: 12px; padding: 18px; color: var(--suave); text-align: center; margin-bottom: 12px; }
+  .legenda b { color: var(--texto); }
+  .vazio { background: var(--card); border: 1px dashed #c9d5db; border-radius: 12px; padding: 18px; color: var(--suave); text-align: center; margin-bottom: 12px; }
   .vazio .btn { max-width: 320px; margin: 12px auto 0; }
   .termometro { margin-top: 10px; }
 
-  section.conversa { margin-top: 22px; background: #0b222c; border: 1px solid var(--linha); border-top: 4px solid #e4eef2; border-radius: 20px; padding: 18px 16px; text-align: center; }
+  section.conversa { margin-top: 22px; background: var(--card); border: 1px solid var(--linha); border-top: 4px solid var(--verde); border-radius: 20px; padding: 18px 16px; text-align: center; }
   section.conversa h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
-  section.conversa h2 em { font-style: normal; color: var(--ouro); }
+  section.conversa h2 em { font-style: normal; color: var(--verde-escuro); }
   section.conversa p { color: var(--suave); font-size: 14px; }
   section.conversa .btn { max-width: 340px; margin: 14px auto 0; }
   .rodape { color: var(--suave); font-size: 12px; text-align: center; margin-top: 30px; }
 
-  /* Janela do Salvar (a janelinha do "Quero esse" da Black). */
-  .fundo-janela { position: fixed; inset: 0; background: rgba(3,10,14,.75); z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; }
-  .janela { position: relative; width: min(420px, 100%); background: var(--card); border: 1px solid var(--ouro); border-radius: 16px; padding: 18px; box-shadow: 0 18px 50px rgba(0,0,0,.6); }
+  /* Janela do Salvar. */
+  .fundo-janela { position: fixed; inset: 0; background: rgba(16,37,46,.55); z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .janela { position: relative; width: min(420px, 100%); background: var(--card); border: 1px solid var(--linha); border-top: 4px solid var(--marca); border-radius: 16px; padding: 18px; box-shadow: 0 18px 50px rgba(16,37,46,.3); }
   .janela h3 { font-size: 19px; font-weight: 900; margin-bottom: 6px; padding-right: 28px; }
   .janela p { color: var(--suave); font-size: 13px; margin-bottom: 12px; }
-  .janela p b { color: var(--ouro); }
+  .janela p b { color: var(--marca); }
   .janela label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--suave); margin-bottom: 10px; }
-  .janela input { background: var(--fundo); color: var(--texto); border: 1px solid var(--linha); border-radius: 8px; padding: 11px; font: 500 16px var(--fonte); width: 100%; }
-  .janela input.falta { border-color: var(--alta); box-shadow: 0 0 0 2px rgba(248,113,113,.35); }
+  .janela input { background: var(--campo); color: var(--texto); border: 1px solid #c9d5db; border-radius: 8px; padding: 11px; font: 500 16px var(--fonte); width: 100%; }
+  .janela input.falta { border-color: var(--alta); box-shadow: 0 0 0 2px rgba(192,57,43,.25); }
   .janela .fechar { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--suave); font-size: 24px; line-height: 1; cursor: pointer; }
   .erro { color: var(--alta); font-size: 13px; font-weight: 700; margin: 0 0 10px; }
   .erro:empty { display: none; }
@@ -162,8 +191,17 @@
     <a class="btn" id="btn-idades" href="#" target="_blank" rel="noopener">Ver o preço exato com as idades</a></div></div>
 
   <div class="filtros" id="filtros">
-    <div class="filtro"><span>Quando</span><div class="pilulas" data-f="p">
-      <button data-v="nd26">Nov/dez 2026</button><button data-v="jf27">Jan/fev 2027</button><button data-v="carn27">Carnaval 2027</button><button data-v="ma27">Mar/abr 2027</button><button data-v="todas">Todas as datas</button></div></div>
+    <button class="mudar" id="mudar" aria-expanded="false">Mudar a pesquisa <span>▾</span></button>
+    <div class="corpo-filtros">
+    <div class="filtro quando"><span>Quando</span><div>
+      <div class="pilulas" id="quando"><button data-q="todas">Todas as datas</button></div>
+      <p class="sub">Ou diga os dias que você pode:</p>
+      <div class="datas">
+        <label>Embarcar a partir de<input type="date" id="de"></label>
+        <label>Voltar até<input type="date" id="ate"></label>
+      </div>
+      <button class="limpar" id="limpar-datas" hidden>Limpar as datas</button>
+    </div></div>
     <div class="filtro"><span>Noites</span><div class="pilulas" data-f="t">
       <button data-v="mini">3 e 4 noites</button><button data-v="longo">5 noites ou mais</button><button data-v="todos">Todas</button></div></div>
     <div class="filtro"><span>Navio</span><div><select id="navio"><option value="">Todos os navios</option></select></div></div>
@@ -176,6 +214,7 @@
     <div class="filtro"><span>Bebidas</span><div class="pilulas" data-f="b">
       <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div></div>
     <p class="legenda" id="legenda-pacote"></p>
+    </div>
     <div class="caixa base" id="convite-calc" hidden><div><b>Em dúvida sobre o pacote de bebidas?</b> A calculadora mostra em 1 minuto qual vale mais a pena para você.
       <a class="btn ouro" id="btn-calc" href="#">Confira se este pacote é o ideal</a></div></div>
     <div class="acoes-pesq">
@@ -190,8 +229,8 @@
   <div id="lista"></div>
 
   <section class="conversa">
-    <h2>Vai com mais de 4 pessoas ou quer sair de outro porto? <em>Me chama no WhatsApp</em></h2>
-    <p>Esta página mostra os cruzeiros que saem e voltam para Santos, para 1 a 4 adultos. Para qualquer outra viagem, eu procuro as opções mais em conta para você.</p>
+    <h2>Quer sair de outro porto? <em>Me chama no WhatsApp</em></h2>
+    <p>Esta página mostra os cruzeiros que saem e voltam para Santos. Para sair de outro porto, eu procuro as opções mais em conta para você.</p>
     <a class="btn" id="chamar" href="#" target="_blank" rel="noopener">Chamar no WhatsApp</a>
   </section>
 
@@ -253,7 +292,44 @@
   }
   function adultos() { return f.a === '5' ? '4' : f.a; }
 
+  // Quando (Leonardo, 21/11/2026): um botão por mês com saída, os Carnavais à parte e as datas de/até. Pode marcar vários
+  // meses; marcar mês limpa as datas, e escolher data desmarca os meses (as datas valem sobre os meses).
+  function montarQuando() {
+    var html = '<button data-q="todas">Todas as datas</button>', ano = '';
+    MV.mesesComSaida(dados.saidas, dados.leitura).forEach(function (m) {
+      var a = '20' + m.slice(1, 3), nome = MV.nomeMes(m).split(' ')[0];
+      html += '<button data-q="' + m + '">' + nome.charAt(0).toUpperCase() + nome.slice(1) + (a !== ano || m.slice(3, 5) === '11' ? ' ' + a : '') + '</button>';
+      ano = a;
+    });
+    Object.keys(MV.CARNAVAL).forEach(function (k) {
+      if (dados.saidas.some(function (s) { return MV.noPeriodo(s, { p: k }) && s.embarque > dados.leitura; }))
+        html += '<button data-q="' + k + '" class="carnaval">' + MV.CARNAVAL[k].nome + '</button>';
+    });
+    $('quando').innerHTML = html;
+    $('de').min = $('ate').min = dados.leitura;
+  }
+  function clicarQuando(q) {
+    var ps = MV.lerPeriodo(f.p);
+    if (q === 'todas') ps = [];
+    else if (ps.indexOf(q) >= 0) ps.splice(ps.indexOf(q), 1);
+    else ps.push(q);
+    f.p = ps.join('.') || 'todas'; f.de = ''; f.ate = '';
+    abertas = {}; desenhar();
+  }
+  function mudarDatas() {
+    f.de = $('de').value || ''; f.ate = $('ate').value || '';
+    if (f.de && f.ate && f.ate < f.de) { var x = f.de; f.de = f.ate; f.ate = x; }
+    if (f.de || f.ate) f.p = 'todas';
+    abertas = {}; desenhar();
+  }
+
   function marcar() {
+    var ps = MV.lerPeriodo(f.p), datas = !!(f.de || f.ate);
+    [].forEach.call($('quando').children, function (b) {
+      b.classList.toggle('ativo', b.dataset.q === 'todas' ? (!ps.length && !datas) : ps.indexOf(b.dataset.q) >= 0);
+    });
+    $('de').value = f.de || ''; $('ate').value = f.ate || '';
+    $('limpar-datas').hidden = !datas;
     [].forEach.call(document.querySelectorAll('.pilulas[data-f]'), function (g) {
       [].forEach.call(g.children, function (b) { b.classList.toggle('ativo', b.dataset.v === String(f[g.dataset.f])); });
     });
@@ -262,6 +338,8 @@
     $('resumo').innerHTML = '<b>Sua pesquisa:</b> ' + esc(MV.resumo(p));
     $('voltar').disabled = igual && !f.navio;
     $('salvar').disabled = igual;
+    $('filtros').classList.toggle('igual', igual && !f.navio);
+    $('convite-calc').classList.toggle('forte', salva.b === 'entender');
     $('salvas').textContent = igual ? 'Estas são as suas preferências salvas.' : 'Você mudou a pesquisa: toque em Salvar para guardar.';
     $('aviso-criancas').hidden = f.c === '0';
     $('convite-calc').hidden = !(salva.b === 'entender' || f.b !== 'sem');
@@ -326,19 +404,19 @@
     function y(v) { return t + (H - t - b) * (1 - (v - mn) / (mx - mn)); }
     var linha = '', pontos = '', lista = false;
     pts.forEach(function (p, k) {
-      if (p[1] === null) { pontos += '<text x="' + x(p[0]) + '" y="' + (H - b + 2) + '" text-anchor="middle" fill="#f87171">×</text>'; return; }
+      if (p[1] === null) { pontos += '<text x="' + x(p[0]) + '" y="' + (H - b + 2) + '" text-anchor="middle" fill="#c0392b">×</text>'; return; }
       linha += (linha && pts[k - 1] && pts[k - 1][1] !== null ? 'L' : 'M') + x(p[0]).toFixed(1) + ' ' + y(p[1]).toFixed(1);
       if (p[2]) lista = true;
-      pontos += '<circle cx="' + x(p[0]).toFixed(1) + '" cy="' + y(p[1]).toFixed(1) + '" r="2.6" ' + (p[2] ? 'fill="#07161d" stroke="#f8c463"' : 'fill="#f8c463"') + '/>';
+      pontos += '<circle cx="' + x(p[0]).toFixed(1) + '" cy="' + y(p[1]).toFixed(1) + '" r="2.6" ' + (p[2] ? 'fill="#ffffff" stroke="#d4901f"' : 'fill="#d4901f"') + '/>';
     });
     var ult = pts.filter(function (p) { return p[1] !== null; }).pop();
     function mil(v) { return (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil'; }
     var svg = '<svg class="grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Preço por dia">' +
-      '<line x1="' + e + '" y1="' + y(mx) + '" x2="' + (W - d) + '" y2="' + y(mx) + '" stroke="#1e4250" stroke-dasharray="3 3"/>' +
-      '<line x1="' + e + '" y1="' + y(mn) + '" x2="' + (W - d) + '" y2="' + y(mn) + '" stroke="#1e4250" stroke-dasharray="3 3"/>' +
+      '<line x1="' + e + '" y1="' + y(mx) + '" x2="' + (W - d) + '" y2="' + y(mx) + '" stroke="#dbe3e8" stroke-dasharray="3 3"/>' +
+      '<line x1="' + e + '" y1="' + y(mn) + '" x2="' + (W - d) + '" y2="' + y(mn) + '" stroke="#dbe3e8" stroke-dasharray="3 3"/>' +
       '<text x="' + (e - 4) + '" y="' + (y(mx) + 3) + '" text-anchor="end">' + mil(mx) + '</text>' +
       '<text x="' + (e - 4) + '" y="' + (y(mn) + 3) + '" text-anchor="end">' + mil(mn) + '</text>' +
-      '<path d="' + linha + '" fill="none" stroke="#f8c463" stroke-width="2"/>' + pontos +
+      '<path d="' + linha + '" fill="none" stroke="#d4901f" stroke-width="2"/>' + pontos +
       '<text x="' + e + '" y="' + (H - 6) + '">' + dm(pts[0][0]) + '</text>' +
       '<text x="' + (W - d) + '" y="' + (H - 6) + '" text-anchor="end">' + dm(pts[pts.length - 1][0]) + '</text></svg>';
     return svg + '<p class="legenda">Hoje: <b>' + reais(ult[1]) + '</b> · menor: ' + reais(Math.min.apply(null, vals)) + ' · maior: ' + reais(Math.max.apply(null, vals)) +
@@ -399,6 +477,7 @@
     if (!b) return;
     var grupo = b.parentNode && b.parentNode.dataset && b.parentNode.dataset.f;
     if (grupo) { f[grupo] = b.dataset.v; abertas = {}; desenhar(); return; }
+    if (b.dataset.q) { clicarQuando(b.dataset.q); return; }
     if (b.parentNode && b.parentNode.id === 'ordem') { f.ordem = b.dataset.v; desenhar(); return; }
     if (b.dataset.fav) {
       var id = b.dataset.fav; if (favs[id]) delete favs[id]; else favs[id] = 1;
@@ -413,6 +492,14 @@
       desenhar();
     }
   });
+  $('mudar').onclick = function () {
+    var ab = $('filtros').classList.toggle('aberto');
+    this.setAttribute('aria-expanded', ab ? 'true' : 'false');
+    this.firstChild.nodeValue = ab ? 'Fechar a pesquisa ' : 'Mudar a pesquisa ';
+  };
+  $('de').onchange = mudarDatas;
+  $('ate').onchange = mudarDatas;
+  $('limpar-datas').onclick = function () { f.de = ''; f.ate = ''; abertas = {}; desenhar(); };
   $('navio').onchange = function () { f.navio = this.value; desenhar(); };
   $('voltar').onclick = function () {
     f = Object.assign({}, salva, { navio: '', ordem: f.ordem }); if (f.b === 'entender') f.b = 'sem';
@@ -432,6 +519,10 @@
   $('salvar').onclick = abrirJanela;
   $('j-fechar').onclick = function () { $('janela').hidden = true; };
   $('janela').onclick = function (ev) { if (ev.target === this) this.hidden = true; };
+  // Leonardo, 21/11/2026: depois de tocar em "Chamar no WhatsApp" a janela fecha sozinha (o WhatsApp abre e a página
+  // volta limpa). Esc também fecha.
+  $('j-chamar').onclick = function () { $('janela').hidden = true; };
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') $('janela').hidden = true; });
   $('j-enviar').onclick = function () {
     var w = MV.conferirWhats($('j-whats').value);
     if (!w.num) { $('j-erro').textContent = w.motivo; $('j-whats').classList.add('falta'); return; }
@@ -451,13 +542,14 @@
       });
   };
 
-  $('chamar').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero ajuda com outra viagem.');
+  $('chamar').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero sair de outro porto.');
 
   marcar();
   fetch('dados/precos.json').then(function (r) { return r.json(); }).then(function (j) {
     dados = j;
     $('atualizado').innerHTML = 'Preços de <b>' + dm(j.leitura) + '/' + j.leitura.slice(0, 4) + '</b>';
     navios();
+    montarQuando();
     desenhar();
   }).catch(function () {
     $('atualizado').textContent = 'Não consegui carregar os preços agora.';
