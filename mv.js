@@ -101,6 +101,7 @@
       r[k] = LISTAS[k].indexOf(v) >= 0 ? v : PADRAO[k];
     });
     r.k = lerCabines(q.k);
+    r.i = lerIdades(q.i, r.c);
     r.p = lerPeriodo(q.p).join(".") || "todas";
     r.de = lerData(q.de);
     r.ate = lerData(q.ate);
@@ -154,6 +155,47 @@
   }
 
   // Pacote por adulto da saída no nível pedido (MSC ou Costa já vêm certos do arquivo). Sem pacote = 0.
+  // Idade de cada criança no embarque (Leonardo, 21/11/2026, "Fazer o B"): "5.12" = uma de 5 e outra de 12 anos; "x" = idade
+  // não marcada; 0 = menos de 1 ano. Sempre uma por criança (c). ANTES: a página só sabia quantas crianças, não as idades.
+  function lerIdades(v, c) {
+    var xs = String(v == null ? "" : v).split("."), n = parseInt(c, 10) || 0, r = [];
+    for (var k = 0; k < n; k++) { var x = String(xs[k] == null ? "" : xs[k]).trim(); r.push(/^(\d|1[0-7])$/.test(x) ? String(+x) : "x"); }
+    return r.join(".");
+  }
+  function nomeIdade(x) { return x === "0" ? "menos de 1 ano" : x === "1" ? "1 ano" : x + " anos"; }
+  function juntar(xs) { return xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " e " + xs[xs.length - 1]; }
+  // "(5 e 12 anos)", "(5 anos e a outra eu te passo)", "" sem nenhuma idade marcada.
+  function textoIdades(i) {
+    var xs = i ? String(i).split(".") : [], sabe = xs.filter(function (x) { return x !== "x"; }), falta = xs.length - sabe.length;
+    if (!sabe.length) return "";
+    var nomes = sabe.every(function (x) { return +x >= 2; }) && sabe.length > 1 ? [juntar(sabe) + " anos"] : [juntar(sabe.map(nomeIdade))];
+    if (falta) nomes.push(falta === 1 ? "a outra eu te passo" : "as outras eu te passo");
+    return "(" + nomes.join(" e ") + ")";
+  }
+  // Pessoas na conta do preço (Leonardo, 21/11/2026, "Fazer o B"): com criança, o preço conta cada criança como adulto
+  // (é o valor máximo; com a idade pode sair menos). Mais de 4 na cabine = "5" (vai para o WhatsApp).
+  // ANTES: o preço era só dos adultos e a criança ficava fora da conta.
+  function lotacao(f) {
+    if (String(f.a) === "5") return "5";
+    var n = (parseInt(f.a, 10) || 0) + (parseInt(f.c, 10) || 0);
+    return n > 4 ? "5" : String(n);
+  }
+  // "2 adultos e 2 crianças (5 e 12 anos)"
+  function gente(f) {
+    var a = String(f.a), c = String(f.c || "0");
+    var t = a === "5" ? "5 ou mais adultos" : a + (a === "1" ? " adulto" : " adultos");
+    if (c !== "0") { var id = textoIdades(lerIdades(f.i, c)); t += " e " + c + (c === "1" ? " criança" : " crianças") + (id ? " " + id : ""); }
+    return t;
+  }
+  // Mensagem do botão "Valor exato com as idades" de cada saída: navio, datas, cabine, adultos e idades, para a Fila cotar
+  // sem perguntar de novo. ANTES: "quero o preço exato com as idades das crianças", sem saída, cabine nem idade.
+  function msgIdades(s, f, cab) {
+    return "Oi, Leonardo! Vi na minha página o " + s.navio + ", de " + diaMes(s.embarque) + " a " + diaMes(volta(s)) + ", " + s.noites +
+      " noites, cabine " + (NOME_CABINE[cab] || "").toLowerCase() + ", para " + gente(f) + ". Quero o valor exato com as idades." +
+      (textoIdades(lerIdades(f.i, f.c)) ? "" : (String(f.c) === "1" ? " Já te passo a idade da criança." : " Já te passo a idade de cada criança."));
+  }
+  function diaMes(iso) { return iso.slice(8, 10) + "/" + iso.slice(5, 7); }
+
   function pacote(s, b) {
     if (b !== "soft" && b !== "basico" && b !== "premium") return { v: 0, nome: "" };
     var p = (s.pacotes || {})[b];
@@ -232,11 +274,12 @@
   }
 
   // A pesquisa que o "Salvar" grava (só valores das listas; navio e ordem não são salvos).
-  var CAMPOS = ["t", "p", "de", "ate", "a", "c", "k", "b"];
+  var CAMPOS = ["t", "p", "de", "ate", "a", "c", "i", "k", "b"];
   function pesquisaDe(f) {
     var r = {};
     Object.keys(LISTAS).forEach(function (k) { r[k] = LISTAS[k].indexOf(String(f[k])) >= 0 ? String(f[k]) : PADRAO[k]; });
     r.k = lerCabines(f.k);
+    r.i = lerIdades(f.i, r.c);
     r.p = lerPeriodo(f.p).join(".") || "todas";
     r.de = lerData(f.de); r.ate = lerData(f.ate);
     return r;
@@ -256,7 +299,7 @@
   // Endereço da página com a pesquisa (o mesmo que o Entur monta com os campos mv_*).
   function linkPesquisa(f, id) {
     var p = pesquisaDe(f);
-    return "?t=" + p.t + "&p=" + periodoLink(p.p) + (p.de ? "&de=" + p.de.replace(/-/g, "") : "") + (p.ate ? "&ate=" + p.ate.replace(/-/g, "") : "") + "&a=" + p.a + "&c=" + p.c + "&k=" + p.k + "&b=" + p.b + (id ? "&id=" + id : "");
+    return "?t=" + p.t + "&p=" + periodoLink(p.p) + (p.de ? "&de=" + p.de.replace(/-/g, "") : "") + (p.ate ? "&ate=" + p.ate.replace(/-/g, "") : "") + "&a=" + p.a + "&c=" + p.c + (/\d/.test(p.i) ? "&i=" + p.i : "") + "&k=" + p.k + "&b=" + p.b + (id ? "&id=" + id : "");
   }
 
   function dmA(iso) { return iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4); }
@@ -282,9 +325,7 @@
     var p = pesquisaDe(f), partes = [];
     partes.push(p.t === "mini" ? "3 e 4 noites" : p.t === "longo" ? "5 noites ou mais" : "qualquer duração");
     partes.push(nomePeriodo(p));
-    var gente = p.a === "5" ? "5 ou mais adultos" : p.a + (p.a === "1" ? " adulto" : " adultos");
-    if (p.c !== "0") gente += " e " + p.c + (p.c === "1" ? " criança" : " crianças");
-    partes.push(gente);
+    partes.push(gente(p));
     var ks = p.k === "todas" ? [] : p.k.split(".").map(function (c) { return NOME_CABINE[c]; });
     partes.push(!ks.length ? "qualquer cabine" : ks.length === 1 ? ks[0] : ks.slice(0, -1).join(", ") + " ou " + ks[ks.length - 1]);
     partes.push(p.b === "entender" ? "pacote de bebidas a decidir" : NOME_NIVEL[p.b]);
@@ -466,6 +507,7 @@
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
+    lerIdades: lerIdades, textoIdades: textoIdades, lotacao: lotacao, gente: gente, msgIdades: msgIdades,
     lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, total: total, precoOrdem: precoOrdem,
     filtrar: filtrar, esgotadaNa: esgotadaNa, outraComPreco: outraComPreco, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,
     linkPesquisa: linkPesquisa, resumo: resumo, conferirWhats: conferirWhats, linhaDoTempo: linhaDoTempo };

@@ -337,6 +337,15 @@
   .cab.escolhida::after { content: 'Sua escolha'; position: absolute; top: -8px; right: 8px; font-size: 9.5px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase;
     padding: 2px 7px; border-radius: 999px; background: var(--ouro-escuro); color: #10252e; }
   .pp { color: var(--suave); font-size: 11.5px; padding: 2px 14px 10px; }
+  /* Criança: idade de cada uma no painel e o aviso com o botão em cada saída (21/11/2026) */
+  .idades { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .idades:empty { display: none; }
+  .idades label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; font-weight: 700; color: var(--suave); }
+  .idades select { font: 600 13px var(--fonte); padding: 7px 6px; border: 1px solid #cfdbe1; border-radius: 10px; background: #fff; color: var(--texto); }
+  .idades select.falta { border-color: #e0a526; }
+  .cri { margin: 0 14px 12px; padding: 10px 12px; border-radius: 12px; background: #fff7e3; border: 1px solid #f1d58c; font-size: 12.5px; color: #5b4510; }
+  .cri b { color: #3d2e06; }
+  .cri .btn { display: block; margin-top: 8px; text-align: center; }
   .ver { display: block; width: 100%; margin-top: auto; background: none; border: 0; border-top: 1px dashed var(--linha); color: var(--marca); font: 700 13px var(--fonte); padding: 9px; cursor: pointer; }
   .detalhe { padding: 4px 12px 12px; border-top: 1px dashed var(--linha); }
   .detalhe h3 { font-size: 13px; font-weight: 600; color: var(--suave); margin: 10px 0 6px; }
@@ -450,8 +459,11 @@
     <p class="resumo" id="resumo"></p>
   </header>
 
-  <div class="caixa base" id="aviso-criancas" hidden><div><b>Os preços desta página são para adultos.</b> Com criança, o valor muda conforme a idade de cada uma.
-    <a class="btn" id="btn-idades" href="#" target="_blank" rel="noopener">Ver o preço exato com as idades</a></div></div>
+  <!-- Criança (Leonardo, 21/11/2026, "Fazer o B"): o preço conta cada criança como adulto (valor máximo) e cada saída tem o
+       botão "Valor exato com as idades", com navio, datas, cabine e idades na mensagem. ANTES: preço só dos adultos e um
+       botão aqui com mensagem genérica ("quero o preço exato com as idades das crianças"). -->
+  <div class="caixa base" id="aviso-criancas" hidden><div><b>Com criança, mostramos o valor máximo:</b> cada criança está contada como adulto.
+    Com a idade, pode sair menos. Em cada saída tem o botão para o valor exato.</div></div>
 
   <div class="filtros" id="filtros">
     <button class="mudar" id="mudar" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="m-txt"><small>Sua pesquisa</small><span id="m-resumo"></span></span><span class="m-bt" id="m-bt">Refazer</span></button>
@@ -478,7 +490,8 @@
       <div class="cartao"><div class="cartao-tit">Adultos</div><div class="pilulas opcoes c5" data-f="a">
         <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5+</button></div></div>
       <div class="cartao"><div class="cartao-tit">Crianças</div><div class="pilulas opcoes c5" data-f="c">
-        <button data-v="0">0</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div></div>
+        <button data-v="0">0</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div>
+        <div class="idades" id="idades"></div></div>
       <div class="cartao"><div class="cartao-tit">Cabine <small class="varias">pode marcar mais de uma</small></div><div class="pilulas opcoes c3 multi" data-f="k">
         <button data-v="int">Interna</button><button data-v="ext">Externa</button><button data-v="var">Varanda</button><button data-v="sui">Suíte</button><button data-v="todas" class="larga">Qualquer uma</button></div></div>
       <div class="cartao"><div class="cartao-tit">Bebidas</div><div class="pilulas opcoes c2" data-f="b">
@@ -557,7 +570,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261121c"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261121d"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -578,7 +591,7 @@
   // registrar automaticamente"): o link do WhatsApp traz a preferência; sem link, vale a última salva NESTE aparelho
   // (mv_pref). Salvar grava no aparelho na hora, sem pedir nada. ANTES: só o link trazia preferência; sem link o Salvar
   // mandava "me chama no WhatsApp" e nada ficava salvo.
-  var temLink = /[?&](t|p|a|c|k|b|de|ate|id)=/.test(location.search);
+  var temLink = /[?&](t|p|a|c|i|k|b|de|ate|id)=/.test(location.search);
   var busca = temLink ? location.search : (ler('mv_pref') || '');
   var temPref = !!busca, pesquisou = temPref;
   var salva = MV.lerPesquisa(busca);   // a preferência
@@ -607,7 +620,11 @@
     if (salva.b === 'entender' && f.b === 'sem') p.b = 'entender';
     return p;
   }
-  function adultos() { return f.a === '5' ? '4' : f.a; }
+  // adultos() = pessoas na conta do preço: com criança, cada uma conta como adulto (MV.lotacao; Leonardo, 21/11/2026).
+  // adultosReais() = só os adultos (calculadora de bebidas). ANTES: adultos() era só f.a e a criança ficava fora da conta.
+  function adultos() { var l = MV.lotacao(f); return l === '5' ? '4' : l; }
+  function adultosReais() { return f.a === '5' ? '4' : f.a; }
+  function temCrianca() { return f.c !== '0'; }
 
   // Quando (Leonardo, 21/11/2026): um botão por mês com saída, os Carnavais à parte e as datas de/até. Pode marcar vários
   // meses; marcar mês limpa as datas, e escolher data desmarca os meses (as datas valem sobre os meses).
@@ -732,8 +749,8 @@
 
   // Quantas saídas o Pesquisar vai mostrar com o que está marcado no painel.
   function contarPainel() {
-    if (!dados || e.a === '5') return '';
-    var r = MV.filtrar(dados.saidas, e, dados.leitura), n = r.lista.length + r.esgotadas.length + r.semPreco.length;
+    if (!dados || MV.lotacao(e) === '5') return '';
+    var r = MV.filtrar(dados.saidas, Object.assign({}, e, { a: MV.lotacao(e) }), dados.leitura), n = r.lista.length + r.esgotadas.length + r.semPreco.length;
     return '(' + n + (n === 1 ? ' saída)' : ' saídas)');
   }
   function mudouPainel() { return !pesquisou || !MV.mesmaPesquisa(e, f) || (e.navio || '') !== (f.navio || '') || e.cia !== f.cia; }
@@ -782,7 +799,7 @@
     $('salvar').hidden = temPref && igual;
     $('voltar').hidden = !temPref || igualSalva;
     $('convite-calc').classList.toggle('forte', salva.b === 'entender');
-    $('aviso-criancas').hidden = f.c === '0';
+    $('aviso-criancas').hidden = !temCrianca() || MV.lotacao(f) === '5';
     $('convite-calc').hidden = !MV.conviteCalc(salva.b, f.b);
     $('legenda-pacote').textContent = e.b === 'sem' ? '' : 'Básico = Easy na MSC e My Drinks na Costa. Premium = Premium Extra na MSC e My Drinks Plus na Costa. Sem álcool = Não Alcoólico na MSC e My Soft Drinks na Costa.';
     var calc = MV.conviteCalc(salva.b, f.b);
@@ -790,9 +807,20 @@
       $('calc-txt').innerHTML = '<b>' + esc(calc.titulo) + '</b> ' + esc(calc.texto);
       $('btn-calc').textContent = calc.botao;
     }
-    $('btn-calc').href = CALCULADORA + MV.linkCalc(salva.id, adultos());
-    $('link-calc').href = CALCULADORA + MV.linkCalc(salva.id, adultos());   // sempre no cartão Bebidas (Leonardo, 21/11/2026)
-    $('btn-idades').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero o preço exato com as idades das crianças.');
+    $('btn-calc').href = CALCULADORA + MV.linkCalc(salva.id, adultosReais());
+    $('link-calc').href = CALCULADORA + MV.linkCalc(salva.id, adultosReais());   // sempre no cartão Bebidas (Leonardo, 21/11/2026)
+    montarIdades();
+  }
+
+  // Idade de cada criança no embarque, no cartão Crianças do painel (uma por criança; vale ao tocar em Pesquisar).
+  function montarIdades() {
+    var n = +e.c, xs = MV.lerIdades(e.i, e.c).split('.'), html = '';
+    for (var k = 0; k < n; k++) {
+      var op = '<option value="x">Escolher</option><option value="0"' + (xs[k] === '0' ? ' selected' : '') + '>Menos de 1 ano</option>';
+      for (var y = 1; y <= 17; y++) op += '<option value="' + y + '"' + (xs[k] === String(y) ? ' selected' : '') + '>' + y + (y === 1 ? ' ano' : ' anos') + '</option>';
+      html += '<label>Idade da ' + (k + 1) + 'ª no embarque<select data-idade="' + k + '"' + (xs[k] === 'x' ? ' class="falta"' : '') + '>' + op + '</select></label>';
+    }
+    if ($('idades').innerHTML !== html) $('idades').innerHTML = html;
   }
 
   function periodo(s) { var v = MV.volta(s); return MV.diaDaSemana(s.embarque) + ', ' + dm(s.embarque) + ' a ' + MV.diaDaSemana(v) + ', ' + dm(v); }
@@ -809,11 +837,12 @@
       if (o && !(c in o.cab)) return '<div class="cab esg"><small>' + NOME[c] + '</small><b>Indisponível</b></div>';
       if (t === null) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>Esgotada</b></div>';
       if (t === undefined) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>No WhatsApp</b></div>';
-      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '</small><b>' + reais(t / a) + '<em>por pessoa</em></b>' +
-        (a === '1' ? '' : '<span>Total ' + reais(t) + '</span>') + '</div>';
+      var ate = temCrianca() ? 'até ' : '';
+      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '</small><b>' + ate + reais(t / a) + '<em>por pessoa</em></b>' +
+        (a === '1' ? '' : '<span>Total ' + ate + reais(t) + '</span>') + '</div>';
     }).join('');
     var pk = MV.pacote(s, f.b);
-    var nota = a + (a === '1' ? ' adulto' : ' adultos') + ', taxas inclusas' +
+    var nota = (temCrianca() ? esc(MV.gente(f)) + ', cada criança contada como adulto' : a + (a === '1' ? ' adulto' : ' adultos')) + ', taxas inclusas' +
       (f.b === 'sem' ? ', sem pacote de bebidas' : pk ? ', com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)' : '') +
       (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
     // Esgotada nas cabines escolhidas (Leonardo, 21/11/2026, "Mostrar como Esgotada"): diz a cabine que ainda tem preço.
@@ -828,6 +857,8 @@
         '<span class="rota">Santos → ' + esc(s.roteiro.replace(/^Santos,\s*/, '').replace(/,\s*Santos$/, '')) + ' → Santos</span></div>' +
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
       '<div class="cabs' + (cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
+      (temCrianca() ? '<div class="cri"><b>Com criança pode sair menos.</b> O valor depende da idade de cada uma.' +
+        '<a class="btn" href="' + esc(linkWhats(MV.msgIdades(s, f, menor || cabs[0]))) + '" target="_blank" rel="noopener">Valor exato com as idades</a></div>' : '') +
       (aberta ? detalhe(s) : '') +
       '<button class="ver abre">' + (aberta ? 'Esconder o histórico do preço' : 'Ver o histórico do preço') + '</button></div>';
   }
@@ -849,18 +880,18 @@
       corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx)) + linhaPacote(s, a);
     }
     var texto = 'Oi, Leonardo! Vi na minha página o ' + s.navio + ', de ' + dm(s.embarque) + ' a ' + dm(MV.volta(s)) + ', ' + s.noites + ' noites, cabine ' +
-      NOME[cab].toLowerCase() + ', para ' + a + (a === '1' ? ' adulto' : ' adultos') + '. Pode conferir para mim?';
+      NOME[cab].toLowerCase() + ', para ' + MV.gente(f) + '. Pode conferir para mim?';
     return '<div class="detalhe"><h3>Histórico do preço do cruzeiro, por pessoa <span class="sem-beb">sem bebidas</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
       '<div class="termometro" hidden></div>' + calcDaSaida(s) +
-      '<a class="btn" style="margin-top:12px" href="' + linkWhats(texto) + '" target="_blank" rel="noopener">Quero esta saída</a></div>';
+      (temCrianca() ? '' : '<a class="btn" style="margin-top:12px" href="' + linkWhats(texto) + '" target="_blank" rel="noopener">Quero esta saída</a>') + '</div>';
   }
 
   // Na saída aberta: a calculadora com o preço do pacote DESTA saída (quem escolheu pacote ou marcou "Quero entender").
   function calcDaSaida(s) {
     // Sem pacote: o botão aparece também (Leonardo, 21/11/2026: "Sim, sempre"; ANTES: só com pacote ou "Quero entender").
     var calc = MV.conviteCalc(salva.b, f.b);
-    if (!calc) return '<a class="btn contorno" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultos(), s)) + '">Qual pacote de bebidas vale a pena? Calcule</a>';
-    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultos(), s)) + '">' + esc(calc.botao) + '</a>';
+    if (!calc) return '<a class="btn contorno" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s)) + '">Qual pacote de bebidas vale a pena? Calcule</a>';
+    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s)) + '">' + esc(calc.botao) + '</a>';
   }
 
   // Linha do pacote escolhido, à parte do histórico: valor por adulto e desde quando não muda.
@@ -956,7 +987,7 @@
   function chamada(lista, a) {
     if (!lista.length) { $('chamada').innerHTML = '<small>Com o preço de hoje, para a sua pesquisa</small>'; return; }
     var m = MV.precoOrdem(lista.slice().sort(function (x, y) { return MV.precoOrdem(x, f2()) - MV.precoOrdem(y, f2()); })[0], f2());
-    $('chamada').innerHTML = '<small>Na sua pesquisa, a partir de</small><strong>' + reais(m / a) + '<span>por pessoa</span></strong>';
+    $('chamada').innerHTML = '<small>Na sua pesquisa' + (temCrianca() ? ', com as crianças como adultos' : '') + ', a partir de</small><strong>' + reais(m / a) + '<span>por pessoa</span></strong>';
   }
   function f2() { return Object.assign({}, f, { a: adultos() }); }
 
@@ -969,17 +1000,17 @@
     $('topo-lista').hidden = !pesquisou;
     $('dica').classList.remove('tem');
     if (!pesquisou) { $('lista').innerHTML = ''; $('chamada').innerHTML = '<small>Cruzeiros com o preço de hoje</small>'; return; }
-    if (f.a === '5') {
+    if (MV.lotacao(f) === '5') {
       $('chamada').innerHTML = '<small>Para 5 ou mais pessoas, eu monto as opções pelo WhatsApp</small>';
       $('titulo-lista').innerHTML = 'Para <em>5 ou mais</em> pessoas';
       $('lista').innerHTML = '<div class="vazio">Para 5 ou mais pessoas, eu monto as opções pelo WhatsApp, com o valor certinho da cabine de vocês.' +
-        '<a class="btn" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e vamos ser 5 ou mais pessoas. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
+        '<a class="btn" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e vamos ser ' + (f.a === '5' ? '5 ou mais pessoas' : MV.gente(f)) + '. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
       return;
     }
     var g = f2();
     var r = MV.filtrar(dados.saidas, g, hoje), aviso = '';
     var todas = r.lista.concat(r.esgotadas), nLista = todas.length;
-    var gente = g.a + (g.a === '1' ? ' adulto' : ' adultos');
+    var gente = temCrianca() ? MV.gente(f) : g.a + (g.a === '1' ? ' adulto' : ' adultos');
     chamada(r.lista, +g.a);
     if (!r.lista.length && (r.esgotadas.length || r.semPreco.length)) {
       var nTit = r.esgotadas.length + r.semPreco.length;
@@ -1124,6 +1155,14 @@
   document.addEventListener('mouseout', function (ev) { if (ev.target.closest && ev.target.closest('.pt')) esconderDicas(); });
   document.addEventListener('click', function (ev) { var pt = ev.target.closest && ev.target.closest('.pt'); esconderDicas(); if (pt) mostrarDica(pt); }, true);
 
+  // Idade de cada criança (painel)
+  document.addEventListener('change', function (ev) {
+    var k = ev.target && ev.target.dataset && ev.target.dataset.idade;
+    if (k == null) return;
+    var xs = MV.lerIdades(e.i, e.c).split('.'); xs[+k] = ev.target.value; e.i = xs.join('.');
+    ev.target.classList.toggle('falta', ev.target.value === 'x'); marcar();
+  });
+
   // Cliques: filtros, ordem, abrir saída, cabine da linha do tempo, favorita.
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest && ev.target.closest('button, .abre');
@@ -1134,7 +1173,7 @@
       if (v === 'todas') ks = []; else if (ks.indexOf(v) >= 0) ks.splice(ks.indexOf(v), 1); else ks.push(v);
       e.k = MV.lerCabines(ks.join('.')); marcar(); return;
     }
-    if (grupo) { e[grupo] = b.dataset.v; marcar(); return; }
+    if (grupo) { e[grupo] = b.dataset.v; if (grupo === 'c') e.i = MV.lerIdades(e.i, e.c); marcar(); return; }
     if (b.dataset.q) { clicarQuando(b.dataset.q); return; }
     if (b.dataset.temp) { trocarTemporada(b.dataset.temp); return; }
     if (b.dataset.pag) { if (!b.disabled) irPagina(+b.dataset.pag); return; }
