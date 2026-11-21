@@ -108,6 +108,11 @@
   .marcas li { color: #4b5f69; font-size: 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 2px 0; }
   .marcas li b { color: var(--texto); white-space: nowrap; font-weight: 800; font-size: 16px; }
   .marcas .media { color: var(--marca); font-weight: 700; font-size: 14px; }
+  /* Preço na mesma altura do − + (Leonardo, 21/11/2026: "O preço ali colado com o componente de aumentar e diminuir fica
+     muito para baixo... Nem que para isso a linha desça um pouco"): o − + desce para a última linha (o preço, ou a média
+     que entra na conta) e essa linha ganha a altura dele. ANTES: o − + no meio do item, acima do preço. */
+  .item.com-marcas { align-items: flex-end; }
+  .item.com-marcas .marcas li:last-child { min-height: 42px; align-items: center; }
   .item-nome { flex: 1; min-width: 0; }
   /* Preço da bebida sem marcas (sem álcool) em destaque, como o das alcoólicas (Leonardo, 21/11/2026: "os valores do não
      alcoólico não estão tão destacados como no alcoólico"). ANTES: "R$ 26 avulso" pequeno e cinza. */
@@ -365,7 +370,7 @@
         info = el("ul", { "class": "marcas" }, it.marcas.map(function (m) { return el("li", {}, [el("span", { texto: m.nome }), el("b", { texto: precoMarca(m) })]); })
           .concat(varia ? [el("li", { "class": "media", texto: "Na conta: média de " + reais(avulso) }) ] : []));
       } else info = el("span", { "class": "preco-item" }, [el("b", { texto: reais(avulso) }), " avulso"]);
-      return el("div", { "class": "item" }, [el("span", { "class": "item-nome" }, [it.nome, info]), span]);
+      return el("div", { "class": "item" + (it.marcas && it.marcas.length ? " com-marcas" : "") }, [el("span", { "class": "item-nome" }, [it.nome, info]), span]);
     }
 
     // Lista do dia conforme o foco: "economia" só os itens do básico, "qualidade" só os do premium, "todos" em blocos
