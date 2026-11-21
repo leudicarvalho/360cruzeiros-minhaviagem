@@ -1012,8 +1012,10 @@
     // Sem pacote: o botão aparece também (Leonardo, 21/11/2026: "Sim, sempre"; ANTES: só com pacote ou "Quero entender").
     if (s.bebidas === 'a bordo') return '';   // temático: bebidas só a bordo, sem pacote para calcular
     var calc = MV.conviteCalc(salva.b, f.b);
-    if (!calc) return '<a class="btn contorno" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc())) + '">Qual pacote de bebidas vale a pena? Calcule</a>';
-    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc())) + '">' + esc(calc.botao) + '</a>';
+    // Sem pacote: o mesmo botão dourado "Descobrir o pacote de bebidas ideal" (Leonardo, 21/11/2026: "voltar como estava
+    // ... E o fundo amarelo"). ANTES: botão branco com borda "Qual pacote de bebidas vale a pena? Calcule".
+    var botao = calc ? calc.botao : 'Descobrir o pacote de bebidas ideal';
+    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc())) + '">' + esc(botao) + '</a>';
   }
 
   // Linha do pacote escolhido, à parte do histórico: valor por adulto e desde quando não muda.
