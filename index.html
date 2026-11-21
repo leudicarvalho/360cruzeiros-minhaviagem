@@ -247,7 +247,7 @@
   .cab span { display: block; color: var(--suave); font-size: 11.5px; margin-top: 2px; }
   .cab.esg b { color: var(--suave); font-size: 14px; font-weight: 600; }
   .cab.menor { border-color: var(--verde); background: #eefaf2; }
-  .cab.menor::before { content: 'Mais em conta'; position: absolute; top: -8px; left: 8px; font-size: 9.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  .cab.menor::before { content: 'Melhor preço'; position: absolute; top: -8px; left: 8px; font-size: 9.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
     padding: 2px 7px; border-radius: 999px; background: var(--verde); color: #fff; }
 
   /* Resultado (Leonardo, 21/11/2026: "paginador... 3 por página, por conta do celular. E o celular vai ter que ter um
@@ -816,8 +816,8 @@
         (barato ? 'Preço mais barato' : 'Preço mais caro') + '</b>' + (barato ? 'Hoje está no menor preço' : 'Hoje está no maior preço') +
         ' desde ' + dm(fx.desde) + (barato ? '. Boa hora para garantir.' : '. Vale acompanhar: ele já esteve mais baixo.') + '</div></div>';
     }
-    html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>mais barato, em ' + dm(fx.min.dia) + '</span>' +
-      '<span class="mx"><b>' + reais(fx.max.v) + '</b>mais caro, em ' + dm(fx.max.dia) + '</span></div>';
+    html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>menor preço em ' + dm(fx.min.dia) + '</span>' +
+      '<span class="mx"><b>' + reais(fx.max.v) + '</b>maior preço em ' + dm(fx.max.dia) + '</span></div>';
     return html + alerta;
   }
 
