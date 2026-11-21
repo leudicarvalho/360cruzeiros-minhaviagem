@@ -604,9 +604,16 @@
       var corpo = MV.montarEnvio(pesquisa, link.codigo, w, "");
       fetch(WEBHOOK_PACOTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); })
+        // Gravou no CRM: volta para a pesquisa já com o pacote novo, sem mensagem no WhatsApp (Leonardo, 21/11/2026:
+        // "Tem só que atualizar o pacote de bebidas e voltar para a pesquisa"; escolheu gravar no CRM calado).
+        // Guarda a pesquisa nova no aparelho e marca os links já abertos como superados, como o Salvar da página.
+        // ANTES: mostrava "Pronto! Vou te mandar no WhatsApp o link da sua pesquisa com <pacote>." e o fluxo 1425 mandava o link.
         .then(function () {
-          final.innerHTML = "";
-          final.appendChild(el("p", { "class": "ok", texto: "Pronto! Vou te mandar no WhatsApp o link da sua pesquisa com " + escolha + "." }));
+          guardar("mv_pref", MV.linkPesquisa(pesquisa, ""));
+          var links = {}; try { links = JSON.parse(ler("mv_links") || "{}") || {}; } catch (e) { links = {}; }
+          Object.keys(links).forEach(function (k) { links[k] = "superado"; });
+          guardar("mv_links", JSON.stringify(links));
+          location.href = "../" + MV.linkPesquisa(pesquisa, link.codigo) + "&w=" + w;
         })
         .catch(function () { peloWhats("Não consegui enviar agora."); });
     }
