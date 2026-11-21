@@ -530,21 +530,25 @@
 
   // Convite da calculadora de bebidas (passo 4B). salvaB = pacote do link ("entender" = marcou "Quero entender a
   // diferença"); telaB = o pacote que está na tela. Sem pacote e sem "entender" = sem convite (null).
+  // Texto único (Leonardo, 21/11/2026: "o cliente vai mudando o pacote"; "Sim, texto único"). ANTES: com pacote na tela
+  // era "Escolheu o pacote <nível>? A calculadora mostra em 1 minuto se ele vale a pena para o que você bebe." +
+  // botão "Confira se este pacote é o ideal".
   function conviteCalc(salvaB, telaB) {
-    if (salvaB === "entender" && (telaB === "sem" || telaB === "entender")) return { tipo: "entender", titulo: "Em dúvida sobre o pacote de bebidas?",
+    var tem = salvaB === "entender" || telaB === "entender" || telaB === "soft" || telaB === "basico" || telaB === "premium";
+    if (!tem) return null;
+    return { tipo: "entender", titulo: "Em dúvida sobre o pacote de bebidas?",
       texto: "A calculadora mostra em 1 minuto qual vale mais a pena para você.", botao: "Descobrir o pacote ideal" };
-    var nome = { soft: "sem álcool", basico: "básico", premium: "premium" }[telaB];
-    if (!nome) return null;
-    return { tipo: "conferir", titulo: "Escolheu o pacote " + nome + "?", texto: "A calculadora mostra em 1 minuto se ele vale a pena para o que você bebe.",
-      botao: "Confira se este pacote é o ideal" };
   }
   // Link da calculadora: ?id=<código>&adultos=N e, com a saída, &saida=<id>&cia=msc|costa&noites=N (preço do pacote dela).
-  function linkCalc(id, adultos, s) {
+  // w = WhatsApp do contato (21/11/2026, Leonardo: o link não pode ficar sem o telefone): a calculadora salva o pacote
+  // pelo número do link, sem depender do aparelho. ANTES: ia sem o w.
+  function linkCalc(id, adultos, s, w) {
     var q = [];
     if (/^[A-Za-z0-9_-]{1,40}$/.test(String(id || ""))) q.push("id=" + id);
     var a = parseInt(adultos, 10);
     if (a >= 1 && a <= 4) q.push("adultos=" + a);
     if (s && s.id) q.push("saida=" + encodeURIComponent(s.id), "cia=" + (String(s.cia).toLowerCase() === "costa" ? "costa" : "msc"), "noites=" + s.noites);
+    if (/^\d{10,15}$/.test(String(w || ""))) q.push("w=" + w);
     return q.length ? "?" + q.join("&") : "";
   }
 
