@@ -1052,7 +1052,7 @@
       alerta = '<p class="alerta-preco ' + (barato ? 'barato' : 'caro') + '">' +
         (barato ? '<b>↓</b>Menor preço desde ' + dm(fx.desde) : '<b>↑</b>Maior preço desde ' + dm(fx.desde)) + '</p>';
     }
-    html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>menor preço em ' + dm(fx.min.dia) + '</span>' +
+    html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>menor preço ' + (fx.min.ateHoje ? 'desde ' : 'em ') + dm(fx.min.dia) + '</span>' +
       '<span class="mx"><b>' + reais(fx.max.v) + '</b>maior preço em ' + dm(fx.max.dia) + '</span></div>';
     // Alerta de volta embaixo do menor e maior preço (Leonardo, 21/11/2026: "pode ficar ali embaixo... nesse lugar, só que
     // com um fundo bem mais destacado"). ANTES (7f17b21): logo abaixo do "Preço de hoje".
