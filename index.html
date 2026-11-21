@@ -292,6 +292,7 @@
   .cia { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .5px; padding: 1px 7px; border-radius: 999px; margin-right: 4px; vertical-align: 1px; }
   .cia.msc { background: #e3ecf8; color: #1d3f72; }
   .cia.costa { background: #fff3c7; color: #7a5a00; }
+  .cia.tematico { background: #f3e5f5; color: #6a1b7a; }
   .fav { align-self: flex-start; background: none; border: 0; color: #7d8f98; font-size: 22px; line-height: 1; cursor: pointer; padding: 2px; }
   .fav.sim { color: var(--ouro-escuro); }
   .cabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px 12px 4px; }
@@ -503,8 +504,10 @@
         <a class="link-calc" id="link-calc" href="calculadora/">Qual pacote vale a pena? <b>Abrir a calculadora</b></a></div>
       <!-- Companhia (Leonardo, 21/11/2026: "filtro entre MSC, Costa... ou todos, e vire o todos como padrão"): no cartão do
            navio, e a lista de navios segue a companhia. Não fica salva (como o navio). ANTES: só o navio. -->
-      <div class="cartao"><div class="cartao-tit">Companhia e navio</div><div class="pilulas opcoes c3" data-f="cia">
-        <button data-v="todas">Todas</button><button data-v="MSC">MSC</button><button data-v="Costa">Costa</button></div>
+      <!-- Temáticos (Leonardo, 21/11/2026: "filtro entre MSC, Costa, temáticos ou todos"; "Sim, incluir temáticos"): fretados
+           da PromoAção (cia "Temático" no precos.json). ANTES: só Todas, MSC e Costa, em 3 colunas. -->
+      <div class="cartao"><div class="cartao-tit">Companhia e navio</div><div class="pilulas opcoes c2" data-f="cia">
+        <button data-v="todas">Todas</button><button data-v="MSC">MSC</button><button data-v="Costa">Costa</button><button data-v="Temático">Temáticos</button></div>
         <select id="navio"><option value="">Todos os navios</option></select></div>
     </div>
     <p class="legenda" id="legenda-pacote"></p>
@@ -574,7 +577,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261121d"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261121e"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -850,7 +853,7 @@
     }).join('');
     var pk = MV.pacote(s, f.b);
     var nota = (temCrianca() ? esc(MV.gente(f)) + ', cada criança contada como adulto' : a + (a === '1' ? ' adulto' : ' adultos')) + ', taxas inclusas' +
-      (f.b === 'sem' ? ', sem pacote de bebidas' : pk ? ', com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)' : '') +
+      (s.bebidas === 'a bordo' ? '. Bebidas vendidas somente a bordo' : f.b === 'sem' ? ', sem pacote de bebidas' : pk ? ', com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)' : '') +
       (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
     // Esgotada nas cabines escolhidas (Leonardo, 21/11/2026, "Mostrar como Esgotada"): diz a cabine que ainda tem preço.
     var outra = MV.esgotadaNa(s, Object.assign({}, f, { a: a })) ? MV.outraComPreco(s, Object.assign({}, f, { a: a })) : null;
@@ -860,8 +863,8 @@
       '<div class="c-topo"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
         MV.nomeMesCurto(s.embarque) + ' ' + s.embarque.slice(2, 4) + '</span></div>' +
         '<div class="c-info"><span class="navio">' + esc(s.navio) + '</span>' +
-        '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : 'msc') + '">' + esc(s.cia) + '</span>' + s.noites + ' noites · volta ' + dm(MV.volta(s)) + '</span>' +
-        '<span class="rota">Santos → ' + esc(s.roteiro.replace(/^Santos,\s*/, '').replace(/,\s*Santos$/, '')) + ' → Santos</span></div>' +
+        '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : s.cia === 'Temático' ? 'tematico' : 'msc') + '">' + esc(s.cia) + '</span>' + s.noites + ' noites · volta ' + dm(MV.volta(s)) + '</span>' +
+        '<span class="rota">' + esc(MV.rotaTexto(s.roteiro)) + '</span></div>' +
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
       '<div class="cabs' + (cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
       (temCrianca() ? '<div class="cri"><b>Com criança pode sair menos.</b> O valor depende da idade de cada uma.' +
@@ -896,6 +899,7 @@
   // Na saída aberta: a calculadora com o preço do pacote DESTA saída (quem escolheu pacote ou marcou "Quero entender").
   function calcDaSaida(s) {
     // Sem pacote: o botão aparece também (Leonardo, 21/11/2026: "Sim, sempre"; ANTES: só com pacote ou "Quero entender").
+    if (s.bebidas === 'a bordo') return '';   // temático: bebidas só a bordo, sem pacote para calcular
     var calc = MV.conviteCalc(salva.b, f.b);
     if (!calc) return '<a class="btn contorno" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s)) + '">Qual pacote de bebidas vale a pena? Calcule</a>';
     return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s)) + '">' + esc(calc.botao) + '</a>';
@@ -905,7 +909,7 @@
   function linhaPacote(s, a) {
     if (f.b !== 'soft' && f.b !== 'basico' && f.b !== 'premium') return '';
     var pk = MV.pacote(s, f.b), ph = MV.pacoteNoHistorico(hist, s.id, a, f.b);
-    if (!pk) return '';
+    if (!pk || pk.aBordo) return '';
     var quando = ph && ph.desde ? 'sem mudança desde ' + dm(ph.desde) : 'preço lido em ' + dm((ph && ph.lidoEm) || pk.lidoEm);
     return '<p class="pacote-linha"><b>+ Pacote ' + esc(pk.nome) + ':</b> ' + reais(pk.v) + ' por pessoa <span>(' + quando + ')</span></p>';
   }

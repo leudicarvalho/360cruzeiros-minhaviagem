@@ -198,8 +198,17 @@
 
   function pacote(s, b) {
     if (b !== "soft" && b !== "basico" && b !== "premium") return { v: 0, nome: "" };
+    // Temático (Leonardo, 21/11/2026: "Bebidas do cruzeiro temático, elas são vendidas somente a bordo"): sem pacote para
+    // somar; com pacote escolhido conta só a cabine e a página avisa. ANTES: temáticos não estavam nos dados.
+    if (s.bebidas === "a bordo") return { v: 0, nome: "", aBordo: true };
     var p = (s.pacotes || {})[b];
     return p ? { v: p.v, nome: p.nome, lidoEm: p.lidoEm } : null;
+  }
+
+  // Linha do roteiro no cartão: "Santos → Búzios → Santos"; sem paradas (temáticos: a API não diz) = "Saída e volta em Santos".
+  function rotaTexto(roteiro) {
+    var meio = String(roteiro || "").replace(/^Santos,\s*/, "").replace(/,\s*Santos$/, "").replace(/^ida e volta$/, "").replace(/^Santos$/, "");
+    return meio ? "Santos → " + meio + " → Santos" : "Saída e volta em Santos";
   }
 
   // Total da cabine para os adultos, com o pacote: cabine + adultos x pacote por adulto (regra do termômetro).
@@ -508,7 +517,7 @@
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
     lerIdades: lerIdades, textoIdades: textoIdades, lotacao: lotacao, gente: gente, msgIdades: msgIdades,
-    lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, total: total, precoOrdem: precoOrdem,
+    lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, rotaTexto: rotaTexto, total: total, precoOrdem: precoOrdem,
     filtrar: filtrar, esgotadaNa: esgotadaNa, outraComPreco: outraComPreco, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,
     linkPesquisa: linkPesquisa, resumo: resumo, conferirWhats: conferirWhats, linhaDoTempo: linhaDoTempo };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
