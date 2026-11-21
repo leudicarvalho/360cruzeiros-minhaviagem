@@ -599,11 +599,24 @@
   // (mv_pref). Salvar grava no aparelho na hora, sem pedir nada. ANTES: só o link trazia preferência; sem link o Salvar
   // mandava "me chama no WhatsApp" e nada ficava salvo.
   var temLink = /[?&](t|p|a|c|i|k|b|de|ate|id)=/.test(location.search);
-  var busca = temLink ? location.search : (ler('mv_pref') || '');
+  // Link antigo (Leonardo, 21/11/2026, aprovado: o Salvar não manda mais link pelo WhatsApp): todo link aberto neste
+  // aparelho fica anotado em mv_links; o Salvar marca os já abertos como "superado". Link superado abre a última
+  // pesquisa salva aqui (mv_pref); link novo (outra pesquisa, ex.: mandada na conversa) vale e vira a preferência.
+  // ANTES: o link sempre vencia, e o cliente que salvou e voltou pelo link da 1ª mensagem via a pesquisa velha.
+  var links = {}; try { links = JSON.parse(ler('mv_links') || '{}') || {}; } catch (e) { links = {}; }
+  var doLink = temLink ? MV.lerPesquisa(location.search) : null;
+  var chaveLink = doLink ? MV.linkPesquisa(doLink, doLink.id) : '';
+  var linkVelho = !!(temLink && links[chaveLink] === 'superado' && ler('mv_pref'));
+  if (temLink && !links[chaveLink]) { links[chaveLink] = 'visto'; guardar('mv_links', JSON.stringify(links)); }
+  var busca = temLink && !linkVelho ? location.search : (ler('mv_pref') || '');
   var temPref = !!busca, pesquisou = temPref;
   var salva = MV.lerPesquisa(busca);   // a preferência
+  if (linkVelho) {
+    salva.id = doLink.id; salva.w = doLink.w;
+    try { history.replaceState(null, '', location.pathname + MV.linkPesquisa(salva, salva.id) + (salva.w ? '&w=' + salva.w : '') + location.hash); } catch (e) {}
+  }
   if (!salva.id && !temLink) salva.id = (MV.lerPesquisa('?id=' + (ler('mv_id') || '')).id);
-  if (temLink) { guardar('mv_pref', MV.linkPesquisa(salva, '')); if (salva.id) guardar('mv_id', salva.id); }
+  if (temLink && !linkVelho) { guardar('mv_pref', MV.linkPesquisa(salva, '')); if (salva.id) guardar('mv_id', salva.id); }
   // WhatsApp do link: fica guardado no aparelho (é com ele que o Salvar acha o contato no CRM) e sai da barra de
   // endereço, para não aparecer se a pessoa copiar e mandar o link para alguém.
   // whatsLink: o número do link fica também na memória da página (21/11/2026: no navegador de dentro do WhatsApp o
@@ -1242,6 +1255,8 @@
   $('salvar').onclick = function () {
     var p = pesquisaAtual();
     guardar('mv_pref', MV.linkPesquisa(p, ''));
+    Object.keys(links).forEach(function (k) { links[k] = 'superado'; });
+    guardar('mv_links', JSON.stringify(links));
     salva = MV.lerPesquisa(MV.linkPesquisa(p, salva.id)); temPref = true;
     try { if (temLink) history.replaceState(null, '', MV.linkPesquisa(salva, salva.id)); } catch (e) {}
     var w = whatsLink || ler('mv_whats');
