@@ -137,6 +137,12 @@
   .mudar .m-txt small#m-rot:empty { display: none; }
   .mudar .m-txt span { flex: 1; min-width: 0; }
   .mudar .m-bt { padding: 7px 12px; }
+  /* Datas primeiro e sempre à vista (Leonardo, 21/11/2026: "a primeira informação que tem que aparecer são as datas... No
+     celular não dá para ver quase nada"): datas em negrito na 1ª linha, o resto (pessoas, cabine, pacote) menor embaixo.
+     ANTES: uma linha só com "qualquer duração · ..." cortada com "…". */
+  .mudar .m-txt span#m-resumo { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+  .mudar .m-datas { font-size: 15px; font-weight: 800; color: var(--texto); overflow: hidden; text-overflow: ellipsis; }
+  .mudar .m-resto { font-size: 12.5px; color: var(--suave); overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 699px) {
     /* fechada: só o "Mudar a pesquisa"; a calculadora só para quem respondeu "Quero entender a diferença" no formulário */
     .filtros { padding: 12px; margin-top: 10px; }
@@ -671,7 +677,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261121i"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261121j"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -907,7 +913,8 @@
     [].forEach.call($('ordem').children, function (b) { b.classList.toggle('ativo', b.dataset.v === f.ordem); });
     var p = pesquisaAtual(), igual = MV.mesmaPesquisa(p, salva);
     $('resumo').innerHTML = '<b>Sua pesquisa:</b> ' + esc(MV.resumo(p));
-    $('m-resumo').textContent = (f.cia !== 'todas' ? f.cia + ' · ' : '') + MV.resumo(p);
+    var rb = MV.resumoBarra(Object.assign({}, p, { cia: f.cia, navio: f.navio }));
+    $('m-resumo').innerHTML = '<b class="m-datas">' + esc(rb.datas) + '</b>' + (rb.resto ? '<span class="m-resto">' + esc(rb.resto) + '</span>' : '');
     if (dados) navios();
     if (!pesquisou) $('resumo').innerHTML = 'Escolha a data, as pessoas e a cabine, e veja os preços de hoje.';
     // Caixa das preferências: azul quando a tela mostra a pesquisa salva; dourada, com Salvar e Voltar, quando não.
@@ -1316,8 +1323,9 @@
     if (b.dataset.temp) { trocarTemporada(b.dataset.temp); return; }
     if (b.dataset.car) {   // seta do computador: anda 3 cartões até o início do cartão certo (scrollBy com o encaixe falhava)
       var g = $('grade'); if (!g) return;
-      var k = Math.max(0, Math.min(g.children.length - 1, cartaoAVista(g) + 3 * b.dataset.car)), c = g.children[k];
-      g.scrollTo({ left: c.offsetLeft - g.firstElementChild.offsetLeft, behavior: 'smooth' }); setTimeout(contar, 800); return;
+      // "alvo", não "c" (21/11/2026): um "var c" aqui tapava o "c" do calendário em todo o clique e o toque no dia dava erro
+      var k = Math.max(0, Math.min(g.children.length - 1, cartaoAVista(g) + 3 * b.dataset.car)), alvo = g.children[k];
+      g.scrollTo({ left: alvo.offsetLeft - g.firstElementChild.offsetLeft, behavior: 'smooth' }); setTimeout(contar, 800); return;
     }
     if (b.dataset.dia) { var t = MV.tocarDia(c.de, c.ate, b.dataset.dia); c.de = t.de; c.ate = t.ate; desenharCal(true); return; }
     if (b.parentNode && b.parentNode.id === 'ordem') { f.ordem = b.dataset.v; novaLista(); desenhar(); return; }

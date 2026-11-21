@@ -365,16 +365,47 @@
     return nomes.length === 1 ? nomes[0] : nomes.slice(0, -1).join(", ") + " e " + nomes[nomes.length - 1];
   }
 
-  // Resumo curto da pesquisa para o topo: "3 e 4 noites · jan/fev 2027 · 2 adultos · Varanda · pacote básico".
+  // Resumo da pesquisa (mensagem do WhatsApp e "Você pesquisou"): as datas primeiro, a duração só se escolhida
+  // (Leonardo, 21/11/2026: "a primeira informação que tem que aparecer são as datas"; "qualquer duração... não tem nada a
+  // ver mais"). ANTES: "qualquer duração · todas as datas · ..." (a duração sempre primeiro).
   function resumo(f) {
     var p = pesquisaDe(f), partes = [];
-    partes.push(p.t === "mini" ? "3 e 4 noites" : p.t === "longo" ? "5 noites ou mais" : "qualquer duração");
     partes.push(nomePeriodo(p));
+    if (p.t !== "todos") partes.push(p.t === "mini" ? "3 e 4 noites" : "5 noites ou mais");
     partes.push(gente(p));
     var ks = p.k === "todas" ? [] : p.k.split(".").map(function (c) { return NOME_CABINE[c]; });
     partes.push(!ks.length ? "qualquer cabine" : ks.length === 1 ? ks[0] : ks.slice(0, -1).join(", ") + " ou " + ks[ks.length - 1]);
     partes.push(p.b === "entender" ? "pacote de bebidas a decidir" : NOME_NIVEL[p.b]);
     return partes.join(" · ");
+  }
+
+  // Barra do Refazer (Leonardo, 21/11/2026: "mostrar o que tem na pesquisa, principalmente as datas... No celular não dá
+  // para ver quase nada"): { datas, resto }. Datas curtas (dd/mm/aa, "dez/26"), só o que foi escolhido (sem "qualquer
+  // cabine" nem "sem pacote"). ANTES: o resumo longo, com "qualquer duração" na frente, cortado com "…" no celular.
+  function mesCurto(m) { return MESES[+m.slice(3, 5) - 1] + "/" + m.slice(1, 3); }
+  function dCurta(iso) { return iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(2, 4); }
+  function datasCurtas(f) {
+    if (f.de && f.ate) return dCurta(f.de) + " a " + dCurta(f.ate);
+    if (f.de) return "a partir de " + dCurta(f.de);
+    if (f.ate) return "até " + dCurta(f.ate);
+    var ps = lerPeriodo(f.p), nomes = [];
+    if (!ps.length) return "Todas as datas";
+    ps.forEach(function (x) { if (/^t/.test(x)) nomes.push("Temporada " + nomeTemporada(temporada(x))); });
+    ps.forEach(function (x) { if (/^m/.test(x)) nomes.push(mesCurto(x)); });
+    ps.forEach(function (x) { if (CARNAVAL[x]) nomes.push(CARNAVAL[x].nome); });
+    return nomes.length === 1 ? nomes[0] : nomes.slice(0, -1).join(", ") + " e " + nomes[nomes.length - 1];
+  }
+  function resumoBarra(f) {
+    var p = pesquisaDe(f), resto = [];
+    if (p.t !== "todos") resto.push(p.t === "mini" ? "3 e 4 noites" : "5+ noites");
+    var a = p.a === "5" ? "5+ adultos" : p.a + (p.a === "1" ? " adulto" : " adultos");
+    if (p.c !== "0") a += " + " + p.c + (p.c === "1" ? " criança" : " crianças");
+    resto.push(a);
+    if (p.k !== "todas") resto.push(p.k.split(".").map(function (c) { return NOME_CABINE[c]; }).join("/"));
+    if (p.b !== "sem") resto.push(p.b === "entender" ? "bebidas a decidir" : p.b === "soft" ? "sem álcool" : p.b === "basico" ? "Básico" : "Premium");
+    if (f.cia && f.cia !== "todas") resto.push(f.cia);
+    if (f.navio) resto.push(f.navio);
+    return { datas: datasCurtas(p), resto: resto.join(" · ") };
   }
 
   // WhatsApp do cliente (o mesmo conferidor do site da Black, 01/11): devolve { num: "55...", motivo }.
@@ -577,7 +608,7 @@
     lerIdades: lerIdades, textoIdades: textoIdades, lotacao: lotacao, gente: gente, msgIdades: msgIdades, msgSaida: msgSaida, PERGUNTAS_SAIDA: PERGUNTAS_SAIDA,
     lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, rotaTexto: rotaTexto, total: total, precoOrdem: precoOrdem,
     filtrar: filtrar, esgotadaNa: esgotadaNa, outraComPreco: outraComPreco, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,
-    linkPesquisa: linkPesquisa, resumo: resumo, conferirWhats: conferirWhats, linhaDoTempo: linhaDoTempo };
+    linkPesquisa: linkPesquisa, resumo: resumo, resumoBarra: resumoBarra, conferirWhats: conferirWhats, linhaDoTempo: linhaDoTempo };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else raiz.MV = api;
 })(this);
