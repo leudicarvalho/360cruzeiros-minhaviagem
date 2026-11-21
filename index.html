@@ -303,6 +303,11 @@
   .cab b { display: block; font-size: 21px; font-weight: 800; letter-spacing: -.4px; margin-top: 2px; color: var(--texto); line-height: 1.1; white-space: nowrap; }
   .cab b em { display: block; font-style: normal; font-size: 12.5px; font-weight: 500; color: var(--suave); letter-spacing: 0; }
   .cab span { display: block; color: var(--suave); font-size: 12.5px; margin-top: 2px; }
+  .cab small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cabs:not(.uma) .cab { padding: 9px 8px; } .cabs:not(.uma) .cab small { font-size: 12.5px; letter-spacing: -.1px; }
+  @media (max-width: 699px) { .cabs:not(.uma) .cab { padding: 9px 7px; } .cabs:not(.uma) .cab small { font-size: 12px; letter-spacing: -.2px; } }
+  .cab .cab-v { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 10px; }
+  .cab .cab-v span { font-size: 14.5px; font-weight: 600; margin-top: 2px; white-space: nowrap; }
   .cab.esg b { color: var(--suave); font-size: 14px; font-weight: 600; }
   .cab.menor { border-color: var(--verde); background: #eefaf2; }
   .cab.menor::before { content: 'Melhor preço'; position: absolute; top: -8px; left: 8px; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
@@ -357,7 +362,10 @@
   .detalhe h3 { font-size: 14px; font-weight: 600; color: var(--suave); margin: 10px 0 6px; }
   .detalhe .abas { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 10px; scrollbar-width: none; }
   .detalhe .abas::-webkit-scrollbar { display: none; }
-  .detalhe .abas button { padding: 5px 10px; font-size: 13.5px; font-weight: 600; flex: none; }
+  .detalhe .abas button { padding: 5px 10px; font-size: 13.5px; font-weight: 600; flex: 1 1 0; min-width: 0; }
+  /* Abas das cabines numa linha só, também no celular (Leonardo, 21/11/2026: "deixar ali a seleção de interna, externa,
+     varanda e suíte numa linha só"). ANTES: tamanho do texto, rolando para o lado quando não cabia. */
+  @media (max-width: 699px) { .detalhe .abas button { padding: 5px 4px; font-size: 13px; } }
   /* Faixa do preço como no Google Flights (Leonardo, 21/11/2026: "horizontal e com cores verde e vermelho para dizer onde
      ele está atualmente e quando que foi o mais barato e o mais caro"; vem aberta). Verde = terço mais barato, amarelo =
      meio, vermelho = terço mais caro; a marca "Hoje" mostra onde o preço de hoje está. Embaixo, o caminho do preço por dia
@@ -373,14 +381,15 @@
   .nivel .hoje-v small { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
   .nivel .hoje-v strong { font-size: 22px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: var(--texto); white-space: nowrap; }
   /* Preço de hoje numa linha só no celular (Leonardo, 21/11/2026). ANTES: "por pessoa" caía para a linha de baixo. */
-  @media (max-width: 699px) { .nivel .hoje-v strong { font-size: 20px; } .nivel b { font-size: 12.5px; padding: 4px 9px; } }
-  .nivel .hoje-v strong em { display: block; font-style: normal; font-size: 12.5px; font-weight: 500; color: var(--suave); letter-spacing: 0; line-height: 1.3; white-space: nowrap; }
+  @media (max-width: 699px) { .nivel .hoje-v strong { font-size: 20px; } }
+  .nivel .hoje-v strong em { display: inline; font-style: normal; font-size: 12.5px; font-weight: 500; color: var(--suave); letter-spacing: 0; margin-left: 4px; white-space: nowrap; }
   /* Quadro padronizado (Leonardo, 21/11/2026: "Isso tem que ser padronizado... O por pessoa pode ficar abaixo do valor...
      Daí tem espaço para o preço em baixa ou preço em alta caber nesse quadrado. Daí sempre todos eles vão ter a mesma
      altura"): "por pessoa" embaixo do valor e o selo sempre à direita, sem quebrar linha. ANTES: "por pessoa" ao lado do
      valor; quando não cabia, o selo caía para baixo e o quadro ficava mais alto que os outros. */
   .nivel .hoje-v { min-width: 0; }
-  .nivel b { flex: none; white-space: nowrap; font-size: 13.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; color: #fff; }
+  .nivel .nv-topo { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+  .nivel b { flex: none; white-space: nowrap; font-size: 12.5px; font-weight: 700; padding: 2px 9px; border-radius: 999px; color: #fff; }
   .nivel.baixo { background: #e9f8ee; border-color: #8fd8a8; } .nivel.baixo small { color: #0f6b34; } .nivel.baixo b { background: #15803d; }
   .nivel.medio { background: #fff8e1; border-color: #f2d27a; } .nivel.medio small { color: #7a5a00; } .nivel.medio b { background: #8a6a00; }
   /* Preço alto como era, só com o selo "Preço em alta" (Leonardo, 21/11/2026: "Volte como estava antes, mas só vamos
@@ -870,8 +879,11 @@
       if (t === null) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>Esgotada</b></div>';
       if (t === undefined) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>No WhatsApp</b></div>';
       var ate = temCrianca() ? 'até ' : '';
-      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '</small><b>' + ate + reais(t / a) + '<em>por pessoa</em></b>' +
-        (a === '1' ? '' : '<span>Total ' + ate + reais(t) + '</span>') + '</div>';
+      // Nome e "por pessoa" em cima; valor e total lado a lado (Leonardo, 21/11/2026: "mais para cima, varanda... por pessoa.
+      // O total pode ir para o lado e ficar um pouquinho maior... Tá tudo muito espaço em branco"). ANTES: nome, valor,
+      // "por pessoa" e total um embaixo do outro.
+      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + ' · por pessoa</small><div class="cab-v"><b>' + ate + reais(t / a) + '</b>' +
+        (a === '1' ? '' : '<span>Total ' + ate + reais(t) + '</span>') + '</div></div>';
     }).join('');
     var pk = MV.pacote(s, f.b);
     var nota = (temCrianca() ? esc(MV.gente(f)) + ', cada criança contada como adulto' : a + (a === '1' ? ' adulto' : ' adultos')) + ', taxas inclusas' +
@@ -945,9 +957,11 @@
   // Faixa verde/amarela/vermelha com a marca "Hoje", e o menor e o maior com o dia.
   function faixa(fx) {
     fx.desde = fx.desde || fx.min.dia;
-    var txt = { baixo: 'Preço em baixa', medio: 'Na média', alto: 'Preço em alta', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
-    var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><small>Preço de hoje</small><strong>' + reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : '') +
-      '<b>' + txt + '</b></div>';
+    // Selo curto ao lado de "Preço de hoje" (Leonardo, 21/11/2026: "Não precisa ser preço em alta, preço em baixa. Pode ser
+    // só em alta e ao lado do preço de hoje... as três opções"). ANTES: "Preço em alta/Preço em baixa" à direita do valor.
+    var txt = { baixo: 'Em baixa', medio: 'Na média', alto: 'Em alta', estavel: 'Preço sem mudança', esgotada: 'Esgotada hoje' }[fx.nivel];
+    var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><span class="nv-topo"><small>Preço de hoje</small><b>' + txt + '</b></span><strong>' +
+      reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : '<b>' + txt + '</b>') + '</div>';
     // Marcas na barra (Leonardo, 21/11/2026, 6ª rodada: "não é para ter a linha tracejada... é para só marcar lá em cima...
     // o mais barato, um risco ali no verde, e o mais caro no vermelho. Se o hoje for igual a qualquer um dos dois, as
     // linhas vão ficar sobrepostas. E vai ter um alerta"). ANTES: só a marca Hoje na barra e riscos tracejados no gráfico.
