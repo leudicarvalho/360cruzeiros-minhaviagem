@@ -484,7 +484,11 @@
       <div class="cartao"><div class="cartao-tit">Bebidas</div><div class="pilulas opcoes c2" data-f="b">
         <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div>
         <a class="link-calc" id="link-calc" href="calculadora/">Qual pacote vale a pena? <b>Abrir a calculadora</b></a></div>
-      <div class="cartao"><div class="cartao-tit">Navio</div><select id="navio"><option value="">Todos os navios</option></select></div>
+      <!-- Companhia (Leonardo, 21/11/2026: "filtro entre MSC, Costa... ou todos, e vire o todos como padrão"): no cartão do
+           navio, e a lista de navios segue a companhia. Não fica salva (como o navio). ANTES: só o navio. -->
+      <div class="cartao"><div class="cartao-tit">Companhia e navio</div><div class="pilulas opcoes c3" data-f="cia">
+        <button data-v="todas">Todas</button><button data-v="MSC">MSC</button><button data-v="Costa">Costa</button></div>
+        <select id="navio"><option value="">Todos os navios</option></select></div>
     </div>
     <p class="legenda" id="legenda-pacote"></p>
     <div class="barra-pesq">
@@ -553,7 +557,7 @@
   </div>
 </div>
 
-<script src="mv.js"></script>
+<script src="mv.js?v=20261121b"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -586,7 +590,7 @@
     guardar('mv_whats', salva.w);
     try { history.replaceState(null, '', location.pathname + location.search.replace(/([?&])w=[^&]*&?/, '$1').replace(/[?&]$/, '') + location.hash); } catch (e) {}
   }
-  var f = Object.assign({}, salva, { navio: '', ordem: 'preco' });
+  var f = Object.assign({}, salva, { navio: '', cia: 'todas', ordem: 'preco' });
   // "Quero entender a diferença": a página abre sem pacote e com o convite da calculadora
   if (f.b === 'entender') f.b = 'sem';
   // Com preferência (link ou aparelho): abre direto nas saídas, com a pesquisa recolhida. Sem nenhuma: abre a pesquisa
@@ -732,7 +736,7 @@
     var r = MV.filtrar(dados.saidas, e, dados.leitura), n = r.lista.length + r.semPreco.length;
     return '(' + n + (n === 1 ? ' saída)' : ' saídas)');
   }
-  function mudouPainel() { return !pesquisou || !MV.mesmaPesquisa(e, f) || (e.navio || '') !== (f.navio || ''); }
+  function mudouPainel() { return !pesquisou || !MV.mesmaPesquisa(e, f) || (e.navio || '') !== (f.navio || '') || e.cia !== f.cia; }
 
   function marcar() {
     var ps = MV.lerPeriodo(e.p), datas = !!(e.de || e.ate);
@@ -762,17 +766,18 @@
     [].forEach.call($('ordem').children, function (b) { b.classList.toggle('ativo', b.dataset.v === f.ordem); });
     var p = pesquisaAtual(), igual = MV.mesmaPesquisa(p, salva);
     $('resumo').innerHTML = '<b>Sua pesquisa:</b> ' + esc(MV.resumo(p));
-    $('m-resumo').textContent = MV.resumo(p);
+    $('m-resumo').textContent = (f.cia !== 'todas' ? f.cia + ' · ' : '') + MV.resumo(p);
+    if (dados) navios();
     if (!pesquisou) $('resumo').innerHTML = 'Escolha a data, as pessoas e a cabine, e veja os preços de hoje.';
     // Caixa das preferências: azul quando a tela mostra a pesquisa salva; dourada, com Salvar e Voltar, quando não.
     // Sem link (sem preferências salvas): só aparece depois de pesquisar, com o Salvar (que leva ao WhatsApp).
-    var igualSalva = temPref && igual && !f.navio;
+    var igualSalva = temPref && igual && !f.navio && f.cia === 'todas';
     $('prefs').hidden = !pesquisou;
     $('prefs').className = 'prefs ' + (igualSalva ? 'salva' : 'nova');
     $('prefs-titulo').textContent = igualSalva ? 'Você está vendo a sua preferência salva' : 'Esta pesquisa ainda não é a sua preferência';
     $('prefs-sub').textContent = igualSalva ? 'Quer ver outras datas ou cabines? Toque em Refazer, lá em cima. Sua preferência só muda se você salvar.' :
       !temPref ? 'Salve como sua preferência: da próxima vez, a página já abre nela.' :
-      igual ? 'Você filtrou um navio. O navio não fica salvo; o resto é igual à sua preferência.' :
+      igual ? 'Você filtrou a companhia ou o navio, que não ficam salvos; o resto é igual à sua preferência.' :
       'Gostou? Salve como sua preferência: da próxima vez, a página já abre nela. Ou volte à sua preferência.';
     $('salvar').hidden = temPref && igual;
     $('voltar').hidden = !temPref || igualSalva;
@@ -1083,10 +1088,16 @@
   if (window.matchMedia) { var mq = window.matchMedia('(max-width: 699px)'); var trocou = function () { if (dados) desenhar(); };
     if (mq.addEventListener) mq.addEventListener('change', trocou); else if (mq.addListener) mq.addListener(trocou); }
 
+  // Lista de navios da companhia marcada no painel; navio de outra companhia sai da escolha.
+  var naviosDe = null;
   function navios() {
-    var sel = $('navio'), nomes = {};
-    dados.saidas.forEach(function (s) { nomes[s.navio] = 1; });
-    Object.keys(nomes).sort().forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o); });
+    var sel = $('navio'), nomes = {}, cia = e.cia || 'todas';
+    if (naviosDe === cia) return;
+    naviosDe = cia;
+    dados.saidas.forEach(function (s) { if (cia === 'todas' || s.cia === cia) nomes[s.navio] = 1; });
+    if (e.navio && !nomes[e.navio]) e.navio = '';
+    sel.innerHTML = '<option value="">Todos os navios</option>' + Object.keys(nomes).sort().map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+    sel.value = e.navio || '';
   }
 
   function pedirHistorico() {
@@ -1167,7 +1178,7 @@
   $('cal-ok').onclick = aplicarCal;
   $('navio').onchange = function () { e.navio = this.value; marcar(); };
   $('voltar').onclick = function () {
-    f = Object.assign({}, salva, { navio: '', ordem: f.ordem }); if (f.b === 'entender') f.b = 'sem';
+    f = Object.assign({}, salva, { navio: '', cia: 'todas', ordem: f.ordem }); if (f.b === 'entender') f.b = 'sem';
     copiarParaPainel(); novaLista(); desenhar(); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

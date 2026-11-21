@@ -180,18 +180,39 @@
   }
 
   // Lista da página. f = { t, p, a, b, k, navio, ordem: "preco" | "data" }, hoje = AAAA-MM-DD.
-  // Volta { lista: com preço, semPreco: cabem nos filtros mas sem preço de hoje para esses adultos }.
+  // Volta { lista: com preço, esgotadas: cabines escolhidas esgotadas (aparecem depois, por data, com "Esgotada"),
+  // semPreco: cabem nos filtros mas sem preço de hoje para esses adultos }.
+  // Esgotadas à parte (Leonardo, 21/11/2026, "Mostrar como Esgotada"). ANTES: iam para "sem o preço de hoje".
   function filtrar(saidas, f, hoje) {
     var base = saidas.filter(function (s) {
-      return s.embarque > hoje && doTipo(s, f.t) && noPeriodo(s, f) && (!f.navio || s.navio === f.navio);
+      return s.embarque > hoje && doTipo(s, f.t) && noPeriodo(s, f) && (!f.navio || s.navio === f.navio) &&
+        (!f.cia || f.cia === "todas" || s.cia === f.cia);   // companhia (Leonardo, 21/11/2026): MSC, Costa ou todas
     });
-    var lista = [], semPreco = [];
-    base.forEach(function (s) { (precoOrdem(s, f) === null ? semPreco : lista).push(s); });
+    var lista = [], esgotadas = [], semPreco = [];
+    base.forEach(function (s) { (precoOrdem(s, f) !== null ? lista : esgotadaNa(s, f) ? esgotadas : semPreco).push(s); });
     lista.sort(function (x, y) {
       if (f.ordem === "data") return x.embarque < y.embarque ? -1 : x.embarque > y.embarque ? 1 : precoOrdem(x, f) - precoOrdem(y, f);
       return precoOrdem(x, f) - precoOrdem(y, f) || (x.embarque < y.embarque ? -1 : 1);
     });
-    return { lista: lista, semPreco: semPreco };
+    esgotadas.sort(function (x, y) { return x.embarque < y.embarque ? -1 : x.embarque > y.embarque ? 1 : 0; });
+    return { lista: lista, esgotadas: esgotadas, semPreco: semPreco };
+  }
+
+  // Lida hoje para esses adultos e TODAS as cabines escolhidas esgotadas (valor null).
+  function esgotadaNa(s, f) {
+    var o = (s.ocup || {})[String(f.a)], cs = cabinesDe(f.k);
+    return !!o && cs.every(function (c) { return (c in o.cab) && o.cab[c] === null; });
+  }
+
+  // Cabine fora da pesquisa que ainda tem preço (para o card esgotado): { c, t } da mais em conta, ou null.
+  function outraComPreco(s, f) {
+    var m = null, cs = cabinesDe(f.k);
+    CABINES.forEach(function (c) {
+      if (cs.indexOf(c) >= 0) return;
+      var t = total(s, f.a, c, f.b);
+      if (typeof t === "number" && (!m || t < m.t)) m = { c: c, t: t };
+    });
+    return m;
   }
 
   // Nada no período: as saídas mais próximas dele (mesmos filtros, sem o período), pela distância em dias.
@@ -444,7 +465,7 @@
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
     lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, total: total, precoOrdem: precoOrdem,
-    filtrar: filtrar, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,
+    filtrar: filtrar, esgotadaNa: esgotadaNa, outraComPreco: outraComPreco, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,
     linkPesquisa: linkPesquisa, resumo: resumo, conferirWhats: conferirWhats, linhaDoTempo: linhaDoTempo };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else raiz.MV = api;
