@@ -207,27 +207,28 @@
   // 3 perguntas (Leonardo, 21/11/2026: "se der só três perguntas, pode tirar dois"; saiu "Esse preço ainda está valendo?").
   var PERGUNTAS_SAIDA = ["Em quantas vezes dá para parcelar?",
     "Esse valor já é com tudo incluso? Não tem nenhuma taxa a mais?", "Tem desconto pagando à vista?"];
+  // Formato das cotações do Leonardo (Leonardo, 21/11/2026: "deixar no padrão das minhas cotações... com a pergunta
+  // destacada no fim em negrito"; modelo da habilidade cotacao-krooze-360cruzeiros). ANTES: uma linha "Navio:", "Datas:"...
+  // Sem a linha "12x": quem parcela e em quantas vezes é o Leonardo quem diz (é uma das perguntas).
   function msgSaida(s, f, cab, salvaB, pergunta) {
     var a = String(f.a), na = Number(a), o = (s.ocup || {})[a], v = o && (cab in o.cab) ? o.cab[cab] : undefined;
-    var l = ["Oi, Leonardo! Quero esta saída que vi na minha página:",
-      "Navio: " + s.navio + (s.cia && s.navio.indexOf(s.cia) !== 0 ? " (" + s.cia + ")" : ""),
-      "Datas: " + diaDaSemana(s.embarque) + ", " + diaMes(s.embarque) + "/" + s.embarque.slice(0, 4) + " a " + diaDaSemana(volta(s)) + ", " +
-        diaMes(volta(s)) + "/" + volta(s).slice(0, 4) + " (" + s.noites + " noites)",
-      "Roteiro: " + rotaTexto(s.roteiro),
-      "Cabine: " + (NOME_CABINE[cab] || cab),
-      "Pessoas: " + gente(f)];
-    if (typeof v === "number") l.push("Cruzeiro: " + rs(v / na) + " por pessoa" + (na > 1 ? " (total " + rs(v) + ")" : "") + ", taxas inclusas");
-    else l.push("Cruzeiro: " + (v === null ? "esgotada nesta cabine, quero ver outra opção" : "preço a confirmar"));
-    var b = f.b, pk = pacote(s, b);
-    if (s.bebidas === "a bordo") l.push("Bebidas: vendidas somente a bordo");
-    else if (b === "sem" || !b) l.push("Pacote de bebidas: " + (salvaB === "entender" ? "ainda não decidi, quero entender a diferença" : "sem pacote"));
-    else if (!pk) l.push("Pacote de bebidas: " + NOME_NIVEL[b] + ", preço a confirmar");
-    else {
-      l.push("Pacote de bebidas: " + pk.nome + ", " + rs(pk.v) + " por pessoa" + (na > 1 ? " (total " + rs(pk.v * na) + ")" : ""));
-      if (typeof v === "number") l.push("Total com o pacote: " + rs(v + na * pk.v));
-    }
-    if (o && o.dia) l.push("Preço visto em " + diaMes(o.dia) + ".");
-    l.push(pergunta || PERGUNTAS_SAIDA[0]);   // uma pergunta só, a que o cliente tocou (Leonardo, 21/11/2026; ANTES: "Pode conferir para mim?", vago)
+    var pp = function (n) { return na > 1 ? rs(n) + " total (" + rs(n / na) + "/pessoa)" : rs(n); };
+    var b = f.b, pk = pacote(s, b), beb;
+    if (s.bebidas === "a bordo") beb = "Bebidas vendidas somente a bordo";
+    else if (b === "sem" || !b) beb = salvaB === "entender" ? "Ainda não decidi o pacote de bebidas" : "Sem pacote de bebidas";
+    else beb = pk ? "Pacote " + pk.nome : "Pacote " + NOME_NIVEL[b].replace(/^pacote /, "") + " (preço a confirmar)";
+    var l = ["Oi, Leonardo! Quero esta saída que vi na minha página:", "",
+      "🚢 " + s.navio + " | " + s.noites + " noites | " + rotaTexto(s.roteiro),
+      "📅 Embarque: " + diaMes(s.embarque) + "/" + s.embarque.slice(0, 4) + " | Desembarque: " + diaMes(volta(s)) + "/" + volta(s).slice(0, 4),
+      "🥤 *" + beb + "*", "",
+      "🛏️ " + (NOME_CABINE[cab] || cab) + " (" + gente(f) + ")"];
+    if (typeof v !== "number") l.push("💰 " + (v === null ? "Esgotada nesta cabine" : "Preço a confirmar"));
+    else if (pk && pk.v) {
+      l.push("💰 Cruzeiro: " + pp(v), "🥤 Pacote: " + pp(pk.v * na), "💰 Com o pacote: " + pp(v + na * pk.v));
+    } else l.push("💰 " + pp(v));
+    l.push("", "✅ Taxas portuárias e de serviço já incluídas");
+    if (o && o.dia) l.push("Preço de " + diaMes(o.dia));
+    l.push("", "*" + (pergunta || PERGUNTAS_SAIDA[0]) + "*");   // uma pergunta só, a tocada, em negrito (Leonardo, 21/11/2026)
     return l.join("\n");
   }
 
