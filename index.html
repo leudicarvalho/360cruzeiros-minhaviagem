@@ -408,6 +408,8 @@
   .cab.escolhida::after { content: 'Sua escolha'; position: absolute; top: -8px; right: 8px; font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase;
     padding: 2px 7px; border-radius: 999px; background: var(--ouro-escuro); color: #10252e; }
   .pp { color: var(--suave); font-size: 12.5px; padding: 2px 14px 10px; }
+  .pp b { color: var(--texto); font-weight: 700; }
+  .pp .pp-bt { all: unset; cursor: pointer; color: var(--mar, #0b6e8a); font-weight: 700; text-decoration: underline; }
   /* Criança: idade de cada uma no painel e o aviso com o botão em cada saída (21/11/2026) */
   .idades { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .idades:empty { display: none; }
@@ -971,6 +973,11 @@
     // as quatro se eles falarem qualquer uma"): "Qualquer uma" = as 4; cabines marcadas = só elas. A que a saída não tem
     // aparece como "Indisponível". ANTES: as que a saída tinha, com a escolhida em destaque.
     var a = adultos(), o = s.ocup[a], cabs = MV.cabinesDe(f.k);
+    // Cabine trocada na aba do histórico vale para o preço de cima SÓ deste card (Leonardo, 21/11/2026, ideia 2 com a
+    // opção B: "Vendo <cabine> · voltar · Ver todas em <cabine>" no lugar da linha cinza, para o card não crescer).
+    // ANTES: o preço de cima seguia sempre a cabine da pesquisa e a aba só mudava o histórico.
+    var troca = cabDetalhe[s.id] && cabs.indexOf(cabDetalhe[s.id]) < 0 ? cabDetalhe[s.id] : '';
+    if (troca) cabs = [troca];
     var menor = null;
     cabs.forEach(function (c) { var t = MV.total(s, a, c, f.b); if (typeof t === 'number' && (menor === null || t < MV.total(s, a, menor, f.b))) menor = c; });
     var celulas = cabs.map(function (c) {
@@ -993,6 +1000,8 @@
     // Esgotada nas cabines escolhidas (Leonardo, 21/11/2026, "Mostrar como Esgotada"): diz a cabine que ainda tem preço.
     var outra = MV.esgotadaNa(s, Object.assign({}, f, { a: a })) ? MV.outraComPreco(s, Object.assign({}, f, { a: a })) : null;
     if (outra) nota += '. Ainda tem ' + NOME[outra.c] + ': ' + reais(outra.t / a) + ' por pessoa';
+    if (troca) nota = '<b>Vendo ' + NOME[troca] + '</b>, taxas inclusas · <button class="pp-bt" data-volta="' + esc(s.id) + '">Voltar</button> · ' +
+      '<button class="pp-bt" data-todas="' + troca + '">Ver todas em ' + NOME[troca] + '</button>';
     // Histórico sempre aberto, sem botão de recolher (Leonardo, 21/11/2026: "não vamos deixar recolher, fica sempre padrão
     // expandido"). ANTES: vinha aberto com um botão no pé para recolher e abrir de novo.
     return '<div class="card" data-i="' + i + '">' +
@@ -1106,52 +1115,53 @@
     return html;
   }
 
-  // Caminho do preço por dia (pequeno, cabe no celular): verde no dia mais barato, vermelho no mais caro, escuro hoje.
+  // Histórico em BARRAS (Leonardo, 21/11/2026: experimento em print aprovado, "Pode trocar"): uma barra por dia lido; verde no
+  // menor preço, vermelho no maior, escura hoje, azul clara nos outros; dia esgotado = barrinha rosa; esgotada hoje = data
+  // "Esgotada" em vermelho. Valor e data só no menor, maior e hoje (com até 5 dias, valor em todos; até 7, data em todos),
+  // sem encostar. As barras começam em 85% do menor preço (do zero, R$ 100 de diferença nem apareceria). Toque/mouse na
+  // coluna mostra o balão com o preço do dia. ANTES: linha arredondada com bolinhas e o "×" nos dias esgotados.
   function grafico(pts, fx, semLegenda) {
-    var W = 320, H = 96, e = 6, d = 6, t = 12, b = 18;
-    var mn = fx.min.v, mx = fx.max.v;
-    if (mn === mx) { mn -= 100; mx += 100; }
-    var d0 = new Date(pts[0][0]), d1 = new Date(pts[pts.length - 1][0]), dias = Math.max(1, (d1 - d0) / 864e5);
-    function x(dia) { return e + (W - e - d) * ((new Date(dia) - d0) / 864e5) / dias; }
-    function y(v) { return t + (H - t - b) * (1 - (v - mn) / (mx - mn)); }
-    // Linha arredondada (MV.caminhoSuave): cada trecho sem dia esgotado vira uma curva que passa por todos os pontos.
-    var linha = '', marcas = '', lista = false, trecho = [];
-    function fechaTrecho() { if (trecho.length) linha += MV.caminhoSuave(trecho); trecho = []; }
+    var W = 320, H = 124, e = 6, d = 6, t = 24, b = 20;
+    var mn = fx.min.v, mx = fx.max.v, igual = mn === mx, base = mn * (igual ? 0.8 : 0.85);
+    var n = pts.length, slot = (W - e - d) / n, bw = Math.max(3, Math.min(34, slot * 0.72)), hoje = n - 1;
+    var imn = -1, imx = -1, lista = false;
+    pts.forEach(function (p, i) { if (p[1] === mn) imn = i; if (p[1] === mx) imx = i; if (p[2]) lista = true; });
+    function X(i) { return e + slot * (i + 0.5); }
+    function y(v) { return t + (H - t - b) * (1 - (v - base) / (mx - base)); }
+    function cor(i) { return !igual && i === imx ? '#d64535' : !igual && i === imn ? '#1fa855' : i === hoje ? '#10252e' : '#9cc3cc'; }
+    function corTxt(i) { return !igual && i === imx ? '#b3261e' : !igual && i === imn ? '#15803d' : i === hoje ? '#10252e' : '#4b5f69'; }
+    function ancora(cx, w) { return cx - w < e ? ['start', Math.max(e, cx - bw / 2)] : cx + w > W - d ? ['end', Math.min(W - d, cx + bw / 2)] : ['middle', cx]; }
+    var barras = '', toques = '', rotulos = '';
     pts.forEach(function (p, i) {
-      // Esgotada hoje: "Esgotada" escrito em vermelho em hoje (Leonardo, 21/11/2026). ANTES: um "×" minúsculo, que parecia
-      // defeito. Dias esgotados no meio continuam com o "×".
-      if (p[1] === null && i === pts.length - 1) { fechaTrecho(); marcas += '<text class="esg-hoje" x="' + (W - d) + '" y="' + (H - b - 5) + '" text-anchor="end" style="fill:#b3372a;font-weight:800">Esgotada</text>'; return; }
-      if (p[1] === null) { fechaTrecho(); marcas += '<text x="' + x(p[0]).toFixed(1) + '" y="' + (H - b + 1) + '" text-anchor="middle" fill="#c0392b">×</text>'; return; }
-      trecho.push([x(p[0]), y(p[1])]);
-      if (p[2]) lista = true;
+      var x0 = (X(i) - bw / 2).toFixed(1);
+      if (p[1] === null) { barras += '<rect x="' + x0 + '" y="' + (H - b - 8) + '" width="' + bw.toFixed(1) + '" height="8" rx="2" fill="#f2a69c"/>'; return; }
+      var yy = y(p[1]);
+      barras += '<rect x="' + x0 + '" y="' + yy.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (H - b - yy).toFixed(1) + '" rx="' + Math.min(4, bw / 2).toFixed(1) + '" fill="' + cor(i) + '"/>';
+      toques += '<rect class="pt" data-topo="1" x="' + (X(i) - slot / 2).toFixed(1) + '" y="' + (yy - 6).toFixed(1) + '" width="' + slot.toFixed(1) + '" height="' + (H - b - yy + 6).toFixed(1) +
+        '" fill="transparent" data-tip="' + esc(reais(p[1]) + ' por pessoa · ' + dm(p[0])) + '" data-cor="' + cor(i) + '"/>';
     });
-    fechaTrecho();
-    // Bolinha com o preço ao passar o mouse ou tocar (Leonardo, 21/11/2026: "quando eu passar o mouse em cima da bolinha...
-    // mostrar o preço que estava... tem que ter um fundo que destaque"): um círculo invisível maior pega o mouse/dedo e o
-    // balão (#dica-graf) aparece por cima, dentro do cartão. ANTES: a bolinha não mostrava nada.
-    function ponto(dia, v, cor, r) {
-      var cx = x(dia).toFixed(1), cy = y(v).toFixed(1), tip = esc(reais(v) + ' por pessoa · ' + dm(dia));
-      return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + cor + '" stroke="#fff" stroke-width="2"/>' +
-        '<circle class="pt" cx="' + cx + '" cy="' + cy + '" r="12" fill="transparent" data-tip="' + tip + '" data-cor="' + cor + '"/>';
-    }
-    marcas += ponto(fx.min.dia, fx.min.v, '#1fa855', 5) + ponto(fx.max.dia, fx.max.v, '#d64535', 5);
-    if (fx.hoje) marcas += ponto(fx.hoje.dia, fx.hoje.v, '#10252e', 4.5);
-    // Riscos (Leonardo, 21/11/2026: "faça um risco no mais barato e no mais caro para ver onde fica"): linha vertical
-    // tracejada no dia mais barato (verde), no mais caro (vermelho) e em hoje (escuro), com o dia embaixo.
-    var riscos = '', rotulos = '', usados = [e + 14, W - d - 14];
-    function risco(dia, cor, nome) {
-      var xx = x(dia);
-      if (!nome || usados.some(function (u) { return Math.abs(u - xx) < 30; })) return;
-      usados.push(xx);
-      rotulos += '<text x="' + xx.toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle" style="fill:' + cor + ';font-weight:700">' + nome + '</text>';
-    }
-    risco(fx.min.dia, '#15803d', dm(fx.min.dia));
-    risco(fx.max.dia, '#b3372a', dm(fx.max.dia));
+    // Valores em cima das barras: hoje, menor, maior (e todos com até 5 dias), sem encostar (40 de distância).
+    var usados = [], ordem = [hoje].concat(igual ? [] : [imn, imx]);
+    if (n <= 5) for (var k = 0; k < n; k++) ordem.push(k);
+    ordem.forEach(function (i) {
+      var v = pts[i][1], cx = X(i);
+      if (v === null || usados.some(function (u) { return Math.abs(u - cx) < 40; })) return;
+      usados.push(cx); var a = ancora(cx, 22);
+      rotulos += '<text x="' + a[1].toFixed(1) + '" y="' + (y(v) - 5).toFixed(1) + '" text-anchor="' + a[0] + '" style="fill:' + corTxt(i) + ';font-weight:800">' + reais(v).replace('R$ ', '') + '</text>';
+    });
+    // Datas embaixo: hoje (ou "Esgotada"), menor, maior, o primeiro dia (e todas com até 7 dias), sem encostar (34).
+    usados = []; ordem = [hoje].concat(igual ? [] : [imn, imx], [0]);
+    if (n <= 7) for (var m = 0; m < n; m++) ordem.push(m);
+    var esgHoje = pts[hoje][1] === null;
+    ordem.forEach(function (i) {
+      var cx = X(i), larg = i === hoje && esgHoje ? 52 : 34;
+      if (usados.some(function (u) { return Math.abs(u[0] - cx) < Math.max(u[1], larg); })) return;
+      usados.push([cx, larg]); var a = ancora(cx, i === hoje && esgHoje ? 30 : 16);
+      if (i === hoje && esgHoje) { rotulos += '<text class="esg-hoje" x="' + a[1].toFixed(1) + '" y="' + (H - 5) + '" text-anchor="' + a[0] + '" style="fill:#b3261e;font-weight:800">Esgotada</text>'; return; }
+      rotulos += '<text x="' + a[1].toFixed(1) + '" y="' + (H - 5) + '" text-anchor="' + a[0] + '" style="fill:' + corTxt(i) + ';font-weight:700">' + (i === hoje ? 'hoje' : dm(pts[i][0])) + '</text>';
+    });
     var svg = '<svg class="grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Preço por pessoa, dia a dia">' +
-      '<line x1="' + e + '" y1="' + (H - b) + '" x2="' + (W - d) + '" y2="' + (H - b) + '" stroke="#dbe3e8"/>' + riscos +
-      '<path d="' + linha + '" fill="none" stroke="#0f4c5c" stroke-width="2.2" stroke-linecap="round"/>' + marcas +
-      '<text x="' + e + '" y="' + (H - 4) + '">' + dm(pts[0][0]) + '</text>' + rotulos +
-      '<text x="' + (W - d) + '" y="' + (H - 4) + '" text-anchor="end" style="fill:#10252e;font-weight:700">hoje</text></svg>';
+      '<line x1="' + e + '" y1="' + (H - b) + '" x2="' + (W - d) + '" y2="' + (H - b) + '" stroke="#dbe3e8"/>' + barras + rotulos + toques + '</svg>';
     return '<div class="graf-box">' + svg + '<div class="dica-graf" hidden></div></div>' + // Com o alerta de menor/maior preço, a legenda some para os cartões ficarem do mesmo tamanho (Leonardo, 21/11/2026:
     // "quando tivesse menor preço ou outro alerta de alta, não tem que aparecer aquela mensagem lá embaixo"). ANTES: aparecia sempre.
     (lista && !semLegenda ? '<p class="legenda">Alguns dias vêm da lista do site, que pode variar um pouco.</p>' : '');
@@ -1303,7 +1313,8 @@
     d.textContent = pt.getAttribute('data-tip'); d.style.setProperty('--cor', pt.getAttribute('data-cor')); d.hidden = false;
     var r = pt.getBoundingClientRect(), b = box.getBoundingClientRect(), cx = r.left + r.width / 2 - b.left, w = d.offsetWidth;
     var left = Math.max(w / 2, Math.min(b.width - w / 2, cx));
-    d.style.left = left + 'px'; d.style.top = (r.top + r.height / 2 - b.top - 4) + 'px';
+    // Barra (data-topo): o balão sai do topo da barra; bolinha antiga: do meio.
+    d.style.left = left + 'px'; d.style.top = (pt.hasAttribute('data-topo') ? r.top - b.top + 4 : r.top + r.height / 2 - b.top - 4) + 'px';
     d.style.setProperty('--seta', (50 + (cx - left) / w * 100) + '%');
   }
   function esconderDicas() { [].forEach.call(document.querySelectorAll('.dica-graf'), function (d) { d.hidden = true; }); }
@@ -1346,6 +1357,10 @@
       guardar('mv_favoritas', JSON.stringify(favs)); desenhar(); return;
     }
     if (b.dataset.cab) { cabDetalhe[b.dataset.s] = b.dataset.cab; desenhar(); return; }
+    if (b.dataset.volta) { delete cabDetalhe[b.dataset.volta]; desenhar(); return; }
+    if (b.dataset.todas) {   // "Ver todas em <cabine>": a pesquisa inteira passa para essa cabine (tela e painel)
+      f.k = e.k = b.dataset.todas; cabDetalhe = {}; novaLista(); marcar(); desenhar(); return;
+    }
   });
   // Pesquisar: o que está marcado no painel vai para a tela; o painel recolhe e a página desce até as saídas.
   $('pesquisar').onclick = function () {
