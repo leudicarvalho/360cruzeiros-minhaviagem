@@ -302,9 +302,6 @@
   .grade::-webkit-scrollbar { display: none; }
   .grade > * { flex: 0 0 86%; scroll-snap-align: center; }
   .grade > .vazio { flex-basis: 100%; margin: 0; }
-  .grade > .mais { flex-basis: 46%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 2px dashed var(--marca); border-radius: 18px;
-    background: var(--marca-clara); color: var(--marca); font: 700 15px var(--fonte); cursor: pointer; text-align: center; padding: 16px; }
-  .grade > .mais span { font-size: 30px; line-height: 1; }
   /* Dica de arrastar (igual ao site da Black, 27/10): seta que anda, só no celular e só com mais de 1 saída. */
   .dica { display: none; color: var(--marca); font-size: 13px; font-weight: 700; margin: -2px 2px 8px; }
   .dica .seta { display: inline-block; animation: seta 1.1s ease-in-out infinite; }
@@ -317,7 +314,7 @@
   @media (min-width: 700px) {
     .grade { display: grid; grid-template-columns: repeat(3, 1fr); overflow: visible; align-items: start; }
     .grade > .vazio { grid-column: 1 / -1; }
-    .grade > .mais, .pontos { display: none; }
+    .pontos { display: none; }
   }
   .paginador { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 6px 0 14px; flex-wrap: wrap; }
   .paginador button { min-width: 40px; height: 40px; border-radius: 10px; border: 1px solid #c9d5db; background: #fff; font: 600 14px var(--fonte); color: var(--texto); cursor: pointer; padding: 0 10px; }
@@ -970,18 +967,22 @@
     } else {
       $('titulo-lista').innerHTML = '<em>' + r.lista.length + '</em> ' + (r.lista.length === 1 ? 'saída' : 'saídas') + ' para você';
     }
+    // Celular (Leonardo, 21/11/2026: "quando estiver rodando para a direita, pode ir movendo a paginação automaticamente...
+    // Ver mais 3 saídas daí deixaria de existir. E caso o usuário clique na página que quer, rola automaticamente para
+    // aquela"): o carrossel leva TODAS as saídas; a página do paginador acompanha o cartão à vista e tocar numa página rola
+    // até ela. ANTES: 3 por vez e um cartão "Ver mais 3 saídas" no fim. No computador continua 3 por página.
+    var cel = celular(), gAntes = $('grade'), kAntes = gAntes && cel ? cartaoAVista(gAntes) : -1;
     var pg = MV.paginar(todas, pagina, POR_PAGINA);
-    pagina = pg.pagina; mostradas = pg.itens;
+    pagina = pg.pagina; lista = todas; mostradas = cel ? todas : pg.itens;
     var html = mostradas.map(card).join('');
-    if (pg.pagina < pg.paginas) html += '<button class="mais" data-pag="' + (pg.pagina + 1) + '"><span>→</span>Ver mais ' + Math.min(POR_PAGINA, pg.total - pg.ate) + ' saídas</button>';
     $('lista').innerHTML = aviso + '<div class="grade" id="grade">' + html + '</div>';
-    if (pg.paginas > 1) {
-      $('paginador').innerHTML = paginas(pg);
-      $('contagem').textContent = 'Saídas ' + pg.de + ' a ' + pg.ate + ' de ' + pg.total;
-    }
-    $('dica').classList.toggle('tem', mostradas.length > 1 || pg.pagina < pg.paginas);
-    if (mostradas.length > 1) $('pontos').innerHTML = mostradas.map(function (s, k) { return '<i' + (k ? '' : ' class="ativo"') + '></i>'; }).join('');
+    paginaNaTela(pg);
+    $('dica').classList.toggle('tem', mostradas.length > 1);
     ligarCarrossel();
+    if (cel) {   // fica onde estava se continua na mesma página; senão vai para o 1º cartão da página
+      var k0 = kAntes >= 0 && Math.floor(kAntes / POR_PAGINA) + 1 === pagina ? kAntes : (pagina - 1) * POR_PAGINA;
+      rolarAte(k0, false);
+    }
     if (r.semPreco.length) {
       $('sem-preco').innerHTML = '<div class="vazio">' + (r.lista.length ? 'Mais ' : '') + r.semPreco.length + (r.semPreco.length === 1 ? ' saída' : ' saídas') +
         ' desta pesquisa ainda sem o preço de hoje para ' + gente + (f.k !== 'todas' ? ' nas cabines escolhidas' : '') + '. Eu confiro para você:<a class="btn" href="' +
@@ -1001,7 +1002,37 @@
       lista.map(function (x) { return x === '…' ? '<span class="reti">…</span>' : '<button data-pag="' + x + '"' + (x === p ? ' class="ativo"' : '') + '>' + x + '</button>'; }).join('') +
       '<button class="seta" data-pag="' + (p + 1) + '"' + (p >= n ? ' disabled' : '') + ' aria-label="Próxima página">›</button>';
   }
+  // Paginador, contagem e pontinhos da página atual (no celular, os pontinhos são os cartões desta página).
+  var lista = [];
+  function celular() { return window.matchMedia && window.matchMedia('(max-width: 699px)').matches; }
+  function paginaNaTela(pg, k) {
+    $('paginador').innerHTML = pg.paginas > 1 ? paginas(pg) : '';
+    $('contagem').textContent = pg.paginas > 1 ? 'Saídas ' + pg.de + ' a ' + pg.ate + ' de ' + pg.total : '';
+    var n = pg.ate - pg.de + 1, j = k == null ? 0 : k - (pg.de - 1);
+    $('pontos').innerHTML = n > 1 ? Array.apply(null, Array(n)).map(function (x, i) { return '<i' + (i === j ? ' class="ativo"' : '') + '></i>'; }).join('') : '';
+  }
+  function cartaoAVista(g) {
+    var c = g.firstElementChild; if (!c) return 0;
+    var w = c.getBoundingClientRect().width + 12;
+    return Math.max(0, Math.min(g.children.length - 1, Math.round(g.scrollLeft / w)));
+  }
+  // Rolagem do carrossel até o cartão k: suave só para perto (página vizinha); longe, vai direto (a rolagem suave longa
+  // parava no meio). Enquanto rola, a página do paginador não muda (rolandoAte).
+  var rolandoAte = null;
+  function rolarAte(k, suave) {
+    var g = $('grade'), c = g && g.children[k]; if (!c) return;
+    var esq = Math.max(0, c.offsetLeft - g.offsetLeft - (g.clientWidth - c.offsetWidth) / 2);
+    suave = suave && Math.abs(esq - g.scrollLeft) <= c.offsetWidth * 3.5;
+    rolandoAte = k; clearTimeout(rolarAte.t);
+    rolarAte.t = setTimeout(function () { rolandoAte = null; }, suave ? 900 : 120);
+    g.scrollTo({ left: esq, behavior: suave ? 'smooth' : 'auto' });
+  }
   function irPagina(n) {
+    if (celular() && lista.length) {
+      var pg = MV.paginar(lista, n, POR_PAGINA); pagina = pg.pagina; paginaNaTela(pg);
+      rolarAte((pagina - 1) * POR_PAGINA, true);
+      return;
+    }
     pagina = n; fechadas = {}; desenhar();
     var t = $('topo-lista').getBoundingClientRect().top + window.pageYOffset - 8;
     if (window.pageYOffset > t) window.scrollTo({ top: t, behavior: 'smooth' });
@@ -1013,8 +1044,11 @@
   function ligarCarrossel() {
     var g = $('grade'); if (!g) return;
     g.onscroll = function () {
-      var w = g.firstElementChild ? g.firstElementChild.getBoundingClientRect().width + 12 : 1, k = Math.round(g.scrollLeft / w);
-      [].forEach.call($('pontos').children, function (p, j) { p.classList.toggle('ativo', j === Math.min(k, mostradas.length - 1)); });
+      var k = cartaoAVista(g);
+      if (!celular() || rolandoAte !== null) return;
+      var p = Math.floor(k / POR_PAGINA) + 1;
+      if (p !== pagina) { pagina = p; paginaNaTela(MV.paginar(lista, p, POR_PAGINA), k); return; }
+      [].forEach.call($('pontos').children, function (el, j) { el.classList.toggle('ativo', j === k - (p - 1) * POR_PAGINA); });
     };
     if (mostrouArraste || g.scrollWidth <= g.clientWidth + 10 || !window.IntersectionObserver) return;
     var obs = new IntersectionObserver(function (itens) {
@@ -1029,6 +1063,9 @@
     }, { threshold: 0.6 });
     obs.observe(g);
   }
+
+  if (window.matchMedia) { var mq = window.matchMedia('(max-width: 699px)'); var trocou = function () { if (dados) desenhar(); };
+    if (mq.addEventListener) mq.addEventListener('change', trocou); else if (mq.addListener) mq.addListener(trocou); }
 
   function navios() {
     var sel = $('navio'), nomes = {};
