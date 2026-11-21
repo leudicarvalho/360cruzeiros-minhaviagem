@@ -69,6 +69,11 @@
     // código do contato: só letras, números, _ e -; "{{contact.id}}" que não foi trocado pelo Entur = sem código
     var id = String(q.id || "");
     r.id = /^[A-Za-z0-9_-]{1,40}$/.test(id) ? id : "";
+    // WhatsApp do contato no link (w), para o Salvar achar o contato no CRM sem pedir nada (Leonardo, 21/11/2026: "O
+    // WhatsApp não pode virar um parâmetro?"; o webhook do Entur só acha o contato por e-mail ou telefone, não pelo
+    // código). Aceita "+55 54 99936-2828", "5554999362828" etc.; inválido ou "{{...}}" não trocado = vazio.
+    // ANTES: o link não levava dado pessoal e o Salvar pedia o WhatsApp.
+    r.w = conferirWhats(String(q.w || "").replace(/^\{\{.*\}\}$/, "")).num;
     return r;
   }
 

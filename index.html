@@ -473,6 +473,12 @@
   var salva = MV.lerPesquisa(busca);   // a preferência
   if (!salva.id && !temLink) salva.id = (MV.lerPesquisa('?id=' + (ler('mv_id') || '')).id);
   if (temLink) { guardar('mv_pref', MV.linkPesquisa(salva, '')); if (salva.id) guardar('mv_id', salva.id); }
+  // WhatsApp do link: fica guardado no aparelho (é com ele que o Salvar acha o contato no CRM) e sai da barra de
+  // endereço, para não aparecer se a pessoa copiar e mandar o link para alguém.
+  if (salva.w) {
+    guardar('mv_whats', salva.w);
+    try { history.replaceState(null, '', location.pathname + location.search.replace(/([?&])w=[^&]*&?/, '$1').replace(/[?&]$/, '') + location.hash); } catch (e) {}
+  }
   var f = Object.assign({}, salva, { navio: '', ordem: 'preco' });
   // "Quero entender a diferença": a página abre sem pacote e com o convite da calculadora
   if (f.b === 'entender') f.b = 'sem';
@@ -935,8 +941,9 @@
     copiarParaPainel(); novaLista(); desenhar(); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Salvar como minha preferência: grava NESTE aparelho na hora (sem pedir nada). Quem veio pelo link do WhatsApp (tem o
-  // código e já deixou o número numa vez anterior) também manda ao CRM, sem aparecer nada (webhook 53, passo 4).
+  // Salvar como minha preferência: grava NESTE aparelho na hora (sem pedir nada). Quem veio pelo link do WhatsApp (código
+  // + WhatsApp do link, guardados no aparelho) também manda ao CRM, sem aparecer nada: o webhook 53 acha o contato pelo
+  // telefone, a trava confere o código, e o CRM atualiza os campos mv_* (o próximo link já sai certo).
   $('salvar').onclick = function () {
     var p = pesquisaAtual();
     guardar('mv_pref', MV.linkPesquisa(p, ''));
