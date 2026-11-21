@@ -202,6 +202,8 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: border-color .15s, box-shadow .15s, background .15s; }
   .pilulas.opcoes button:hover:not(.ativo) { border-color: var(--marca); }
   .pilulas.opcoes button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; box-shadow: 0 3px 10px rgba(15,76,92,.3); }
+  .link-calc { font-size: 12.5px; color: var(--suave); text-decoration: none; margin-top: auto; }
+  .link-calc b { color: var(--marca); text-decoration: underline; }
   .cartao select { height: 40px; border-radius: 11px; background: #fff; border: 1px solid #dbe4e8; font: 700 13px var(--fonte); padding: 0 10px; }
 
   /* Calendário (Leonardo, 21/11/2026: "abrir um calendário para poder selecionar... fácil de utilizar e que dê para informar
@@ -480,7 +482,8 @@
       <div class="cartao"><div class="cartao-tit">Cabine <small class="varias">pode marcar mais de uma</small></div><div class="pilulas opcoes c3 multi" data-f="k">
         <button data-v="int">Interna</button><button data-v="ext">Externa</button><button data-v="var">Varanda</button><button data-v="sui">Suíte</button><button data-v="todas" class="larga">Qualquer uma</button></div></div>
       <div class="cartao"><div class="cartao-tit">Bebidas</div><div class="pilulas opcoes c2" data-f="b">
-        <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div></div>
+        <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div>
+        <a class="link-calc" id="link-calc" href="calculadora/">Qual pacote vale a pena? <b>Abrir a calculadora</b></a></div>
       <div class="cartao"><div class="cartao-tit">Navio</div><select id="navio"><option value="">Todos os navios</option></select></div>
     </div>
     <p class="legenda" id="legenda-pacote"></p>
@@ -783,6 +786,7 @@
       $('btn-calc').textContent = calc.botao;
     }
     $('btn-calc').href = CALCULADORA + MV.linkCalc(salva.id, adultos());
+    $('link-calc').href = CALCULADORA + MV.linkCalc(salva.id, adultos());   // sempre no cartão Bebidas (Leonardo, 21/11/2026)
     $('btn-idades').href = linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e quero o preço exato com as idades das crianças.');
   }
 
@@ -845,8 +849,9 @@
 
   // Na saída aberta: a calculadora com o preço do pacote DESTA saída (quem escolheu pacote ou marcou "Quero entender").
   function calcDaSaida(s) {
+    // Sem pacote: o botão aparece também (Leonardo, 21/11/2026: "Sim, sempre"; ANTES: só com pacote ou "Quero entender").
     var calc = MV.conviteCalc(salva.b, f.b);
-    if (!calc) return '';
+    if (!calc) return '<a class="btn contorno" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultos(), s)) + '">Qual pacote de bebidas vale a pena? Calcule</a>';
     return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultos(), s)) + '">' + esc(calc.botao) + '</a>';
   }
 
