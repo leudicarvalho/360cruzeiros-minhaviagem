@@ -515,10 +515,13 @@
       var escolha = nomeEscolha(nivel, ciaId);
       function peloWhats(aviso) {
         final.innerHTML = "";
-        final.appendChild(el("h2", { texto: "Atualizar minha pesquisa" }));
+        // Deixa claro que falta enviar a mensagem sem mudar nada (Leonardo, 21/11/2026: "tem que deixar claro que não é para
+        // mudar nada e é para mandar mensagem, senão nada vai se atualizar"). ANTES: título "Atualizar minha pesquisa",
+        // "Para guardar o pacote na sua pesquisa, me chama no WhatsApp que eu atualizo para você." e botão "Chamar no WhatsApp".
+        final.appendChild(el("h2", { texto: "Falta um passo" }));
         if (aviso) final.appendChild(el("p", { "class": "erro", texto: aviso }));
-        final.appendChild(el("p", { texto: "Para guardar o pacote na sua pesquisa, me chama no WhatsApp que eu atualizo para você." }));
-        final.appendChild(el("a", { "class": "btn", target: "_blank", rel: "noopener", texto: "Chamar no WhatsApp",
+        final.appendChild(el("p", { texto: "Sua pesquisa ainda não foi atualizada. Toque no botão abaixo e envie a mensagem do jeito que ela aparecer, sem mudar nada. Assim que ela chegar, eu atualizo sua pesquisa com " + escolha + "." }));
+        final.appendChild(el("a", { "class": "btn", target: "_blank", rel: "noopener", texto: "Enviar no WhatsApp",
           href: linkWhats("Oi, Leonardo! Usei a calculadora de bebidas e o ideal para mim é " + escolha + ". Pode atualizar minha pesquisa?") }));
       }
       // Vai a pesquisa inteira (a que a página guardou no aparelho, mv_pref) com o pacote trocado, no formato do Salvar
