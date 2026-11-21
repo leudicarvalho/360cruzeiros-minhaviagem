@@ -913,19 +913,25 @@
     var abas = MV.CABINES.filter(function (c) { return s.ocup[a] && (c in s.ocup[a].cab); }).map(function (c) {
       return '<button data-cab="' + c + '" data-s="' + esc(s.id) + '"' + (c === cab ? ' class="ativo"' : '') + '>' + NOME[c] + '</button>';
     }).join('');
-    var corpo;
+    var corpo, comPk = null;
     if (!hist) corpo = '<p class="legenda">Carregando o histórico do preço...</p>';
     else {
-      // Sempre SEM bebidas (Leonardo, 21/11/2026): a bebida muda pouco e foi lida poucas vezes; somada, encurtava o
-      // histórico e escondia a variação da cabine. ANTES: com pacote escolhido, somava o pacote de cada dia.
-      var pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(function (p) { return [p[0], p[1] === null ? null : Math.round(p[1] / a), p[2]]; });
+      // COM o pacote escolhido somado (Leonardo, 21/11/2026: "Sim, com bebidas"): desde que o termômetro passou a usar o
+      // pacote atual nos dias antigos sem leitura, o pacote cobre o 1º dia em 91% das cabines. Sem pacote, temático
+      // (bebida só a bordo) ou poucos dias com pacote: sem bebidas. ANTES (21/11, até esta mudança): sempre sem bebidas,
+      // com o pacote numa linha à parte; e antes disso com pacote, mas o histórico encurtava.
+      var pk = (f.b === 'soft' || f.b === 'basico' || f.b === 'premium') ? MV.pacote(s, f.b) : null;
+      var porPessoa = function (p) { return [p[0], p[1] === null ? null : Math.round(p[1] / a), p[2]]; };
+      var pts = pk && !pk.aBordo ? MV.linhaDoTempo(hist, s.id, a, cab, f.b).map(porPessoa) : [];
+      if (pts.length >= 2) comPk = pk;
+      else pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(porPessoa);
       var fx = MV.faixaPreco(pts);
       if (fx) fx.desde = pts[0][0];
-      corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx)) + linhaPacote(s, a);
+      corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx)) + (comPk ? '' : linhaPacote(s, a));
     }
     var texto = 'Oi, Leonardo! Vi na minha página o ' + s.navio + ', de ' + dm(s.embarque) + ' a ' + dm(MV.volta(s)) + ', ' + s.noites + ' noites, cabine ' +
       NOME[cab].toLowerCase() + ', para ' + MV.gente(f) + '. Pode conferir para mim?';
-    return '<div class="detalhe"><h3>Histórico do preço do cruzeiro, por pessoa <span class="sem-beb">sem bebidas</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
+    return '<div class="detalhe"><h3>Histórico do preço do cruzeiro, por pessoa <span class="sem-beb">' + (comPk ? 'com o pacote ' + esc(comPk.nome) : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
       '<div class="termometro" hidden></div>' + calcDaSaida(s) +
       (temCrianca() ? '' : '<a class="btn" style="margin-top:12px" href="' + linkWhats(texto) + '" target="_blank" rel="noopener">Quero esta saída</a>') + '</div>';
   }
