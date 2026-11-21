@@ -85,10 +85,18 @@
   /* Sua viagem: companhia, noites e adultos num cartão só, sobre a foto do topo (21/11/2026, Leonardo: "Tá tudo
      separado, tá horrível aquilo"). ANTES: título "Sua viagem" e duas linhas soltas, cada uma com o seu − +. */
   .viagem { position: relative; margin-top: -34px; padding: 14px; box-shadow: 0 8px 24px rgba(16,37,46,.12); border: 0; }
-  .cia-escolha { display: flex; background: var(--fundo); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 12px; }
-  .cia-escolha button { flex: 1; padding: 10px; border: 0; border-radius: 9px; background: transparent; color: var(--suave); font: 800 15px var(--fonte); cursor: pointer; }
+  /* Companhia bem à vista (Leonardo, 21/11/2026: "tem que ficar claro que precisa selecionar MSC ou Costa"). Sem escolha:
+     pergunta grande, caixa dourada piscando de leve, botões com borda e o aviso embaixo. ANTES: pergunta pequena e cinza,
+     botões sem borda (pareciam texto) e a tela vazia embaixo, sem dizer o que fazer. */
+  .cia-escolha { display: flex; gap: 10px; margin-bottom: 12px; }
+  .cia-escolha button { flex: 1; padding: 14px 10px; border: 2px solid var(--marca); border-radius: 12px; background: #fff; color: var(--marca); font: 800 17px var(--fonte); cursor: pointer; }
   .cia-escolha button[aria-pressed="true"] { background: var(--marca); color: #fff; box-shadow: 0 1px 3px rgba(16,37,46,.25); }
-  .cia-pergunta { font-size: 13px; color: var(--suave); font-weight: 700; margin: 0 0 6px; text-align: center; }
+  .cia-pergunta { font-size: 13px; color: var(--suave); font-weight: 700; margin: 0 0 8px; text-align: center; }
+  #cia-caixa.pendente { border: 2px solid var(--ouro); background: var(--ouro-claro); border-radius: 14px; padding: 12px 10px 2px; margin-bottom: 12px; animation: ciaPisca 1.6s ease-in-out infinite; }
+  #cia-caixa.pendente .cia-pergunta { font-size: 18px; color: var(--texto); font-weight: 800; }
+  @keyframes ciaPisca { 50% { box-shadow: 0 0 0 6px rgba(248,196,99,.35); } }
+  @media (prefers-reduced-motion: reduce) { #cia-caixa.pendente { animation: none; } }
+  .cia-aviso { text-align: center; font-weight: 800; color: var(--marca); font-size: 16px; margin: 18px 0 6px; }
   .v-grade { display: grid; grid-template-columns: 1fr 1fr; }
   .v-campo { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 2px 6px; }
   .v-campo + .v-campo { border-left: 1px solid var(--linha); }
@@ -99,6 +107,10 @@
   .marcas li b { color: var(--texto); white-space: nowrap; font-weight: 700; }
   .marcas .media { color: var(--marca); font-weight: 700; }
   .item-nome { flex: 1; min-width: 0; }
+  /* Preço da bebida sem marcas (sem álcool) em destaque, como o das alcoólicas (Leonardo, 21/11/2026: "os valores do não
+     alcoólico não estão tão destacados como no alcoólico"). ANTES: "R$ 26 avulso" pequeno e cinza. */
+  .preco-item { display: block; font-size: 12.5px; color: var(--suave); margin-top: 2px; }
+  .preco-item b { color: var(--texto); font-weight: 800; font-size: 14px; }
   /* Pergunta do pacote: três botões com uma linha explicando cada um. */
   .opcoes.foco button { display: flex; flex-direction: column; gap: 2px; text-align: left; }
   .opcoes.foco button small { font-weight: 500; font-size: 12.5px; color: var(--suave); }
@@ -111,7 +123,28 @@
   td { padding: 6px 0; border-top: 1px solid var(--linha); vertical-align: top; }
   td:last-child { text-align: right; white-space: nowrap; font-weight: 700; }
   .nota { color: var(--suave); font-size: 12px; font-weight: 400; }
-  .sugestao { background: var(--ouro-claro); border-left: 4px solid var(--ouro-escuro); border-radius: 8px; padding: 12px; margin: 0 0 4px; }
+  /* Resultado mais moderno (Leonardo, 21/11/2026: "deixar bem mais moderna essa parte do valor. Tá muito simplesinho").
+     Avulso num destaque, cada pacote num cartão com valor grande, o mais em conta em verde com selo, e a diferença para o
+     avulso numa etiqueta. ANTES: uma frase com o avulso e uma tabela simples (nome e valor). */
+  .res-avulso { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--fundo); border: 1.5px solid var(--linha); border-radius: 14px; padding: 14px 16px; margin: 4px 0 16px; }
+  .res-rot { font-size: 11.5px; font-weight: 800; color: var(--suave); text-transform: uppercase; letter-spacing: .05em; }
+  .res-sub { font-size: 12.5px; color: var(--suave); margin-top: 2px; }
+  .res-valor { font-size: 24px; font-weight: 900; color: var(--texto); white-space: nowrap; letter-spacing: -.01em; text-align: right; }
+  .res-valor small { display: block; font-size: 11.5px; font-weight: 600; color: var(--suave); letter-spacing: 0; }
+  .res-titulo { font-size: 11.5px; font-weight: 800; color: var(--suave); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 10px; }
+  .pacotes { display: grid; gap: 14px; margin: 0 0 12px; }
+  .pac { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1.5px solid var(--linha); border-radius: 14px; padding: 14px 16px; background: #fff; }
+  .pac-nome { font-size: 16px; font-weight: 800; color: var(--texto); }
+  .pac-valor { font-size: 22px; font-weight: 900; color: var(--marca); white-space: nowrap; letter-spacing: -.01em; }
+  .melhor { border: 2px solid var(--verde); background: #effaf3; box-shadow: 0 6px 18px rgba(31,168,85,.15); }
+  .melhor .pac-valor, .melhor .res-valor { color: var(--verde-escuro); }
+  .pac.melhor, .res-avulso.melhor { padding-top: 22px; }
+  .selo { position: absolute; top: -10px; left: 14px; background: var(--verde); color: #fff; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; padding: 3px 9px; border-radius: 999px; }
+  .chip { display: inline-block; font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; margin-top: 6px; }
+  .chip.menos { background: #dcfce7; color: var(--verde-escuro); }
+  .chip.mais { background: #fdecea; color: var(--vermelho-texto); }
+  .sugestao { background: var(--ouro-claro); border: 1.5px solid #f6dfae; border-radius: 14px; padding: 12px 14px 12px 44px; margin: 0 0 4px; position: relative; }
+  .sugestao::before { content: "💡"; position: absolute; left: 14px; top: 11px; font-size: 18px; }
   .sugestao p { margin: 0 0 8px; }
   .sugestao p:last-child { margin: 0; }
   .escolha { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -153,7 +186,7 @@
        escolhe aqui antes de tudo. ANTES: sem companhia no link, MSC e Costa lado a lado. -->
   <section class="viagem">
     <div id="cia-caixa" hidden>
-      <p class="cia-pergunta">Seu cruzeiro é de qual companhia?</p>
+      <p class="cia-pergunta" id="cia-pergunta">Para começar: seu cruzeiro é MSC ou Costa?</p>
       <div class="cia-escolha" id="cia-escolha"></div>
     </div>
     <div class="v-grade">
@@ -161,6 +194,8 @@
       <div class="v-campo"><span class="v-rot">Adultos na cabine</span><span class="passo" data-campo="adultos"></span></div>
     </div>
   </section>
+
+  <p class="cia-aviso" id="cia-aviso" hidden>👆 Toque em MSC ou Costa para ver qual pacote de bebidas vale a pena.</p>
 
   <a class="voltar" id="voltar" href="../" hidden>← Voltar para a minha pesquisa</a>
 
@@ -264,6 +299,10 @@
       var caixa = document.getElementById("cia-escolha");
       document.getElementById("cia-caixa").hidden = !!ciaFixa;
       document.getElementById("depois-cia").classList.toggle("oculto", !cia);
+      // Sem companhia escolhida: caixa em destaque e aviso embaixo; escolhida: pergunta pequena, sem aviso.
+      document.getElementById("cia-caixa").classList.toggle("pendente", !cia && !ciaFixa);
+      document.getElementById("cia-aviso").hidden = !!cia || !!ciaFixa;
+      document.getElementById("cia-pergunta").textContent = cia ? "Companhia do seu cruzeiro" : "Para começar: seu cruzeiro é MSC ou Costa?";
       if (ciaFixa) return;
       caixa.innerHTML = "";
       ["msc", "costa"].forEach(function (c) {
@@ -324,7 +363,7 @@
         var varia = precos.some(function (v) { return v !== precos[0]; });
         info = el("ul", { "class": "marcas" }, it.marcas.map(function (m) { return el("li", {}, [el("span", { texto: m.nome }), el("b", { texto: precoMarca(m) })]); })
           .concat(varia ? [el("li", { "class": "media", texto: "Na conta: média de " + reais(avulso) }) ] : []));
-      } else info = el("span", { "class": "preco-item", texto: reais(avulso) + " avulso" });
+      } else info = el("span", { "class": "preco-item" }, [el("b", { texto: reais(avulso) }), " avulso"]);
       return el("div", { "class": "item" }, [el("span", { "class": "item-nome" }, [it.nome, info]), span]);
     }
 
@@ -469,18 +508,35 @@
       ];
     }
 
+    // Resultado em cartões: avulso no topo, um cartão por pacote, o mais em conta (pacote ou avulso) em verde com selo,
+    // e em cada pacote a diferença para o avulso (os dois são da cabine toda, viagem toda). Mesmas contas de antes.
     function cartao(r) {
       var c = C.CIAS[r.cia];
-      var linhas = r.pacotes.map(function (p) {
+      var menor = Math.min.apply(null, [r.avulsoViagem].concat(r.pacotes.map(function (p) { return p.total; })));
+      var avulsoMelhor = r.pacotes.length > 0 && r.avulsoViagem === menor;
+      var pacs = r.pacotes.map(function (p) {
+        var dif = Math.round(r.avulsoViagem - p.total), melhor = !avulsoMelhor && p.total === menor;
+        var chip = dif > 0 ? el("span", { "class": "chip menos", texto: reais(dif) + " a menos que avulso" })
+          : dif < 0 ? el("span", { "class": "chip mais", texto: reais(-dif) + " a mais que avulso" }) : null;
         var extra = p.foraDoPacote > 0 ? el("div", { "class": "nota", texto: "+ " + reais(p.foraDoPacote) + " do que o pacote não cobre" }) : null;
-        return el("tr", {}, [el("td", {}, [p.pacote, extra]), el("td", { texto: reais(p.total) })]);
+        return el("div", { "class": "pac" + (melhor ? " melhor" : "") }, [
+          melhor ? el("span", { "class": "selo", texto: "Mais em conta" }) : null,
+          el("div", {}, [el("div", { "class": "pac-nome", texto: p.pacote }), chip ? el("div", {}, [chip]) : null, extra]),
+          el("div", { "class": "pac-valor", texto: reais(p.total) }),
+        ]);
       });
       var sug = el("div", { "class": "sugestao" }, textoSugestao(r).map(function (t) { return el("p", { texto: t }); }));
       var temRef = r.pacotes.some(function (p) { return p.fonte === "referencia"; });
+      var gente = r.adultos === 1 ? "1 adulto" : r.adultos + " adultos";
       return el("section", {}, [
         el("h2", { texto: "Resultado na " + c.nome }),
-        el("p", { "class": "avulso" }, ["Comprando avulso: ", el("b", { texto: reais(r.avulsoDiaPessoa) }), " por dia, por pessoa · ", el("b", { texto: reais(r.avulsoViagem) }), " na viagem toda"]),
-        el("table", {}, [el("tr", {}, [el("td", { "class": "nota", texto: "Pacotes para os " + r.adultos + " adulto(s), viagem toda" }), el("td", {})])].concat(linhas)),
+        el("div", { "class": "res-avulso" + (avulsoMelhor ? " melhor" : "") }, [
+          avulsoMelhor ? el("span", { "class": "selo", texto: "Mais em conta" }) : null,
+          el("div", {}, [el("div", { "class": "res-rot", texto: "Comprando avulso" }), el("div", { "class": "res-sub", texto: reais(r.avulsoDiaPessoa) + " por dia, por pessoa" })]),
+          el("div", { "class": "res-valor" }, [reais(r.avulsoViagem), el("small", { texto: "viagem toda" })]),
+        ]),
+        r.pacotes.length ? el("div", { "class": "res-titulo", texto: "Com pacote · " + gente + ", viagem toda" }) : null,
+        el("div", { "class": "pacotes" }, pacs),
         temRef ? el("p", { "class": "nota", texto: "Pacotes pelo preço médio por dia; o valor exato depende da saída." }) : null,
         sug,
       ]);
