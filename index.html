@@ -298,15 +298,18 @@
      pessoa, que fica grande; o total da cabine vai menor embaixo. ANTES: data e navio em duas faixas, tudo em negrito, e
      o total grande com o "por adulto" pequeno. */
   .card { border: 1px solid var(--linha); border-radius: 18px; overflow: hidden; background: var(--card); box-shadow: 0 4px 16px rgba(16,37,46,.08); display: flex; flex-direction: column; min-width: 0; }
-  .c-topo { display: flex; align-items: stretch; gap: 12px; padding: 12px; cursor: pointer; border-bottom: 1px solid var(--linha); }
-  .dia-bloco { flex: none; width: 64px; border-radius: 12px; background: var(--marca); color: #fff; text-align: center; padding: 6px 0 7px; line-height: 1; }
+  .c-topo { display: flex; align-items: stretch; gap: 10px; padding: 12px; cursor: pointer; border-bottom: 1px solid var(--linha); }
+  .dia-bloco { flex: none; align-self: flex-start; width: 64px; border-radius: 12px; background: var(--marca); color: #fff; text-align: center; padding: 6px 0 7px; line-height: 1; }
   .dia-bloco small { display: block; font-size: 12.5px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; opacity: .85; }
   .dia-bloco b { display: block; font-size: 26px; font-weight: 800; margin: 3px 0 2px; }
   .dia-bloco span { display: block; font-size: 13.5px; font-weight: 600; text-transform: uppercase; color: var(--ouro); }
   .c-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
-  .navio { display: block; font-weight: 700; font-size: 16px; line-height: 1.2; }
-  .periodo { display: block; color: var(--texto); font-size: 14px; }
-  .rota { display: block; color: var(--suave); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .navio { display: block; font-weight: 700; font-size: 16px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .periodo { display: block; color: var(--texto); font-size: 13px; letter-spacing: -.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Celular: a volta desce para a linha de baixo em todos os cartões (no computador fica ao lado), para nada ser cortado. */
+  .periodo i { font-style: normal; }
+  @media (max-width: 699px) { .periodo .volta { display: block; } .periodo i { display: none; } }
+  .rota { display: block; color: var(--suave); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; height: 2.6em; }
   .cia { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .5px; padding: 1px 7px; border-radius: 999px; margin-right: 4px; vertical-align: 1px; }
   .cia.msc { background: #e3ecf8; color: #1d3f72; }
   .cia.costa { background: #fff3c7; color: #7a5a00; }
@@ -347,7 +350,11 @@
   @media (max-width: 699px) { .dica.tem { display: block; } }
   /* Computador também em carrossel (21/11/2026): 3 cartões à vista, setas redondas dos lados. */
   .carrossel { position: relative; }
-  .grade { align-items: flex-start; }
+  /* Cartões do mesmo tamanho (Leonardo, 21/11/2026: "o tamanho do nome das cidades é maior ou menor, elas ficam diferentes.
+     Também faça com que a data ali não se alongue"): roteiro sempre com a altura de 2 linhas, navio e período em 1 linha,
+     cartões esticados à altura do maior (o botão do histórico vai para o pé) e o bloco da data no tamanho dele.
+     ANTES: roteiro de 1 linha deixava o cartão menor e o bloco da data esticava junto com o texto. */
+  .grade { align-items: stretch; }
   .car-seta { display: none; }
   @media (min-width: 700px) {
     .grade > * { flex-basis: calc((100% - 24px) / 3); scroll-snap-align: start; }
@@ -938,7 +945,7 @@
       '<div class="c-topo"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
         MV.nomeMesCurto(s.embarque) + ' ' + s.embarque.slice(2, 4) + '</span></div>' +
         '<div class="c-info"><span class="navio">' + esc(s.navio) + '</span>' +
-        '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : s.cia === 'Temático' ? 'tematico' : 'msc') + '">' + esc(s.cia) + '</span>' + s.noites + ' noites · volta ' + dm(MV.volta(s)) + '</span>' +
+        '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : s.cia === 'Temático' ? 'tematico' : 'msc') + '">' + esc(s.cia) + '</span>' + s.noites + ' noites<span class="volta"><i> · </i>volta ' + dm(MV.volta(s)) + '</span></span>' +
         '<span class="rota">' + esc(MV.rotaTexto(s.roteiro)) + '</span></div>' +
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
       '<div class="cabs' + (cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
