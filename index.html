@@ -453,6 +453,9 @@
   .legenda b { color: var(--texto); }
   .vazio { background: var(--card); border: 1px dashed #c9d5db; border-radius: 12px; padding: 18px; color: var(--suave); text-align: center; margin-bottom: 12px; }
   .vazio .btn { max-width: 320px; margin: 12px auto 0; }
+  .sem-res b { display: block; color: var(--texto, #1d2b33); font-size: 17px; }
+  .sem-res .pesq-feita { display: block; margin-top: 4px; }
+  .sem-res .btn { display: block; width: 100%; }
   .termometro { margin-top: 10px; }
 
   section.conversa { margin-top: 22px; background: var(--card); border: 1px solid var(--linha); border-top: 4px solid var(--verde); border-radius: 20px; padding: 18px 16px; text-align: center; }
@@ -818,6 +821,12 @@
     var r = MV.filtrar(dados.saidas, Object.assign({}, e, { a: MV.lotacao(e) }), dados.leitura), n = r.lista.length + r.esgotadas.length + r.semPreco.length;
     return '(' + n + (n === 1 ? ' saída)' : ' saídas)');
   }
+  // A pesquisa da tela não trouxe nenhuma saída (nem esgotada, nem sem preço).
+  function semResultado() {
+    if (!dados || !pesquisou || MV.lotacao(f) === '5') return false;
+    var r = MV.filtrar(dados.saidas, f2(), dados.leitura);
+    return !r.lista.length && !r.esgotadas.length && !r.semPreco.length;
+  }
   function mudouPainel() { return !pesquisou || !MV.mesmaPesquisa(e, f) || (e.navio || '') !== (f.navio || '') || e.cia !== f.cia; }
 
   function marcar() {
@@ -854,7 +863,8 @@
     // Caixa das preferências: azul quando a tela mostra a pesquisa salva; dourada, com Salvar e Voltar, quando não.
     // Sem link (sem preferências salvas): só aparece depois de pesquisar, com o Salvar (que leva ao WhatsApp).
     var igualSalva = temPref && igual && !f.navio && f.cia === 'todas';
-    $('prefs').hidden = !pesquisou;
+    $('prefs').hidden = !pesquisou || semResultado();   // pesquisa sem nada não vira preferência
+    $('ordem').hidden = semResultado();
     $('prefs').className = 'prefs ' + (igualSalva ? 'salva' : 'nova');
     $('prefs-titulo').textContent = igualSalva ? 'Você está vendo a sua preferência salva' : 'Esta pesquisa ainda não é a sua preferência';
     $('prefs-sub').textContent = igualSalva ? 'Quer ver outras datas ou cabines? Toque em Refazer, lá em cima. Sua preferência só muda se você salvar.' :
@@ -1092,10 +1102,21 @@
       var nTit = r.esgotadas.length + r.semPreco.length;
       $('titulo-lista').innerHTML = '<em>' + nTit + '</em> ' + (nTit === 1 ? 'saída' : 'saídas') + ' nesta pesquisa';
     } else if (!r.lista.length) {
-      todas = MV.maisProximas(dados.saidas, g, hoje, 6);
-      $('titulo-lista').innerHTML = 'Nenhuma saída nesta pesquisa';
-      aviso = '<div class="vazio">Não achei saída com esses filtros' + (todas.length ? '. Estas são as mais próximas do período que você escolheu:' : '.') +
-        '<a class="btn" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e não achei a data que eu posso. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
+      // Pesquisa sem resultado (Leonardo, 21/11/2026: "não pode deixar o que estava na pesquisa anterior, nem que seja a
+      // preferência... vai parecer que fez a pesquisa"): só o aviso, o que foi pesquisado e Refazer / Carregar a salva /
+      // WhatsApp. Nenhuma saída, sem Salvar e sem a caixa da preferência (semResultado). ANTES: até 6 saídas "mais
+      // próximas" no mesmo cartão das normais, e a caixa da preferência continuava na tela.
+      todas = [];
+      $('titulo-lista').innerHTML = 'Nenhuma saída para esta pesquisa';
+      $('chamada').innerHTML = '<small>Nenhuma saída para a sua pesquisa</small>';
+      var podeSalva = temPref && !MV.mesmaPesquisa(pesquisaAtual(), salva) || temPref && (f.navio || f.cia !== 'todas');
+      aviso = '<div class="vazio sem-res"><span class="pesq-feita">Você pesquisou: ' + esc(MV.resumo(pesquisaAtual())) + '</span>' +
+        '<button class="btn" data-vazio="refazer">Refazer pesquisa</button>' +
+        (podeSalva ? '<button class="btn contorno" data-vazio="salva">Carregar minha pesquisa salva</button>' : '') +
+        '<a class="btn contorno" href="' + linkWhats('Oi, Leonardo! Vi minha página de cruzeiros e não achei a data que eu posso. Pode me ajudar?') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>';
+      lista = []; mostradas = []; voltarInicio = false;
+      $('lista').innerHTML = aviso;
+      return;
     } else {
       $('titulo-lista').innerHTML = '<em>' + nLista + '</em> ' + (nLista === 1 ? 'saída' : 'saídas') + ' para você';
     }
@@ -1268,6 +1289,12 @@
   $('cal-limpar').onclick = function () { c.de = ''; c.ate = ''; desenharCal(true); };
   $('cal-ok').onclick = aplicarCal;
   $('navio').onchange = function () { e.navio = this.value; marcar(); };
+  $('lista').addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-vazio]'); if (!b) return;
+    if (b.dataset.vazio === 'salva') { $('voltar').onclick(); return; }
+    if (!$('filtros').classList.contains('aberto')) $('mudar').onclick();
+    else window.scrollTo({ top: Math.max(0, $('filtros').getBoundingClientRect().top + window.pageYOffset - 4), behavior: 'smooth' });
+  });
   $('voltar').onclick = function () {
     f = Object.assign({}, salva, { navio: '', cia: 'todas', ordem: f.ordem }); if (f.b === 'entender') f.b = 'sem';
     copiarParaPainel(); novaLista(); desenhar(); window.scrollTo({ top: 0, behavior: 'smooth' });
