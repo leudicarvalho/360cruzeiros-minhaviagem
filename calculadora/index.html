@@ -39,7 +39,7 @@
   main { max-width: 560px; margin: 0 auto; padding: 0 16px 48px; }
   main.duas { max-width: 900px; }
 
-  .topo { position: relative; margin: 0 -16px 16px; padding: 16px 18px 20px; border-radius: 0 0 24px 24px; overflow: hidden; color: #fff; text-align: center;
+  .topo { position: relative; margin: 0 -16px 16px; padding: 16px 18px 50px; border-radius: 0 0 24px 24px; overflow: hidden; color: #fff; text-align: center;
     background: linear-gradient(160deg, rgba(7,22,29,.82) 0%, rgba(10,30,40,.66) 50%, rgba(15,46,58,.85) 100%),
       url('https://static.wixstatic.com/media/c17eb2_48f6acdc40cc445b941835be15115c99~mv2.jpg') center/cover no-repeat; }
   .barra { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; }
@@ -71,11 +71,31 @@
   .bloco .item:first-of-type { border-top: 0; }
   .preco-item { display: block; color: #4b5f69; font-size: 12.5px; }
   .aviso-foco { color: #4b5f69; font-size: 13px; margin: 8px 0 0; }
-  .passo { display: flex; align-items: center; gap: 8px; flex: none; }
-  .passo button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid #c9d5db; background: var(--marca-clara); color: var(--marca); font-size: 20px; font-weight: 700; cursor: pointer; }
-  .passo output { min-width: 22px; text-align: center; font-weight: 800; }
-  .linha-viagem { display: flex; gap: 16px; flex-wrap: wrap; }
-  .linha-viagem .item { border: 0; flex: 1 1 200px; }
+  /* − número + numa pílula só (21/11/2026, Leonardo: "modernizar"). */
+  .passo { display: inline-flex; align-items: center; gap: 4px; flex: none; background: var(--fundo); border: 1px solid var(--linha); border-radius: 999px; padding: 3px; }
+  .passo button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #fff; color: var(--marca); font-size: 20px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 2px rgba(16,37,46,.12); }
+  .passo output { min-width: 26px; text-align: center; font-weight: 800; }
+  /* Sua viagem: companhia, noites e adultos num cartão só, sobre a foto do topo (21/11/2026, Leonardo: "Tá tudo
+     separado, tá horrível aquilo"). ANTES: título "Sua viagem" e duas linhas soltas, cada uma com o seu − +. */
+  .viagem { position: relative; margin-top: -34px; padding: 14px; box-shadow: 0 8px 24px rgba(16,37,46,.12); border: 0; }
+  .cia-escolha { display: flex; background: var(--fundo); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 12px; }
+  .cia-escolha button { flex: 1; padding: 10px; border: 0; border-radius: 9px; background: transparent; color: var(--suave); font: 800 15px var(--fonte); cursor: pointer; }
+  .cia-escolha button[aria-pressed="true"] { background: var(--marca); color: #fff; box-shadow: 0 1px 3px rgba(16,37,46,.25); }
+  .cia-pergunta { font-size: 13px; color: var(--suave); font-weight: 700; margin: 0 0 6px; text-align: center; }
+  .v-grade { display: grid; grid-template-columns: 1fr 1fr; }
+  .v-campo { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 2px 6px; }
+  .v-campo + .v-campo { border-left: 1px solid var(--linha); }
+  .v-rot { font-size: 12px; font-weight: 800; color: var(--suave); text-transform: uppercase; letter-spacing: .05em; text-align: center; }
+  /* Marcas e preços de cada bebida (21/11/2026, Leonardo: "mostrar todas as marcas e todos os preços possíveis"). */
+  .marcas { list-style: none; margin: 4px 0 0; }
+  .marcas li { color: #4b5f69; font-size: 12.5px; display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
+  .marcas li b { color: var(--texto); white-space: nowrap; font-weight: 700; }
+  .marcas .media { color: var(--marca); font-weight: 700; }
+  .item-nome { flex: 1; min-width: 0; }
+  /* Pergunta do pacote: três botões com uma linha explicando cada um. */
+  .opcoes.foco button { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+  .opcoes.foco button small { font-weight: 500; font-size: 12.5px; color: var(--suave); }
+  .opcoes.foco button[aria-pressed="true"] small { color: #d3e3e9; }
   .colunas { display: grid; gap: 14px; }
   @media (min-width: 640px) { .colunas.duas { grid-template-columns: 1fr 1fr; } }
   .avulso { font-size: 15px; margin: 0 0 10px; }
@@ -121,18 +141,25 @@
     <span class="saida-info" id="saida-info" hidden></span>
   </header>
 
-  <a class="voltar" id="voltar" href="../" hidden>← Voltar para a minha pesquisa</a>
-
-  <section>
-    <h2>Sua viagem</h2>
-    <div class="linha-viagem">
-      <div class="item"><span>Noites</span><span class="passo" data-campo="noites"></span></div>
-      <div class="item"><span>Adultos na cabine</span><span class="passo" data-campo="adultos"></span></div>
+  <!-- Sua viagem num cartão só (21/11/2026). Companhia: uma calculadora por companhia (Leonardo, 21/11/2026: "Vai ter
+       uma calculadora para MSC e uma para Costa"). Link com cia ou com a saída = fixa, sem escolha; sem = o cliente
+       escolhe aqui antes de tudo. ANTES: sem companhia no link, MSC e Costa lado a lado. -->
+  <section class="viagem">
+    <div id="cia-caixa" hidden>
+      <p class="cia-pergunta">Seu cruzeiro é de qual companhia?</p>
+      <div class="cia-escolha" id="cia-escolha"></div>
+    </div>
+    <div class="v-grade">
+      <div class="v-campo"><span class="v-rot">Noites</span><span class="passo" data-campo="noites"></span></div>
+      <div class="v-campo"><span class="v-rot">Adultos na cabine</span><span class="passo" data-campo="adultos"></span></div>
     </div>
   </section>
 
+  <a class="voltar" id="voltar" href="../" hidden>← Voltar para a minha pesquisa</a>
+
+  <div id="depois-cia">
   <section>
-    <h2>Você bebe bebida alcoólica?</h2>
+    <h2>Você toma bebida alcoólica?</h2>
     <div class="opcoes" id="alcool"></div>
   </section>
 
@@ -140,8 +167,8 @@
        blocos por pacote). Só para quem bebe álcool; o resto da tela espera a resposta. Vem marcado quando a pesquisa já
        tem o pacote (b=basico|premium). -->
   <section id="sec-foco">
-    <h2>O que é mais importante para você a bordo?</h2>
-    <div class="opcoes tres" id="foco"></div>
+    <h2>Quais bebidas alcoólicas você quer ver?</h2>
+    <div class="opcoes foco" id="foco"></div>
   </section>
 
   <div id="depois-foco">
@@ -163,6 +190,7 @@
   <section id="sec-final" class="oculto">
     <div id="final"></div>
   </section>
+  </div>
   </div>
 
   <p class="rodape">Valores aproximados: dependem da cotação do dólar no dia. Os preços avulsos já incluem a taxa de serviço de 15%. Todos os adultos da mesma cabine precisam ter o mesmo pacote.</p>
@@ -198,8 +226,10 @@
 
   function iniciar(precos) {
     var saida = C.saidaDoDia(precos, link.saida);
-    var cia = link.cia || (saida && saida.cia) || "";
-    var ciaDia = cia || "msc"; // lado a lado: o mínimo da MSC
+    // Uma calculadora por companhia (Leonardo, 21/11/2026): a do link ou a da saída; sem nenhuma, o cliente escolhe
+    // no cartão do topo e o resto espera. ANTES: sem companhia, MSC e Costa lado a lado (main.duas).
+    var ciaFixa = link.cia || (saida && saida.cia) || "";
+    var cia = ciaFixa, ciaDia = cia || "msc";
     if (saida && saida.navio) {
       var info = document.getElementById('saida-info');
       info.textContent = saida.navio + ' · ' + saida.embarque.slice(8, 10) + '/' + saida.embarque.slice(5, 7) + ' · ' + saida.noites + ' noites';
@@ -219,8 +249,29 @@
       outros: [pessoa(), pessoa(), pessoa()], // adultos 2 a 4, cada um com a própria lista
       preferencia: null,   // faixa dos 35%: "sem_preocupar" | "controlar"
     };
-    var cias = cia ? [cia] : ["msc", "costa"];
-    if (cias.length > 1) document.getElementById("principal").classList.add("duas");
+    var cias = cia ? [cia] : [];
+    function nomeCia(c) { return c === "costa" ? "Costa" : "MSC"; }
+    function tituloCia() { document.querySelector(".topo h1").textContent = "Calculadora de bebidas" + (cia ? " " + nomeCia(cia) : ""); }
+    // Escolha da companhia (só sem ela no link): troca = volta ao mínimo da companhia nova e refaz a tela.
+    function montarCia() {
+      var caixa = document.getElementById("cia-escolha");
+      document.getElementById("cia-caixa").hidden = !!ciaFixa;
+      document.getElementById("depois-cia").classList.toggle("oculto", !cia);
+      if (ciaFixa) return;
+      caixa.innerHTML = "";
+      ["msc", "costa"].forEach(function (c) {
+        var b = el("button", { type: "button", "aria-pressed": String(cia === c), texto: nomeCia(c) });
+        b.onclick = function () {
+          cia = c; ciaDia = c; cias = [c];
+          [estado.voce].concat(estado.outros).forEach(function (p) { p.consumo = C.diaMinimo(c, p.alcool, estado.foco); });
+          estado.preferencia = null;
+          montarCia(); tituloCia(); montarFoco();
+          montarItens(document.getElementById("itens-voce"), estado.voce);
+          montarOutros(); atualizar();
+        };
+        caixa.appendChild(b);
+      });
+    }
 
     function reais(v) { return "R$ " + Math.round(v).toLocaleString("pt-BR"); }
     function el(tag, attrs, filhos) {
@@ -240,7 +291,7 @@
     }
 
     function montarViagem() {
-      document.querySelectorAll(".linha-viagem .passo").forEach(function (span) {
+      document.querySelectorAll(".v-grade .passo").forEach(function (span) {
         var campo = span.getAttribute("data-campo");
         var lim = campo === "noites" ? [1, 30] : [1, 4];
         span.innerHTML = "";
@@ -252,36 +303,35 @@
       });
     }
 
-    // Nome do pacote básico/premium nas companhias da tela: "Easy" ou "Easy e My Drinks".
+    // Nome do pacote básico/premium da companhia da tela ("Easy", "My Drinks").
     function nomesNivel(nivel) { return cias.map(function (c) { return C.CIAS[c].niveis[nivel].pacote; }).join(" / "); }
-    // Preço avulso ao lado de cada item ("R$ 48 avulso"; lado a lado: "MSC R$ 54 · Costa R$ 39 avulso").
-    function precoItem(id) {
-      if (cias.length === 1) return reais(C.CIAS[cias[0]].avulso[id]) + " avulso";
-      return cias.map(function (c) { return C.CIAS[c].nome + " " + reais(C.CIAS[c].avulso[id]); }).join(" · ") + " avulso";
-    }
-    // Item que muda de pacote de uma companhia para outra (long neck): diz onde está em cada uma.
-    function notaMuda(it) {
-      if (C.blocoDoItem(it) !== "muda") return "";
-      return cias.map(function (c) {
-        var n = it.nivelPor[c];
-        return C.CIAS[c].nome + ": " + (n === "basico" ? "no " + C.CIAS[c].niveis.basico.pacote : "só no " + C.CIAS[c].niveis.premium.pacote);
-      }).join(" · ");
-    }
+    function precoMarca(m) { return (isFinite(m.de) ? reais(m.de) + " a " : m.ate ? "até " : "") + reais(m.v); }
+    // Cada bebida com TODAS as marcas e o preço de cada uma; com preços diferentes, a média que entra na conta
+    // (Leonardo, 21/11/2026: "Não fazer uma média só, mas mostrar tudo. O valor pode ser a média mesmo").
+    // ANTES: o nome com 2 ou 3 marcas de exemplo e um preço só ("R$ 54 avulso").
     function linhaItem(it, p) {
       var span = el("span", { "class": "passo" }, passo(p.consumo[it.id] || 0, 0, 20, function (v) { p.consumo[it.id] = v; atualizar(); }));
-      var nota = notaMuda(it);
-      return el("div", { "class": "item" }, [el("span", {}, [it.nome, el("span", { "class": "preco-item", texto: precoItem(it.id) + (nota ? " · " + nota : "") })]), span]);
+      var avulso = C.CIAS[cia].avulso[it.id], info;
+      if (it.marcas && it.marcas.length) {
+        var precos = it.marcas.map(function (m) { return C.precoMarca(m); });
+        var varia = precos.some(function (v) { return v !== precos[0]; });
+        info = el("ul", { "class": "marcas" }, it.marcas.map(function (m) { return el("li", {}, [el("span", { texto: m.nome }), el("b", { texto: precoMarca(m) })]); })
+          .concat(varia ? [el("li", { "class": "media", texto: "Na conta: média de " + reais(avulso) }) ] : []));
+      } else info = el("span", { "class": "preco-item", texto: reais(avulso) + " avulso" });
+      return el("div", { "class": "item" }, [el("span", { "class": "item-nome" }, [it.nome, info]), span]);
     }
 
     // Lista do dia conforme o foco: "economia" só os itens do básico, "qualidade" só os do premium, "todos" em blocos
     // coloridos por pacote (básico, muda de companhia, só no premium). Sem foco (ninguém respondeu): todos, em blocos.
     function montarItens(caixa, p) {
       caixa.innerHTML = "";
+      if (!cia) return;
       var itens = C.itensDoFoco(cias, estado.foco);
       caixa.appendChild(el("div", { "class": "grupo", texto: "Sem álcool" }));
       itens.forEach(function (it) { if (!it.alcool) caixa.appendChild(linhaItem(it, p)); });
       if (!p.alcool) return;
       var com = itens.filter(function (it) { return it.alcool; });
+      if (!cia) return;
       if (estado.foco === "economia" || estado.foco === "qualidade") {
         caixa.appendChild(el("div", { "class": "grupo", texto: "Com álcool · " + (estado.foco === "economia" ? "pacote " + nomesNivel("basico") : "pacote " + nomesNivel("premium")) }));
         com.forEach(function (it) { caixa.appendChild(linhaItem(it, p)); });
@@ -317,11 +367,18 @@
       document.getElementById("sec-foco").classList.toggle("oculto", !algumBebe());
       document.getElementById("depois-foco").classList.toggle("oculto", estado.voce.alcool && !estado.foco);
     }
+    // Pergunta do pacote (Leonardo, 21/11/2026: "pagar menos, bebidas de marca melhor e quero ver todos... Tem que ter
+    // uma ligação desse quero ver todos com as outras duas opções"): os três falam do pacote, e o terceiro é os dois
+    // primeiros juntos. ANTES: "O que é mais importante para você a bordo?" Pagar menos / Bebidas de marca melhor /
+    // Quero ver todos, e uma linha embaixo explicando.
     function montarFoco() {
       var caixa = document.getElementById("foco");
       caixa.innerHTML = "";
-      [["economia", "Pagar menos"], ["qualidade", "Bebidas de marca melhor"], ["todos", "Quero ver todos"]].forEach(function (o) {
-        var b = el("button", { type: "button", "data-v": o[0], "aria-pressed": String(estado.foco === o[0]), texto: o[1] });
+      if (!cia) return;
+      [["economia", "Do pacote básico", nomesNivel("basico") + ", o mais em conta"],
+       ["qualidade", "Do pacote premium", nomesNivel("premium") + ", com marcas melhores"],
+       ["todos", "Dos dois pacotes", "Básico e premium, para comparar"]].forEach(function (o) {
+        var b = el("button", { type: "button", "data-v": o[0], "aria-pressed": String(estado.foco === o[0]) }, [o[1], el("small", { texto: o[2] })]);
         b.onclick = function () {
           caixa.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
           estado.foco = o[0];
@@ -335,7 +392,6 @@
         };
         caixa.appendChild(b);
       });
-      caixa.parentNode.appendChild(el("p", { "class": "dica", style: "margin:10px 0 0", texto: "Pagar menos mostra só as bebidas do pacote " + nomesNivel("basico") + ". Marca melhor mostra só as do " + nomesNivel("premium") + "." }));
     }
 
     // Sim/Não. Trocar o álcool volta a lista ao mínimo daquele caso (com ou sem álcool).
@@ -369,7 +425,7 @@
         montarItens(itens, p);
         caixa.appendChild(el("section", {}, [
           el("h2", { texto: "Adulto " + (i + 2) }),
-          el("p", { "class": "dica", texto: "Bebe bebida alcoólica?" }), alc,
+          el("p", { "class": "dica", texto: "Toma bebida alcoólica?" }), alc,
           el("p", { "class": "dica", style: "margin-top:12px", texto: "O que essa pessoa beberia em um dia a bordo?" }), itens,
         ]));
       }
@@ -415,7 +471,7 @@
       var sug = el("div", { "class": "sugestao" }, textoSugestao(r).map(function (t) { return el("p", { texto: t }); }));
       var temRef = r.pacotes.some(function (p) { return p.fonte === "referencia"; });
       return el("section", {}, [
-        el("h2", { texto: cias.length > 1 ? "Na " + c.nome : "Resultado na " + c.nome }),
+        el("h2", { texto: "Resultado na " + c.nome }),
         el("p", { "class": "avulso" }, ["Comprando avulso: ", el("b", { texto: reais(r.avulsoDiaPessoa) }), " por dia, por pessoa · ", el("b", { texto: reais(r.avulsoViagem) }), " na viagem toda"]),
         el("table", {}, [el("tr", {}, [el("td", { "class": "nota", texto: "Pacotes para os " + r.adultos + " adulto(s), viagem toda" }), el("td", {})])].concat(linhas)),
         temRef ? el("p", { "class": "nota", texto: "Pacotes pelo preço médio por dia; o valor exato depende da saída." }) : null,
@@ -476,6 +532,7 @@
     }
 
     function atualizar() {
+      if (!cia) return;
       mostrarFoco(); // adultos, "bebem parecido" e o álcool de cada um mudam se a pergunta aparece
       var rs = cias.map(function (ciaId) {
         // Foco escolhido e alguém bebe: compara só o pacote do foco com o sem pacote ("todos" = os três).
@@ -528,6 +585,8 @@
       });
     }
 
+    tituloCia();
+    montarCia();
     montarViagem();
     montarFoco();
     var itensVoce = document.getElementById("itens-voce");

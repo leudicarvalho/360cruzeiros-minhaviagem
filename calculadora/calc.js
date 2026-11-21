@@ -29,10 +29,10 @@
   // Dia já preenchido = o MÍNIMO em que o pacote passa a valer a pena (Leonardo, 21/11/2026: "coloque que é o
   // mínimo que vale a pena para o pacote de bebidas"). Sem álcool: o exemplo da habilidade (MSC 6 refris + 3 águas
   // contra 205; Costa 5 refris + 3 águas contra 180). Com álcool: um dia comum que chega ao básico pela referência
-  // (MSC 2 refris + 1 água + 2 cervejas + 2 drinks = 297 contra o Easy 285; Costa o mesmo com 3 drinks = 291
+  // (MSC 2 refris + 1 água + 2 cervejas + 2 drinks = 297 contra o Easy 285; Costa o mesmo com 3 drinks = 294
   // contra o My Drinks 270). Com 1 drink a menos, o pacote já não compensa (o teste confere).
   // Foco "qualidade" (21/11/2026): o mínimo em que o premium compensa (MSC 2 refris + 1 água + 5 drinks premium = 489
-  // contra o Premium Extra 485; Costa o mesmo com 4 = 393 contra o My Drinks Plus 360). Com 1 a menos já não compensa.
+  // contra o Premium Extra 485; Costa o mesmo com 4 = 413 contra o My Drinks Plus 360; contas com a média das marcas, 21/11/2026). Com 1 a menos já não compensa.
   var DIA_MINIMO = {
     msc: {
       sem_alcool: { refri: 6, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
@@ -59,15 +59,21 @@
   var CIAS = {
     msc: {
       nome: "MSC",
-      avulso: { refri: 26, agua: 17, cafe: 21, cerveja: 48, longneck: 54, artesanal: 72, vinho: 48, drink: 66, premium: 84 },
-      // Nome na tela e o pacote mais simples que cobre cada item alcoólico (tabela da habilidade).
+      // Avulso dos itens sem álcool aqui; o dos itens com álcool sai da média das marcas (MARCAS, embaixo).
+      avulso: { refri: 26, agua: 17, cafe: 21 },
+      // Nome na tela, o pacote mais simples que cobre o item e TODAS as marcas com o preço de cada uma (Leonardo,
+      // 21/11/2026: "Tem que mostrar todas as marcas e todos os preços possíveis... O valor pode ser a média mesmo").
+      // Preço com 15%, da habilidade precos-bebidas-msc-costa-2026 (Tabela de preços avulsos MSC). "ate" = teto.
+      // ANTES: um nome com 2 ou 3 marcas de exemplo e um preço só.
       itens: {
-        cerveja: { nome: "Chope Stella", nivel: "basico" },
-        longneck: { nome: "Cerveja long neck (Heineken, Corona)", nivel: "premium" },
-        artesanal: { nome: "Cerveja artesanal", nivel: "premium" },
-        vinho: { nome: "Vinho ou espumante da casa (taça)", nivel: "basico" },
-        drink: { nome: "Drink clássico (caipirinha, mojito, piña colada...)", nivel: "basico" },
-        premium: { nome: "Drink premium ou destilado (Negroni, Mai-Tai, whisky, gin...)", nivel: "premium" },
+        cerveja: { nome: "Chope", nivel: "basico", marcas: [{ nome: "Chope Stella", v: 48 }] },
+        longneck: { nome: "Cerveja long neck", nivel: "premium", marcas: [{ nome: "Corona ou Heineken", v: 54 }] },
+        artesanal: { nome: "Cerveja artesanal", nivel: "premium", marcas: [{ nome: "Cervejas artesanais", v: 72 }] },
+        vinho: { nome: "Vinho ou espumante da casa (taça)", nivel: "basico", marcas: [{ nome: "Vinho ou espumante da casa", v: 48 }] },
+        drink: { nome: "Drink clássico", nivel: "basico", marcas: [{ nome: "Caipirinha, Mojito, Piña Colada, Daiquiri, Margarita ou Cosmopolitan", v: 66 }] },
+        premium: { nome: "Drink premium ou destilado", nivel: "premium", marcas: [
+          { nome: "Mount Gay Coco Loco, Mai-Tai, Campari Negroni ou Long Island Iced Tea", v: 84, ate: true },
+          { nome: "Whisky importado, Absolut, Grey Goose ou Tanqueray", v: 84, ate: true }] },
       },
       niveis: {
         sem_alcool: { pacote: "Não Alcoólico", cobre: { refri: true, agua: true, cafe: true } },
@@ -79,14 +85,21 @@
     },
     costa: {
       nome: "Costa",
-      avulso: { refri: 27, agua: 15, cafe: 15, cerveja: 30, longneck: 39, artesanal: 47, vinho: 42, drink: 54, premium: 81 },
+      avulso: { refri: 27, agua: 15, cafe: 15 },
+      // Tabela de preços avulsos Costa da habilidade. Média das marcas na conta: drink clássico 55 (ANTES 54, só a
+      // caipirinha), drink premium 86 (de 81 a 90; ANTES 81), vinho 44 (taça 42, espumante 45; ANTES 42).
       itens: {
-        cerveja: { nome: "Chope", nivel: "basico" },
-        longneck: { nome: "Cerveja long neck (Corona, Carlsberg, Beck's)", nivel: "basico" },
-        artesanal: { nome: "Cerveja premium (Weissbier)", nivel: "premium" },
-        vinho: { nome: "Vinho da casa (taça)", nivel: "basico" },
-        drink: { nome: "Drink clássico (caipirinha, Aperol, piña colada...)", nivel: "basico" },
-        premium: { nome: "Drink premium ou destilado (Hendrick's, Tanqueray Nº10...)", nivel: "premium" },
+        cerveja: { nome: "Chope", nivel: "basico", marcas: [{ nome: "Chope", v: 30 }] },
+        longneck: { nome: "Cerveja long neck", nivel: "basico", marcas: [{ nome: "Carlsberg, Corona ou Beck's", v: 39 }] },
+        artesanal: { nome: "Cerveja premium", nivel: "premium", marcas: [{ nome: "Weissbier", v: 47 }] },
+        vinho: { nome: "Vinho ou espumante (taça)", nivel: "basico", marcas: [{ nome: "Vinho (taça)", v: 42 }, { nome: "Espumante (taça)", v: 45 }] },
+        drink: { nome: "Drink clássico", nivel: "basico", marcas: [
+          { nome: "Bellini ou Rossini", v: 42 },
+          { nome: "Caipirinha, Caipirosca, Martini, Aperol Spritz ou Campari Spritz", v: 54 },
+          { nome: "Cuba Libre ou Gin Tônica", v: 57 },
+          { nome: "Marguerita ou Piña Colada", v: 66 }] },
+        premium: { nome: "Drink premium ou destilado", nivel: "premium", marcas: [
+          { nome: "Gin tônica Hendrick's ou Tanqueray Nº10", de: 81, v: 90 }] },
       },
       niveis: {
         sem_alcool: { pacote: "My Soft Drinks", cobre: { refri: true, agua: true, cafe: true } },
@@ -96,6 +109,18 @@
       referenciaDia: { sem_alcool: 180, basico: 270, premium: 360 },
     },
   };
+
+  // Preço de cada marca (a faixa "de 81 a 90" conta pelo meio) e o avulso do item = média das marcas, arredondada.
+  // Mudou um preço na habilidade precos-bebidas-msc-costa-2026: mude a marca aqui e a conta acompanha sozinha.
+  function precoMarca(m) { return isFinite(m.de) ? (m.de + m.v) / 2 : m.v; }
+  function mediaMarcas(marcas) {
+    var t = 0;
+    marcas.forEach(function (m) { t += precoMarca(m); });
+    return Math.round(t / marcas.length);
+  }
+  Object.keys(CIAS).forEach(function (c) {
+    Object.keys(CIAS[c].itens).forEach(function (id) { CIAS[c].avulso[id] = mediaMarcas(CIAS[c].itens[id].marcas); });
+  });
 
   var NIVEIS = ["sem_pacote", "sem_alcool", "basico", "premium"];
   var FAIXA = 0.35; // regra dos 35% (venda consultiva)
@@ -111,7 +136,8 @@
     }).map(function (it) {
       var por = {};
       if (it.alcool) cias.forEach(function (c) { por[c] = CIAS[c].itens[it.id].nivel; });
-      return { id: it.id, alcool: it.alcool, nome: it.alcool && cias.length === 1 ? CIAS[cias[0]].itens[it.id].nome : it.nome, nivelPor: por };
+      var uma = it.alcool && cias.length === 1 ? CIAS[cias[0]].itens[it.id] : null;
+      return { id: it.id, alcool: it.alcool, nome: uma ? uma.nome : it.nome, marcas: uma ? uma.marcas : [], nivelPor: por };
     });
   }
 
@@ -298,7 +324,7 @@
   }
 
   var api = { ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
-    soDoFoco: soDoFoco, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA,
+    soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA,
     avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir,
     nivelDasDuas: nivelDasDuas, NIVEL_PARA_B: NIVEL_PARA_B, montarEnvio: montarEnvio, saidaDoDia: saidaDoDia, lerLink: lerLink };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
