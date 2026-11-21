@@ -83,9 +83,6 @@
   .base b { color: var(--ouro-texto); }
   .base::before { content: 'i'; background: var(--ouro-escuro); font-family: Georgia, serif; }
   .caixa .btn { margin-top: 8px; }
-  /* Botão da calculadora no computador só do tamanho do texto (Leonardo, 21/11/2026: "ficou muito grande no computador...
-     ocupa a tela inteira"). ANTES: largura da tela inteira. No celular continua na largura toda. */
-  @media (min-width: 700px) { #btn-calc { display: inline-block; width: auto; padding: 11px 28px; } }
 
   /* Leitura (Leonardo, 21/11/2026: "algumas fontes estão muito pequenas... quem tem problema de visão... estudar contraste
      de fonte com o fundo"): nenhum texto abaixo de 11px (selos), textos de apoio de 12,5 a 14px; cinza dos textos de
@@ -237,8 +234,6 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: border-color .15s, box-shadow .15s, background .15s; }
   .pilulas.opcoes button:hover:not(.ativo) { border-color: var(--marca); }
   .pilulas.opcoes button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; box-shadow: 0 3px 10px rgba(15,76,92,.3); }
-  .link-calc { font-size: 13.5px; color: var(--suave); text-decoration: none; margin-top: auto; }
-  .link-calc b { color: var(--marca); text-decoration: underline; }
   .cartao select { height: 40px; border-radius: 11px; background: #fff; border: 1px solid #dbe4e8; font: 700 14px var(--fonte); padding: 0 10px; }
 
   /* Calendário (Leonardo, 21/11/2026: "abrir um calendário para poder selecionar... fácil de utilizar e que dê para informar
@@ -562,7 +557,9 @@
         <button data-v="int">Interna</button><button data-v="ext">Externa</button><button data-v="var">Varanda</button><button data-v="sui">Suíte</button><button data-v="todas" class="larga">Qualquer uma</button></div></div>
       <div class="cartao"><div class="cartao-tit">Bebidas</div><div class="pilulas opcoes c2" data-f="b">
         <button data-v="sem">Sem pacote</button><button data-v="soft">Sem álcool</button><button data-v="basico">Básico</button><button data-v="premium">Premium</button></div>
-        <a class="link-calc" id="link-calc" href="calculadora/">Qual pacote vale a pena? <b>Abrir a calculadora</b></a></div>
+        <!-- Sem o link "Abrir a calculadora" (Leonardo, 21/11/2026: "só deixar clicar para calcular a bebida quando já tiver
+             selecionado alguma saída... senão vai dar confusão"): sem a saída, a calculadora abria pedindo MSC ou Costa.
+             ANTES: "Qual pacote vale a pena? Abrir a calculadora" sempre à vista aqui. --></div>
       <!-- Companhia (Leonardo, 21/11/2026: "filtro entre MSC, Costa... ou todos, e vire o todos como padrão"): no cartão do
            navio, e a lista de navios segue a companhia. Não fica salva (como o navio). ANTES: só o navio. -->
       <!-- Temáticos (Leonardo, 21/11/2026: "filtro entre MSC, Costa, temáticos ou todos"; "Sim, incluir temáticos"): fretados
@@ -579,8 +576,9 @@
     </div>
     <!-- Calculadora (passo 4B, no site desde 21/11/2026): um texto só ("Em dúvida...? / Descobrir o pacote ideal") com
          pacote escolhido ou "Quero entender" (Leonardo, 21/11/2026). ANTES: pacote escolhido = "Escolheu o pacote <nível>?". -->
-    <div class="caixa base" id="convite-calc" hidden><div><span id="calc-txt"></span>
-      <a class="btn ouro" id="btn-calc" href="#"></a></div></div>
+    <!-- Sem botão aqui (Leonardo, 21/11/2026): a calculadora só abre de dentro de uma saída. ANTES: botão dourado
+         "Descobrir o pacote ideal" que abria a calculadora sem a saída (pedindo MSC ou Costa). -->
+    <div class="caixa base" id="convite-calc" hidden><div><span id="calc-txt"></span></div></div>
   </div>
 
   <div class="prefs" id="prefs">
@@ -919,11 +917,8 @@
     $('legenda-pacote').textContent = e.b === 'sem' ? '' : 'Básico = Easy na MSC e My Drinks na Costa. Premium = Premium Extra na MSC e My Drinks Plus na Costa. Sem álcool = Não Alcoólico na MSC e My Soft Drinks na Costa.';
     var calc = MV.conviteCalc(salva.b, f.b);
     if (calc) {
-      $('calc-txt').innerHTML = '<b>' + esc(calc.titulo) + '</b> ' + esc(calc.texto);
-      $('btn-calc').textContent = calc.botao;
+      $('calc-txt').innerHTML = '<b>' + esc(calc.titulo) + '</b> Abra uma saída e toque em “' + esc(calc.botao) + '”: em 1 minuto você vê qual vale mais a pena.';
     }
-    $('btn-calc').href = CALCULADORA + MV.linkCalc(salva.id, adultosReais(), null, whatsCalc());
-    $('link-calc').href = CALCULADORA + MV.linkCalc(salva.id, adultosReais(), null, whatsCalc());   // sempre no cartão Bebidas (Leonardo, 21/11/2026)
     montarIdades();
   }
 
