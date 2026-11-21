@@ -103,9 +103,11 @@
   .v-rot { font-size: 12px; font-weight: 800; color: var(--suave); text-transform: uppercase; letter-spacing: .05em; text-align: center; }
   /* Marcas e preços de cada bebida (21/11/2026, Leonardo: "mostrar todas as marcas e todos os preços possíveis"). */
   .marcas { list-style: none; margin: 4px 0 0; }
-  .marcas li { color: #4b5f69; font-size: 12.5px; display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
-  .marcas li b { color: var(--texto); white-space: nowrap; font-weight: 700; }
-  .marcas .media { color: var(--marca); font-weight: 700; }
+  /* Marca e preço maiores nas alcoólicas (Leonardo, 21/11/2026: "o tamanho da fonte dos preços pode ficar maior ali com
+     álcool... aumentar também um pouco a marca"). ANTES: marca 12,5px e preço 12,5px peso 700. */
+  .marcas li { color: #4b5f69; font-size: 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 2px 0; }
+  .marcas li b { color: var(--texto); white-space: nowrap; font-weight: 800; font-size: 16px; }
+  .marcas .media { color: var(--marca); font-weight: 700; font-size: 14px; }
   .item-nome { flex: 1; min-width: 0; }
   /* Preço da bebida sem marcas (sem álcool) em destaque, como o das alcoólicas (Leonardo, 21/11/2026: "os valores do não
      alcoólico não estão tão destacados como no alcoólico"). ANTES: "R$ 26 avulso" pequeno e cinza. */
