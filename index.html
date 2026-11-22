@@ -595,6 +595,12 @@
     .periodo .volta, .periodo .noites { white-space: nowrap; }
     .cabs:not(.uma) { row-gap: 11px; }
     .cabs:not(.uma) .cab.menor { padding-top: 12px; }
+    /* Mesma altura com o selo em cima ou embaixo (Leonardo, 21/11/2026: "Quando o botão do melhor preço fica na linha de
+       baixo... O card está ficando maior"): toda célula tem a altura de uma com preço (Esgotada era 4px mais baixa) e a do
+       selo 3px a mais: a grade tem 160px com o selo em cima ou embaixo (medido a 360, 390 e 430px). ANTES: 155 a 160px conforme
+       a linha do selo e as esgotadas. */
+    .cabs:not(.uma) .cab { min-height: 66px; }
+    .cabs:not(.uma) .cab.menor { min-height: 69px; }
   }
   /* Troca de cabine no celular, alinhada ao card do celular (827ea9b): o painel fica à direita do preço, sem crescer o card;
      os 2 botões ficam um embaixo do outro quando não cabem lado a lado. */
