@@ -401,6 +401,9 @@
     .car-seta.esq { left: -8px; } .car-seta.dir { right: -8px; }
     .car-seta.fim { opacity: 0; pointer-events: none; }
   }
+  /* Setas no meio do espaço vazio ao lado dos cartões (Leonardo, 21/11/2026, print: "esse botão tem que ficar mais
+     centralizado"): em tela larga saem de cima da borda do cartão. ANTES: left/right -8px, a seta cobria a borda. */
+  @media (min-width: 1180px) { .car-seta.esq { left: -58px; } .car-seta.dir { right: -58px; } }
   .dica-baixo { text-align: center; margin: -4px 2px 12px; }
   .contagem { text-align: center; color: var(--suave); font-size: 13.5px; margin: 2px 0 10px; }
   .cab.escolhida { border: 2px solid var(--ouro-escuro); background: var(--ouro-claro); }
