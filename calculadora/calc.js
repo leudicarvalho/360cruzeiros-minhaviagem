@@ -30,15 +30,15 @@
   // Dia já preenchido = o MÍNIMO em que o pacote passa a valer a pena (Leonardo, 21/11/2026: "coloque que é o
   // mínimo que vale a pena para o pacote de bebidas"). Sem álcool: o exemplo da habilidade (MSC 6 refris + 3 águas
   // contra 205; Costa 5 refris + 3 águas contra 180). Com álcool: um dia comum que chega ao básico pela referência
-  // (MSC 2 refris + 1 água + 2 cervejas + 2 drinks = 297 contra o Easy 285; Costa o mesmo com 3 drinks = 294
+  // (MSC 2 refris + 1 água + 2 cervejas + 2 drinks = 295 contra o Easy 285; 297 até 22/11, chope 48; Costa o mesmo com 3 drinks = 294
   // contra o My Drinks 270). Com 1 drink a menos, o pacote já não compensa (o teste confere).
-  // Foco "qualidade" (21/11/2026): o mínimo em que o premium compensa (MSC 2 refris + 1 água + 5 drinks premium = 489
-  // contra o Premium Extra 485; Costa o mesmo com 4 = 413 contra o My Drinks Plus 360; contas com a média das marcas, 21/11/2026). Com 1 a menos já não compensa.
+  // Foco "qualidade" (21/11/2026): o mínimo em que o premium compensa (MSC 2 refris + 1 água + 6 drinks premium = 543
+  // contra o Premium Extra 485, com 5 = 464; 22/11/2026: média do premium caiu de 84 para 79 com o cardápio oficial, ANTES 5 drinks = 489; Costa o mesmo com 4 = 413 contra o My Drinks Plus 360; contas com a média das marcas, 21/11/2026). Com 1 a menos já não compensa.
   var DIA_MINIMO = {
     msc: {
       sem_alcool: { refri: 6, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
       com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja: 2, longneck: 0, artesanal: 0, vinho: 0, drink: 2, premium: 0 },
-      qualidade: { refri: 2, agua: 1, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 5 },
+      qualidade: { refri: 2, agua: 1, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 6 },
     },
     costa: {
       sem_alcool: { refri: 5, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
@@ -89,15 +89,22 @@
       // Preço com 15%, da habilidade precos-bebidas-msc-costa-2026 (Tabela de preços avulsos MSC). "ate" = teto.
       // ANTES: um nome com 2 ou 3 marcas de exemplo e um preço só.
       itens: {
-        cerveja: { nome: "Chope", nivel: "basico", marcas: [{ nome: "Chope Stella", v: 48 }] },
-        longneck: { nome: "Cerveja long neck", nivel: "premium", marcas: [{ nome: "Corona ou Heineken", v: 54 }] },
+        // Cardápio oficial MSC Brasil 25/26 (docs/bebidas/PRECOS-AVULSOS.md; Leonardo, 22/11/2026: "pode deixar o Shop e a
+        // Amstel em lata" no Easy). ANTES: chope só Stella 48; long neck "Corona ou Heineken" 54.
+        cerveja: { nome: "Chope ou Amstel em lata", nivel: "basico", marcas: [{ nome: "Chope Stella", v: 48 }, { nome: "Amstel em lata", v: 45 }] },
+        longneck: { nome: "Cerveja long neck ou lata", nivel: "premium", marcas: [
+          { nome: "Brahma", v: 39 }, { nome: "Heineken, Budweiser ou Stella", v: 45 }, { nome: "Corona", v: 51 }] },
         artesanal: { nome: "Cerveja artesanal", nivel: "premium", marcas: [{ nome: "Cervejas artesanais", v: 72 }] },
         vinho: { nome: "Vinho ou espumante da casa (taça)", nivel: "basico", marcas: [{ nome: "Vinho ou espumante da casa", v: 48 }] },
         drink: { nome: "Drink clássico", nivel: "basico", marcas: [{ nome: "Caipirinha, Mojito, Piña Colada, Daiquiri, Margarita ou Cosmopolitan", v: 66 }] },
         // Uma linha só, mesmo preço (Leonardo, 21/11/2026: "até 84 aparece 2 vezes. Tem que ficar uma só").
         // ANTES: 2 linhas (drinks / destilados), cada uma com "até R$ 84".
+        // Preços diferenciados pelo cardápio oficial (Leonardo, 22/11/2026: "trocar e diferenciar os preços").
+        // ANTES: uma marca só, "até R$ 84" (teto do Premium Extra).
         premium: { nome: "Drink premium ou destilado", nivel: "premium", marcas: [
-          { nome: "Mount Gay Coco Loco, Mai-Tai, Campari Negroni, Long Island Iced Tea, whisky importado, Absolut, Grey Goose ou Tanqueray", v: 84, ate: true }] },
+          { nome: "Campari Negroni, Aperol Spritz ou Long Island Iced Tea", v: 66 },
+          { nome: "Coquetel premium: Mount Gay Coco Loco, Mai-Tai Brugal 1888, Hendrick's Martini ou Grey Goose Martini", v: 96 },
+          { nome: "Dose de whisky, vodka, gin, rum ou tequila", de: 54, v: 96 }] },
       },
       niveis: {
         sem_alcool: { pacote: "Não Alcoólico", cobre: { refri: true, agua: true, cafe: true } },
