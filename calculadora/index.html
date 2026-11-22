@@ -150,6 +150,9 @@
   .opcoes.foco button[aria-pressed="true"] .f-total { color: #d3e3e9; }
   .opcoes.foco button[aria-pressed="true"] .f-total.mais { color: #ffd98a; }
   .aviso-cabine { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff7e6; border: 1px solid #f1d39a; color: #5c4300; font-size: 13.5px; line-height: 1.4; }
+  .aviso-taxa { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--marca-clara); border: 1px solid #bcd6de; color: var(--texto); font-size: 13.5px; line-height: 1.4; }
+  .aviso-taxa b { color: var(--marca); }
+  .res-taxa { font-size: 12.5px; color: var(--suave); margin: -4px 0 10px; }
   .aviso-cabine b { color: #3d2c00; }
   .foco-nota { font-size: 13px; color: var(--suave); margin: -4px 0 10px; }
   .colunas { display: grid; gap: 14px; }
@@ -308,6 +311,9 @@
     <div class="abas-pessoas" id="abas-pessoas" hidden></div>
     <h2 id="itens-titulo">O que você beberia em um dia a bordo?</h2>
     <p class="dica" id="itens-dica">Já deixamos preenchido o mínimo em que o pacote vale a pena. Ajuste com − e + para o que você beberia.</p>
+    <!-- Taxa e dólar bem à vista (Leonardo, 22/11/2026: "Isso tem que ficar bem claro na calculadora"; "temos que ter quanto o
+         dólar foi baseado"). ANTES: só no rodapé, em letra pequena, e sem o dólar. -->
+    <p class="aviso-taxa" id="aviso-taxa">Os preços já incluem a taxa de serviço de 15%. O valor de cada bebida é o que você paga a bordo, sem nada a mais no fim.</p>
     <div id="pessoa-alc"></div>
     <div id="itens-voce"></div>
     <div class="passo-pessoas" id="passo-pessoas" hidden></div>
@@ -321,11 +327,11 @@
   </div>
   </div>
 
-  <p class="rodape">Valores aproximados: dependem da cotação do dólar no dia. Os preços avulsos já incluem a taxa de serviço de 15%. Todos da mesma cabine precisam ter o mesmo pacote (com pacote alcoólico, menores de 18 ficam com o sem álcool).</p>
+  <p class="rodape">Valores aproximados: preços avulsos com o dólar a R$ 5,20 (setembro/2026); a bordo, dependem da cotação do dólar no dia. Os preços avulsos já incluem a taxa de serviço de 15%. Todos da mesma cabine precisam ter o mesmo pacote (com pacote alcoólico, menores de 18 ficam com o sem álcool).</p>
 </main>
 
 <script src="../mv.js?v=20261122a"></script>
-<script src="calc.js?v=20261122a"></script>
+<script src="calc.js?v=20261122b"></script>
 <script>
 (function () {
   "use strict";
@@ -382,6 +388,13 @@
     };
     var cias = cia ? [cia] : [];
     function nomeCia(c) { return c === "costa" ? "Costa" : "MSC"; }
+    function dolar() { return "R$ " + C.CAMBIO.valor.toFixed(2).replace(".", ","); }
+    function avisoTaxa() {
+      var av = document.getElementById("aviso-taxa");
+      av.innerHTML = "";
+      av.appendChild(el("b", { texto: "Preços já com a taxa de serviço de 15%." }));
+      av.appendChild(document.createTextNode(" O valor de cada bebida é o que você paga a bordo, sem nada a mais no fim. Dólar usado: " + dolar() + " (" + C.CAMBIO.quando + "); a bordo, o valor muda com o dólar do dia."));
+    }
     function tituloCia() {
       document.querySelector(".topo h1").textContent = "Calculadora de bebidas" + (cia ? " " + nomeCia(cia) : "");
       // Regra da cabine com o valor da criança na companhia da tela (22/11/2026).
@@ -727,6 +740,8 @@
             return el("span", {}, [(k ? " · " : ""), x.nome + " ", el("b", { texto: reais(C.avulsoDia(r.cia, daTela(x.p), null) * r.noites * x.vezes) })]);
           }))) : null,
         r.pacotes.length ? el("div", { "class": "res-titulo", texto: "Com pacote · " + gente + ", viagem toda" }) : null,
+        // Alerta da taxa e do dólar no resultado (Leonardo, 22/11/2026: "no resultado do pacote também, o alerta pode ser colocado").
+        r.pacotes.length ? el("p", { "class": "res-taxa", texto: "Pacotes com a taxa de serviço de 15% já embutida na diária. Avulso com a taxa de 15% e o dólar a " + dolar() + " (" + C.CAMBIO.quando + ")." }) : null,
         el("div", { "class": "pacotes" }, pacs),
         temRef ? el("p", { "class": "nota", texto: "Pacotes pelo preço médio por dia; o valor exato depende da saída." }) : null,
         sug,
@@ -879,6 +894,7 @@
     }
 
     tituloCia();
+    avisoTaxa();
     montarCia();
     montarViagem();
     montarFoco();

@@ -46,6 +46,11 @@
       qualidade: { refri: 2, agua: 1, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 4 },
     },
   };
+  // Dólar dos preços avulsos (habilidade precos-bebidas-msc-costa-2026: "US$ x 1,15 x câmbio", câmbio de referência
+  // R$ 5,20, setembro/2026). Mudou o câmbio na habilidade, mude aqui e os preços avulsos (22/11/2026, Leonardo: "temos
+  // que ter quanto o dólar foi baseado. Isso é bem importante").
+  var CAMBIO = { valor: 5.20, quando: "setembro/2026" };
+
   // CRIANÇAS (Leonardo, 22/11/2026: "Pode fazer"; preços da conversa da pesquisa geral, teste na API do Visual Tour em
   // 22/11/2026, docs/monitoramento/PARA-PLANO-AUDITORIA.md "Resposta: crianças nos pacotes de bebida"): de 2 a 17 anos
   // a criança paga um valor FIXO por dia, o mesmo com qualquer pacote do adulto (com alcoólico ela cai no de menores);
@@ -355,7 +360,7 @@
     };
   }
 
-  var api = { CRIANCA: CRIANCA, DIA_MINIMO_CRIANCA: DIA_MINIMO_CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
+  var api = { CAMBIO: CAMBIO, CRIANCA: CRIANCA, DIA_MINIMO_CRIANCA: DIA_MINIMO_CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
     soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA,
     avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir,
     nivelDasDuas: nivelDasDuas, NIVEL_PARA_B: NIVEL_PARA_B, montarEnvio: montarEnvio, saidaDoDia: saidaDoDia, lerLink: lerLink };
