@@ -571,6 +571,7 @@
     .detalhe { padding: 2px 10px 10px; }
     .detalhe h3 { margin: 8px 0 5px; font-size: 13px; }
     .detalhe h3 .sem-beb { font-size: 11.5px; padding: 1px 6px; letter-spacing: -.1px; }
+    .detalhe h3 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .nivel:not(.esgotada) { padding: 7px 10px; }
     .nivel:not(.esgotada) .hoje-v { display: flex; align-items: center; gap: 6px; width: 100%; }
     .nivel:not(.esgotada) .nv-topo { display: contents; }
@@ -1064,10 +1065,12 @@
       if (t === null) return '<div class="cab esgotada' + esc1 + '"><small>' + NOME[c] + '</small><b>Esgotada</b>' + fantasma + '</div>';
       if (t === undefined) return '<div class="cab esg' + esc1 + '"><small>' + NOME[c] + '</small><b>No WhatsApp</b>' + fantasma + '</div>';
       var ate = temCrianca() ? 'até ' : '';
+      // Com várias cabines, "p/pessoa" no lugar de "por pessoa" (Leonardo, 21/11/2026: "para ganhar espaço... ao invés de pôr
+      // por pessoa, pode pôr P/pessoa"). ANTES: "Externa · por pess..." cortado com 4 cabines.
       // Nome e "por pessoa" em cima; valor e total lado a lado (Leonardo, 21/11/2026: "mais para cima, varanda... por pessoa.
       // O total pode ir para o lado e ficar um pouquinho maior... Tá tudo muito espaço em branco"). ANTES: nome, valor,
       // "por pessoa" e total um embaixo do outro.
-      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '<i> · por pessoa</i></small><div class="cab-v"><b' + (t / a >= 10000 || ate ? ' class="longo"' : '') + '>' + ate + reais(t / a) + '</b>' +
+      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '<i> · ' + (cabs.length > 1 ? 'p/pessoa' : 'por pessoa') + '</i></small><div class="cab-v"><b' + (t / a >= 10000 || ate ? ' class="longo"' : '') + '>' + ate + reais(t / a) + '</b>' +
         (a === '1' ? '' : '<span>Total ' + ate + reais(t).replace('R$ ', '<i class="so-pc">R$ </i>') + '</span>') + '</div></div>';
     }).join('');
     var pk = MV.pacote(s, f.b);
@@ -1126,9 +1129,13 @@
       if (fx) fx.desde = pts[0][0];
       corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx, MV.temAlerta(fx))) + (comPk ? '' : linhaPacote(s, a));
     }
-    return '<div class="detalhe"><h3>Histórico<span class="so-pc"> do preço do cruzeiro, por pessoa</span> <span class="sem-beb">' + (comPk ? '<i class="so-pc">com o </i>pacote ' + esc(comPk.nome) + '<i class="so-cel"> · ' + reais(comPk.v) + '/adulto</i>' : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
+    // Selo do pacote ao lado de "Histórico" e sem a palavra "pacote" no celular (Leonardo, 21/11/2026: "o histórico pode
+    // sempre ficar com aquele pacote premium extra bem ao lado... pode tirar a palavra pacote. Vai ficar só direto o nome
+    // mesmo do pacote de bebidas com o seu preço"): "Premium Extra · R$ X/adulto", sem quebrar. ANTES: "pacote Premium Extra
+    // · R$ X/adulto", que descia para a linha de baixo. No computador continua "com o pacote X".
+    return '<div class="detalhe"><h3>Histórico<span class="so-pc"> do preço do cruzeiro, por pessoa</span> <span class="sem-beb">' + (comPk ? '<i class="so-pc">com o pacote </i>' + esc(comPk.nome) + '<i class="so-cel"> · ' + reais(comPk.v) + '/adulto</i>' : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
       '<div class="termometro" hidden></div><div class="acoes">' + calcDaSaida(s) +
-      (temCrianca() ? '' : '<button class="btn" style="margin-top:12px" data-quero="' + esc(s.id) + '" data-qcab="' + cab + '">Quero esta saída</button>') + '</div></div>';
+      (temCrianca() ? '' : '<button class="btn" style="margin-top:12px" data-quero="' + esc(s.id) + '" data-qcab="' + cab + '"><i class="so-pc">Quero esta saída</i><i class="so-cel">Quero esta</i></button>') + '</div></div>';
   }
 
   // Na saída aberta: a calculadora com o preço do pacote DESTA saída (quem escolheu pacote ou marcou "Quero entender").
@@ -1139,9 +1146,11 @@
     // Sem pacote: o mesmo botão dourado "Descobrir o pacote de bebidas ideal" (Leonardo, 21/11/2026: "voltar como estava
     // ... E o fundo amarelo"). ANTES: botão branco com borda "Qual pacote de bebidas vale a pena? Calcule".
     var botao = calc ? calc.botao : 'Descobrir o pacote de bebidas ideal';
+    // No celular, "Bebidas" e "Quero esta" (Leonardo, 21/11/2026: "ao invés de quero esta saída, pode ser quero esta... ao
+    // invés de pacote de bebidas, pode ser só bebidas"; ANTES "Pacote de bebidas" e "Quero esta saída"). Antes disso:
     // No celular, "Pacote de bebidas" numa linha só (Leonardo, 21/11/2026, variação A: "vai ficar assim, só pacote de
     // bebidas"). ANTES: "Pacote de bebidas ideal", que quebrava em 2 linhas ao lado do "Quero esta saída".
-    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc(), MV.linkPesquisa(f, ''))) + '"><span>' + esc(botao).replace('Descobrir o pacote', '<i class="so-pc">Descobrir o pacote</i><i class="so-cel">Pacote</i>').replace(' ideal', '<i class="so-pc"> ideal</i>') + '</span></a>';
+    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc(), MV.linkPesquisa(f, ''))) + '"><span>' + '<i class="so-pc">' + esc(botao) + '</i><i class="so-cel">Bebidas</i>' + '</span></a>';
   }
 
   // Linha do pacote escolhido, à parte do histórico: valor por adulto e desde quando não muda.
