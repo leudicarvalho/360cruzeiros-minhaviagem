@@ -34,16 +34,26 @@
   // contra o My Drinks 270). Com 1 drink a menos, o pacote já não compensa (o teste confere).
   // Foco "qualidade" (21/11/2026): o mínimo em que o premium compensa (MSC 2 refris + 1 água + 6 drinks premium = 543
   // contra o Premium Extra 485, com 5 = 464; 22/11/2026: média do premium caiu de 84 para 79 com o cardápio oficial, ANTES 5 drinks = 489; Costa o mesmo com 4 = 413 contra o My Drinks Plus 360; contas com a média das marcas, 21/11/2026). Com 1 a menos já não compensa.
+  // DIA VARIADO E COLADO NO PACOTE (Leonardo, 22/11/2026: "ficou 7.266, muito acima do pacote... o valor do mínimo que
+  // compensa para o pacote e não coloque tudo em doses. Pode colocar cerveja, tem que variar um pouco as coisas"): o dia
+  // mistura cerveja e drink, marca por marca ("<item>_<n>" = a n-ª marca de CIAS[cia].itens[item]), fica poucos reais
+  // acima da diária do pacote e, tirando QUALQUER uma das bebidas, o pacote já não compensa (o teste confere).
+  // MSC Easy 285: 2 refris + 1 água + 1 chope Stella + 1 Amstel + 2 drinks clássicos = 294.
+  // MSC Premium Extra 485: 2 refris + 1 água + 3 Heineken/Budweiser/Stella + 2 Aperol Spritz/Negroni + 2 doses de
+  // Johnnie Walker Black/Chivas/Grey Goose = 492.
+  // Costa My Drinks 270: 2 refris + 1 água + 2 chopes + 1 taça de vinho + 1 caipirinha + 1 Cuba Libre/Gin Tônica = 282.
+  // Costa My Drinks Plus 360: 2 refris + 1 água + 2 cafés + 2 Weissbier + 2 gin tônicas premium = 373.
+  // ANTES (até 22/11/2026): tudo numa marca só (MSC premium = 6 doses, avulso 519 por dia contra 485).
   var DIA_MINIMO = {
     msc: {
       sem_alcool: { refri: 6, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
-      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja: 2, longneck: 0, artesanal: 0, vinho: 0, drink: 2, premium: 0 },
-      qualidade: { refri: 2, agua: 1, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 6 },
+      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja_0: 1, cerveja_1: 1, drink_0: 2 },
+      qualidade: { refri: 2, agua: 1, cafe: 0, longneck_1: 3, premium_2: 2, premium_4: 2 },
     },
     costa: {
       sem_alcool: { refri: 5, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
-      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja: 2, longneck: 0, artesanal: 0, vinho: 0, drink: 3, premium: 0 },
-      qualidade: { refri: 2, agua: 1, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 4 },
+      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja_0: 2, vinho_0: 1, drink_1: 1, drink_2: 1 },
+      qualidade: { refri: 2, agua: 1, cafe: 2, artesanal_0: 2, premium_0: 2 },
     },
   };
   // Dólar dos preços avulsos (habilidade precos-bebidas-msc-costa-2026: "US$ x 1,15 x câmbio", câmbio de referência
@@ -101,10 +111,17 @@
         // ANTES: 2 linhas (drinks / destilados), cada uma com "até R$ 84".
         // Preços diferenciados pelo cardápio oficial (Leonardo, 22/11/2026: "trocar e diferenciar os preços").
         // ANTES: uma marca só, "até R$ 84" (teto do Premium Extra).
-        premium: { nome: "Drink premium ou destilado", nivel: "premium", padrao: 2, marcas: [
+        premium: { nome: "Drink premium ou destilado", nivel: "premium", padrao: 1, marcas: [
+          // Doses (40 ml) separadas por preço, do cardápio oficial, em ordem de preço (Leonardo, 22/11/2026: "Não pode ficar
+          // desse jeito, dois valores, 54 a 96. Tem que separar"). Mesmo preço numa linha só (regra de 21/11): o coquetel
+          // premium e as doses de R$ 96 dividem a linha. ANTES: "Dose de whisky, vodka, gin, rum ou tequila" de 54 a 96.
+          { nome: "Dose de cachaça Sagatiba, Aperol, Campari ou Martini", v: 54 },
+          { nome: "Dose de Absolut, Beefeater, Bacardi, Jack Daniel's, Jameson ou Johnnie Walker Red", v: 60 },
           { nome: "Campari Negroni, Aperol Spritz ou Long Island Iced Tea", v: 66 },
-          { nome: "Coquetel premium: Mount Gay Coco Loco, Mai-Tai Brugal 1888, Hendrick's Martini ou Grey Goose Martini", v: 96 },
-          { nome: "Dose de whisky, vodka, gin, rum ou tequila", de: 54, v: 96 }] },
+          { nome: "Dose de tequila Espolòn, rum Mount Gay ou Jack Daniel's Honey", v: 72 },
+          { nome: "Dose de Johnnie Walker Black, Chivas 12, Grey Goose, Belvedere ou Bombay Sapphire", v: 78 },
+          { nome: "Dose de Hendrick's, Gin Mare, Malfy, Brugal 1888 ou Rémy Martin", v: 84 },
+          { nome: "Coquetel premium (Mount Gay Coco Loco, Mai-Tai Brugal 1888, Hendrick's ou Grey Goose Martini) ou dose de Patrón, Glenlivet, Woodford Reserve ou Hennessy", v: 96 }] },
       },
       niveis: {
         sem_alcool: { pacote: "Não Alcoólico", cobre: { refri: true, agua: true, cafe: true } },
@@ -130,7 +147,9 @@
           { nome: "Cuba Libre ou Gin Tônica", v: 57 },
           { nome: "Marguerita ou Piña Colada", v: 66 }] },
         premium: { nome: "Drink premium ou destilado", nivel: "premium", marcas: [
-          { nome: "Gin tônica Hendrick's ou Tanqueray Nº10", de: 81, v: 90 }] },
+          { nome: "Gin tônica Hendrick's ou Tanqueray Nº10", ate: true, v: 90 }] },
+        // Um valor só (Leonardo, 22/11/2026: "Não pode ficar desse jeito, dois valores"): a habilidade dá 81 a 90 sem dizer
+        // qual gin custa quanto, então fica o teto "até R$ 90" e a conta usa 90. ANTES: "R$ 81 a R$ 90", conta pelo meio.
       },
       niveis: {
         sem_alcool: { pacote: "My Soft Drinks", cobre: { refri: true, agua: true, cafe: true } },
@@ -152,7 +171,13 @@
     var c = CIAS[cia] || CIAS.msc;
     Object.keys(c.itens).forEach(function (id) {
       var marcas = c.itens[id].marcas, pad = c.itens[id].padrao || 0, q = consumo[id] || 0;
-      marcas.forEach(function (m, n) { consumo[chaveMarca(id, n)] = n === pad ? q : 0; });
+      var dado = marcas.some(function (m, n) { return consumo[chaveMarca(id, n)] !== undefined; });
+      if (dado) {
+        // Dia já dado marca por marca (DIA_MINIMO): completa as que faltam com 0 e o total é a soma.
+        var t = 0;
+        marcas.forEach(function (m, n) { var k = chaveMarca(id, n); consumo[k] = consumo[k] || 0; t += consumo[k]; });
+        consumo[id] = t;
+      } else marcas.forEach(function (m, n) { consumo[chaveMarca(id, n)] = n === pad ? q : 0; });
     });
     return consumo;
   }
