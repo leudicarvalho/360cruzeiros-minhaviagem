@@ -734,12 +734,12 @@
     <div class="cal-pega"></div>
     <h3><span id="cal-titulo">Quais dias você pode?</span><button id="cal-fechar" aria-label="Fechar">×</button></h3>
     <div class="cal-campos">
-      <label id="lb-de">Embarcar a partir de<input id="cal-de" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10"></label>
-      <label id="lb-ate">Embarcar até<input id="cal-ate" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10"></label>
+      <label id="lb-de">Dia do embarque<input id="cal-de" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10"></label>
+      <label id="lb-ate">Até (se tiver folga)<input id="cal-ate" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10"></label>
     </div>
     <div class="cal-mes"><button id="cal-ant" aria-label="Mês anterior">‹</button><b id="cal-nome"></b><button id="cal-prox" aria-label="Próximo mês">›</button></div>
     <div class="cal-grade" id="cal-grade"></div>
-    <p class="cal-legenda">Dia com saída de cruzeiro. Toque no primeiro e no último dia em que você pode embarcar, ou digite as datas acima.</p>
+    <p class="cal-legenda">Dia com saída de cruzeiro. Toque no dia do embarque. Se tiver folga, toque também no último dia em que pode embarcar.</p>
     <div class="cal-acoes"><button class="btn contorno" id="cal-limpar">Limpar</button><button class="btn" id="cal-ok">Ver as saídas</button></div>
   </div>
 </div>
@@ -780,7 +780,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261122b"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261122c"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -1000,8 +1000,8 @@
     var d5 = function (x) { return MV.dataBR(x).slice(0, 5); };
     // "17/12 até 05/01" (Leonardo, 21/11/2026: no celular "Embarque... Volta" saía da área; "tira o De, fica não sei o que
     // até a outra data"). ANTES: "Embarque 17/12 · Volta 05/01".
-    $('txt-cal').innerHTML = !datas ? 'Escolher os dias' : e.de && e.ate ? d5(e.de) + ' até ' + d5(e.ate) :
-      e.de ? 'A partir de ' + d5(e.de) : 'Até ' + d5(e.ate);
+    $('txt-cal').innerHTML = !datas ? 'Escolher os dias' : e.de && (!e.ate || e.ate === e.de) ? 'Embarque ' + d5(e.de) :
+      e.de ? d5(e.de) + ' até ' + d5(e.ate) : 'Até ' + d5(e.ate);   // só o dia: "Embarque 02/01" (22/11/2026; ANTES "A partir de")
     [].forEach.call(document.querySelectorAll('.pilulas[data-f]'), function (g) {
       [].forEach.call(g.children, function (b) {
         var on = g.dataset.f === 'k' ? (e.k === 'todas' ? b.dataset.v === 'todas' : e.k.split('.').indexOf(b.dataset.v) >= 0) : b.dataset.v === String(e[g.dataset.f]);

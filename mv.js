@@ -126,6 +126,9 @@
   // Sem datas: embarque num dos meses marcados, ou algum dia no Carnaval marcado. Nada marcado = todas.
   function noPeriodo(s, f) {
     if (typeof f === "string") f = { p: f };
+    // Só a 1ª data = só as saídas que embarcam nesse dia (Leonardo, 22/11/2026, "sim": padrão dos calendários de intervalo;
+    // ANTES: "a partir de" essa data, e o Virtuosa 02/01 vinha no meio de todas as seguintes).
+    if (f.de && !f.ate) return s.embarque === f.de;
     if (f.de || f.ate) return (!f.de || s.embarque >= f.de) && (!f.ate || s.embarque <= f.ate);
     var ps = lerPeriodo(f.p);
     if (!ps.length) return true;
@@ -360,8 +363,8 @@
   function dmA(iso) { return iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4); }
   // "nov e dez 2026", "dez 2026 e jan 2027", "Carnaval 2027", "de 05/01/2027 a 20/01/2027"
   function nomePeriodo(f) {
+    if (f.de && (!f.ate || f.ate === f.de)) return "embarque em " + dmA(f.de);
     if (f.de && f.ate) return "de " + dmA(f.de) + " a " + dmA(f.ate);
-    if (f.de) return "a partir de " + dmA(f.de);
     if (f.ate) return "embarque até " + dmA(f.ate);
     var ps = lerPeriodo(f.p);
     if (!ps.length) return "todas as datas";
@@ -395,8 +398,8 @@
   function mesCurto(m) { return MESES[+m.slice(3, 5) - 1] + "/" + m.slice(1, 3); }
   function dCurta(iso) { return iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(2, 4); }
   function datasCurtas(f) {
+    if (f.de && (!f.ate || f.ate === f.de)) return "embarque " + dCurta(f.de);
     if (f.de && f.ate) return dCurta(f.de) + " a " + dCurta(f.ate);
-    if (f.de) return "a partir de " + dCurta(f.de);
     if (f.ate) return "até " + dCurta(f.ate);
     var ps = lerPeriodo(f.p), nomes = [];
     if (!ps.length) return "Todas as datas";
@@ -503,7 +506,7 @@
     return sem;
   }
   function somaMes(mes, n) { var d = new Date(Date.UTC(+mes.slice(0, 4), +mes.slice(5, 7) - 1 + n, 1)); return d.toISOString().slice(0, 7); }
-  // Toque no calendário: 1º toque = embarque a partir de; 2º = volta até (antes do 1º = recomeça daquele dia).
+  // Toque no calendário: 1º toque = dia do embarque; 2º = último dia de embarque (22/11/2026; ANTES "a partir de" e "volta até") (antes do 1º = recomeça daquele dia).
   function tocarDia(de, ate, dia) {
     if (!de || ate) return { de: dia, ate: "" };
     if (dia < de) return { de: dia, ate: "" };
