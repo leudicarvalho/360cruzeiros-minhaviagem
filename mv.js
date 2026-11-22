@@ -249,6 +249,9 @@
   // Linha do roteiro no cartão: "Santos → Búzios → Santos"; sem paradas (temáticos: a API não diz) = "Saída e volta em Santos".
   function rotaTexto(roteiro) {
     var meio = String(roteiro || "").replace(/^Santos,\s*/, "").replace(/,\s*Santos$/, "").replace(/^ida e volta$/, "").replace(/^Santos$/, "");
+    // Nomes longos abreviados para caber todas as cidades nas 2 linhas do card (Leonardo, 22/11/2026: "B. Camboriú pode ser
+    // padrão geral"). ANTES: "Balneário Camboriú" e "Buenos Aires" inteiros cortavam a rota em "...".
+    meio = meio.replace(/Balneário Camboriú/g, "B. Camboriú").replace(/Buenos Aires/g, "B. Aires");
     return meio ? "Santos → " + meio + " → Santos" : "Saída e volta em Santos";
   }
 
