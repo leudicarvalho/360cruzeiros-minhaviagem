@@ -75,7 +75,7 @@
     var d = !alcool ? t.sem_alcool : foco === "qualidade" ? t.qualidade : t.com_alcool;
     var c = {};
     Object.keys(d).forEach(function (k) { c[k] = d[k]; });
-    return c;
+    return comMarcas(cia, c);
   }
 
   // Preço avulso por item (R$, com 15%) e o que cada nível cobre. Número = limite por dia (água no My Drinks: 1 por dia).
@@ -91,8 +91,8 @@
       itens: {
         // Cardápio oficial MSC Brasil 25/26 (docs/bebidas/PRECOS-AVULSOS.md; Leonardo, 22/11/2026: "pode deixar o Shop e a
         // Amstel em lata" no Easy). ANTES: chope só Stella 48; long neck "Corona ou Heineken" 54.
-        cerveja: { nome: "Chope ou Amstel em lata", nivel: "basico", marcas: [{ nome: "Chope Stella", v: 48 }, { nome: "Amstel em lata", v: 45 }] },
-        longneck: { nome: "Cerveja long neck ou lata", nivel: "premium", marcas: [
+        cerveja: { nome: "Chope ou Amstel em lata", nivel: "basico", padrao: 0, marcas: [{ nome: "Chope Stella", v: 48 }, { nome: "Amstel em lata", v: 45 }] },
+        longneck: { nome: "Cerveja long neck ou lata", nivel: "premium", padrao: 1, marcas: [
           { nome: "Brahma", v: 39 }, { nome: "Heineken, Budweiser ou Stella", v: 45 }, { nome: "Corona", v: 51 }] },
         artesanal: { nome: "Cerveja artesanal", nivel: "premium", marcas: [{ nome: "Cervejas artesanais", v: 72 }] },
         vinho: { nome: "Vinho ou espumante da casa (taça)", nivel: "basico", marcas: [{ nome: "Vinho ou espumante da casa", v: 48 }] },
@@ -101,7 +101,7 @@
         // ANTES: 2 linhas (drinks / destilados), cada uma com "até R$ 84".
         // Preços diferenciados pelo cardápio oficial (Leonardo, 22/11/2026: "trocar e diferenciar os preços").
         // ANTES: uma marca só, "até R$ 84" (teto do Premium Extra).
-        premium: { nome: "Drink premium ou destilado", nivel: "premium", marcas: [
+        premium: { nome: "Drink premium ou destilado", nivel: "premium", padrao: 2, marcas: [
           { nome: "Campari Negroni, Aperol Spritz ou Long Island Iced Tea", v: 66 },
           { nome: "Coquetel premium: Mount Gay Coco Loco, Mai-Tai Brugal 1888, Hendrick's Martini ou Grey Goose Martini", v: 96 },
           { nome: "Dose de whisky, vodka, gin, rum ou tequila", de: 54, v: 96 }] },
@@ -123,8 +123,8 @@
         cerveja: { nome: "Chope", nivel: "basico", marcas: [{ nome: "Chope", v: 30 }] },
         longneck: { nome: "Cerveja long neck", nivel: "basico", marcas: [{ nome: "Carlsberg, Corona ou Beck's", v: 39 }] },
         artesanal: { nome: "Cerveja premium", nivel: "premium", marcas: [{ nome: "Weissbier", v: 47 }] },
-        vinho: { nome: "Vinho ou espumante (taça)", nivel: "basico", marcas: [{ nome: "Vinho (taça)", v: 42 }, { nome: "Espumante (taça)", v: 45 }] },
-        drink: { nome: "Drink clássico", nivel: "basico", marcas: [
+        vinho: { nome: "Vinho ou espumante (taça)", nivel: "basico", padrao: 0, marcas: [{ nome: "Vinho (taça)", v: 42 }, { nome: "Espumante (taça)", v: 45 }] },
+        drink: { nome: "Drink clássico", nivel: "basico", padrao: 1, marcas: [
           { nome: "Bellini ou Rossini", v: 42 },
           { nome: "Caipirinha, Caipirosca, Martini, Aperol Spritz ou Campari Spritz", v: 54 },
           { nome: "Cuba Libre ou Gin Tônica", v: 57 },
@@ -140,6 +140,36 @@
       referenciaDia: { sem_alcool: 180, basico: 270, premium: 360 },
     },
   };
+
+  // CONTADOR POR MARCA (Leonardo, 22/11/2026: "Sempre que tiver variantes, vai ter que ter algo para selecionar quantas a
+  // pessoa quer incluir... o valor default... para incluir só uma das marcas"). Cada marca tem a sua quantidade no
+  // consumo, na chave "<item>_<n>" (chaveMarca); consumo[<item>] continua o total do item. O dia já preenchido põe tudo
+  // numa marca só, a "padrao" do item (a mais pedida e perto da média, para o mínimo que vale a pena continuar valendo:
+  // MSC chope Stella, long neck Heineken/Budweiser/Stella, dose de destilado; Costa vinho em taça, caipirinha).
+  // ANTES: um contador só por item e a conta pela média das marcas ("Na conta: média de R$ X").
+  function chaveMarca(id, n) { return id + "_" + n; }
+  function comMarcas(cia, consumo) {
+    var c = CIAS[cia] || CIAS.msc;
+    Object.keys(c.itens).forEach(function (id) {
+      var marcas = c.itens[id].marcas, pad = c.itens[id].padrao || 0, q = consumo[id] || 0;
+      marcas.forEach(function (m, n) { consumo[chaveMarca(id, n)] = n === pad ? q : 0; });
+    });
+    return consumo;
+  }
+  // Muda a quantidade de uma marca e acerta o total do item.
+  function mudarMarca(cia, consumo, id, n, q) {
+    var marcas = CIAS[cia].itens[id].marcas, t = 0;
+    consumo[chaveMarca(id, n)] = q;
+    marcas.forEach(function (m, i) { t += consumo[chaveMarca(id, i)] || 0; });
+    consumo[id] = t;
+    return consumo;
+  }
+  // Tem quantidade por marca no consumo deste item?
+  function temMarcas(c, id, consumo) {
+    var it = c.itens && c.itens[id];
+    if (!it) return false;
+    return it.marcas.some(function (m, n) { return consumo[chaveMarca(id, n)] !== undefined; });
+  }
 
   // Preço de cada marca (a faixa "de 81 a 90" conta pelo meio) e o avulso do item = média das marcas, arredondada.
   // Mudou um preço na habilidade precos-bebidas-msc-costa-2026: mude a marca aqui e a conta acompanha sozinha.
@@ -198,6 +228,11 @@
     var vis = {}, c = {};
     itensDoFoco(cias, foco).forEach(function (it) { vis[it.id] = true; });
     ITENS.forEach(function (it) { c[it.id] = vis[it.id] ? consumo[it.id] || 0 : 0; });
+    // As marcas vão junto (zeradas quando o item some da tela).
+    Object.keys(consumo).forEach(function (k) {
+      var m = /^(.+)_(\d+)$/.exec(k);
+      if (m && c[m[1]] !== undefined) c[k] = vis[m[1]] ? consumo[k] || 0 : 0;
+    });
     return c;
   }
 
@@ -224,8 +259,17 @@
   function avulsoDia(cia, consumo, nivel) {
     var c = CIAS[cia], cobre = nivel ? c.niveis[nivel].cobre : {}, total = 0;
     ITENS.forEach(function (it) {
-      var q = inteiro(consumo[it.id], 0, 50, 0), cob = cobre[it.id];
-      var fora = cob === true ? 0 : typeof cob === "number" ? Math.max(0, q - cob) : q;
+      var cob = cobre[it.id];
+      if (cob === true) return;
+      // Com quantidade por marca: cada marca pelo preço dela (faixa pelo meio, arredondado como a média).
+      if (temMarcas(c, it.id, consumo)) {
+        c.itens[it.id].marcas.forEach(function (m, n) {
+          total += inteiro(consumo[chaveMarca(it.id, n)], 0, 50, 0) * Math.round(precoMarca(m));
+        });
+        return;
+      }
+      var q = inteiro(consumo[it.id], 0, 50, 0);
+      var fora = typeof cob === "number" ? Math.max(0, q - cob) : q;
       total += fora * c.avulso[it.id];
     });
     return total;
@@ -373,7 +417,7 @@
     };
   }
 
-  var api = { CAMBIO: CAMBIO, CRIANCA: CRIANCA, DIA_MINIMO_CRIANCA: DIA_MINIMO_CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
+  var api = { chaveMarca: chaveMarca, comMarcas: comMarcas, mudarMarca: mudarMarca, CAMBIO: CAMBIO, CRIANCA: CRIANCA, DIA_MINIMO_CRIANCA: DIA_MINIMO_CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
     soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA, PERTO: PERTO,
     avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir,
     nivelDasDuas: nivelDasDuas, NIVEL_PARA_B: NIVEL_PARA_B, montarEnvio: montarEnvio, saidaDoDia: saidaDoDia, lerLink: lerLink };

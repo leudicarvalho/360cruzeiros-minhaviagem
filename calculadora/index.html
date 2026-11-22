@@ -113,18 +113,16 @@
   .marcas { list-style: none; margin: 4px 0 0; }
   /* Marca e preço maiores nas alcoólicas (Leonardo, 21/11/2026: "o tamanho da fonte dos preços pode ficar maior ali com
      álcool... aumentar também um pouco a marca"). ANTES: marca 12,5px e preço 12,5px peso 700. */
-  .marcas li { color: #4b5f69; font-size: 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 2px 0; }
-  .marcas li b { color: var(--texto); white-space: nowrap; font-weight: 800; font-size: 16px; }
-  .marcas .media { color: var(--marca); font-weight: 700; font-size: 14px; }
-  /* Preço na mesma altura do − + (Leonardo, 21/11/2026: "O preço ali colado com o componente de aumentar e diminuir fica
-     muito para baixo... Nem que para isso a linha desça um pouco"): o − + desce para a última linha (o preço, ou a média
-     que entra na conta) e essa linha ganha a altura dele. ANTES: o − + no meio do item, acima do preço. */
-  .item.com-marcas { align-items: flex-end; }
-  .preco-dir { color: var(--texto); font-weight: 800; font-size: 16px; white-space: nowrap; }
-  .item.com-marcas .marcas li:last-child { min-height: 42px; align-items: center; }
-  /* Marca longa em várias linhas (drink premium MSC numa linha só, 21/11/2026, Leonardo: "Ficou desalinhado"): o preço
-     desce para a altura do − + (embaixo, 42px). ANTES: o preço ficava no meio do texto e o − + embaixo. */
-  .item.com-marcas .marcas li:last-child b { align-self: flex-end; line-height: 42px; }
+  /* CONTADOR EM CADA MARCA (Leonardo, 22/11/2026: "Sempre que tiver variantes, vai ter que ter algo para selecionar
+     quantas a pessoa quer incluir... tem que ficar alinhado sempre"): nome da bebida em cima e uma linha por marca, cada
+     uma com o preço e o − + à direita, na mesma coluna do − + das sem álcool. Marca que não cabe na linha fica sozinha
+     em cima e o preço com o − + descem, sempre encostados à direita. ANTES: um − + só na linha "Na conta: média de R$ X". */
+  .item.com-marcas { display: block; }
+  .item.com-marcas .nome-txt { display: block; font-weight: 700; }
+  .marcas li.marca { display: flex; flex-wrap: wrap; align-items: center; column-gap: 10px; row-gap: 2px; padding: 6px 0 6px 12px; color: #4b5f69; font-size: 14px; }
+  .marcas li.marca + li.marca { border-top: 1px dashed var(--linha); }
+  .marca-nome { flex: 1 1 140px; min-width: 0; }
+  .marca-dir { display: flex; align-items: center; gap: 10px; flex: none; margin-left: auto; }
   .item-nome { flex: 1; min-width: 0; }
   /* Preço da bebida sem marcas (sem álcool) em destaque, como o das alcoólicas (Leonardo, 21/11/2026: "os valores do não
      alcoólico não estão tão destacados como no alcoólico"). ANTES: "R$ 26 avulso" pequeno e cinza. */
@@ -174,18 +172,6 @@
      tudo acumulado na esquerda... deixar muito mais moderna"): nome e − + na linha de cima; as marcas embaixo, na largura
      toda, numa caixa clara com o preço à direita de cada uma. ANTES: o − + ao lado da lista apertava as marcas numa
      coluna estreita. No computador nada muda. */
-  @media (max-width: 699px) {
-    .item.com-marcas { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 10px; }
-    .item.com-marcas .item-nome { display: contents; }
-    .item.com-marcas .nome-txt { grid-column: 1; grid-row: 1; font-weight: 700; }
-    .item.com-marcas .passo { grid-column: 2; grid-row: 1; }
-    .item.com-marcas .marcas { grid-column: 1 / -1; grid-row: 2; margin: 0; background: #f3f7f8; border: 1px solid var(--linha); border-radius: 12px; padding: 4px 12px; }
-    .item.com-marcas .marcas li { padding: 7px 0; gap: 12px; align-items: center; }
-    .item.com-marcas .marcas li + li { border-top: 1px solid var(--linha); }
-    .item.com-marcas .marcas li:last-child { min-height: 0; }
-    .item.com-marcas .marcas li:last-child b { align-self: center; line-height: normal; }
-    .item.com-marcas .marcas .media { justify-content: flex-end; font-size: 13.5px; }
-  }
   @media (min-width: 640px) { .colunas.duas { grid-template-columns: 1fr 1fr; } }
   .avulso { font-size: 15px; margin: 0 0 10px; }
   .avulso b { color: var(--marca); }
@@ -349,7 +335,7 @@
 </main>
 
 <script src="../mv.js?v=20261122a"></script>
-<script src="calc.js?v=20261122c"></script>
+<script src="calc.js?v=20261122d"></script>
 <script>
 (function () {
   "use strict";
@@ -492,18 +478,21 @@
     // (Leonardo, 21/11/2026: "Não fazer uma média só, mas mostrar tudo. O valor pode ser a média mesmo").
     // ANTES: o nome com 2 ou 3 marcas de exemplo e um preço só ("R$ 54 avulso").
     function linhaItem(it, p) {
-      var span = el("span", { "class": "passo" }, passo(p.consumo[it.id] || 0, 0, 20, function (v) { p.consumo[it.id] = v; atualizar(); }));
-      var avulso = C.CIAS[cia].avulso[it.id], info;
+      var avulso = C.CIAS[cia].avulso[it.id];
+      // Contador em cada marca (Leonardo, 22/11/2026); o dia já preenchido vem numa marca só (C.comMarcas).
+      // ANTES: um − + por item e "Na conta: média de R$ X".
       if (it.marcas && it.marcas.length) {
-        var precos = it.marcas.map(function (m) { return C.precoMarca(m); });
-        var varia = precos.some(function (v) { return v !== precos[0]; });
-        info = el("ul", { "class": "marcas" }, it.marcas.map(function (m) { return el("li", {}, [el("span", { texto: m.nome }), el("b", { texto: precoMarca(m) })]); })
-          .concat(varia ? [el("li", { "class": "media", texto: "Na conta: média de " + reais(avulso) }) ] : []));
-        return el("div", { "class": "item com-marcas" }, [el("span", { "class": "item-nome" }, [el("span", { "class": "nome-txt", texto: it.nome }), info]), span]);
+        if (p.consumo[C.chaveMarca(it.id, 0)] === undefined) C.comMarcas(cia, p.consumo);
+        var linhas = it.marcas.map(function (m, n) {
+          var ctl = el("span", { "class": "passo" }, passo(p.consumo[C.chaveMarca(it.id, n)] || 0, 0, 20, function (v) { C.mudarMarca(cia, p.consumo, it.id, n, v); atualizar(); }));
+          return el("li", { "class": "marca" }, [el("span", { "class": "marca-nome", texto: m.nome }), el("span", { "class": "marca-dir" }, [el("b", { "class": "preco-dir", texto: precoMarca(m) }), ctl])]);
+        });
+        return el("div", { "class": "item com-marcas" }, [el("span", { "class": "nome-txt", texto: it.nome }), el("ul", { "class": "marcas" }, linhas)]);
       }
       // Sem álcool: o preço à direita, ao lado do − +, sem a palavra "avulso", no mesmo padrão das alcoólicas
       // (Leonardo, 21/11/2026: "o preço do sem álcool pode ficar ali à direita também e tirar o avulso").
       // ANTES: "R$ X avulso" embaixo do nome.
+      var span = el("span", { "class": "passo" }, passo(p.consumo[it.id] || 0, 0, 20, function (v) { p.consumo[it.id] = v; atualizar(); }));
       return el("div", { "class": "item" }, [el("span", { "class": "item-nome" }, [it.nome]), el("b", { "class": "preco-dir", texto: reais(avulso) }), span]);
     }
 
@@ -703,6 +692,8 @@
       if (p.alcool) return p.consumo;
       var c = Object.assign({}, p.consumo);
       C.ITENS.forEach(function (it) { if (it.alcool) c[it.id] = 0; });
+      // As marcas das alcoólicas também zeram (contador por marca, 22/11/2026).
+      Object.keys(c).forEach(function (k) { var m = /^(.+)_\d+$/.exec(k); if (m && c[m[1]] === 0) c[k] = 0; });
       return c;
     }
 
