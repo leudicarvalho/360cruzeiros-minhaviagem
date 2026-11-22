@@ -97,7 +97,15 @@
   @keyframes ciaPisca { 50% { box-shadow: 0 0 0 6px rgba(248,196,99,.35); } }
   @media (prefers-reduced-motion: reduce) { #cia-caixa.pendente { animation: none; } }
   .cia-aviso { text-align: center; font-weight: 800; color: var(--marca); font-size: 16px; margin: 18px 0 6px; }
-  .v-grade { display: grid; grid-template-columns: 1fr 1fr; }
+  .v-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .v-nota { font-size: 11px; color: var(--suave); text-align: center; }
+  /* Celular: Noites e Adultos lado a lado; Crianças numa linha só embaixo (22/11/2026; os 3 lado a lado passavam da borda). */
+  @media (max-width: 699px) {
+    .v-grade { grid-template-columns: 1fr 1fr; }
+    .v-grade .v-campo:nth-child(3) { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--linha); margin-top: 10px; padding-top: 10px;
+      flex-direction: row; flex-wrap: wrap; justify-content: center; column-gap: 12px; }
+    .v-grade .v-campo:nth-child(3) .v-nota { flex-basis: 100%; }
+  }
   .v-campo { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 2px 6px; }
   .v-campo + .v-campo { border-left: 1px solid var(--linha); }
   .v-rot { font-size: 12px; font-weight: 800; color: var(--suave); text-transform: uppercase; letter-spacing: .05em; text-align: center; }
@@ -174,7 +182,7 @@
   .res-avulso { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--fundo); border: 1.5px solid var(--linha); border-radius: 14px; padding: 14px 16px; margin: 4px 0 16px; }
   .res-rot { font-size: 11.5px; font-weight: 800; color: var(--suave); text-transform: uppercase; letter-spacing: .05em; }
   /* Abas dos adultos e o ir e voltar (21/11/2026). */
-  .abas-pessoas { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; margin: 0 0 14px; }
+  .abas-pessoas { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; margin: 0 0 14px; }
   .abas-pessoas button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 10px; border: 1px solid #c9d5db; background: #fff; color: var(--texto); font: 700 14px var(--fonte); cursor: pointer; min-width: 0; }
   .abas-pessoas button small { font-size: 12px; font-weight: 600; color: var(--suave); white-space: nowrap; }
   .abas-pessoas button[aria-pressed="true"] { background: var(--marca); border-color: var(--marca); color: #fff; }
@@ -250,6 +258,8 @@
     <div class="v-grade">
       <div class="v-campo"><span class="v-rot">Noites</span><span class="passo" data-campo="noites"></span></div>
       <div class="v-campo"><span class="v-rot">Adultos na cabine</span><span class="passo" data-campo="adultos"></span></div>
+      <!-- Crianças de 2 a 17 anos (Leonardo, 22/11/2026: "Pode fazer"): cada uma com a própria aba e o pacote de menores. -->
+      <div class="v-campo"><span class="v-rot">Crianças de 2 a 17</span><span class="passo" data-campo="criancas"></span><span class="v-nota">Até 1 ano não paga</span></div>
     </div>
   </section>
 
@@ -273,7 +283,7 @@
     <!-- Regra da cabine bem à vista (Leonardo, 21/11/2026: "tem que deixar claro na tela que todas as pessoas da cabine
          têm que ter o mesmo pacote de bebidas, exceto quando for selecionado um pacote alcoólico e na cabine tiver
          crianças"). ANTES: só no rodapé, em letra pequena, e só para os adultos. -->
-    <p class="aviso-cabine"><b>Todos da cabine ficam com o mesmo pacote.</b> Com pacote alcoólico, crianças e adolescentes (até 17 anos) ficam automaticamente com o pacote sem álcool. Até 2 anos não paga pacote.</p>
+    <p class="aviso-cabine" id="aviso-cabine"><b>Todos da cabine ficam com o mesmo pacote.</b> Com pacote alcoólico, crianças e adolescentes (até 17 anos) ficam automaticamente com o pacote sem álcool. Até 1 ano não paga pacote.</p>
   </section>
 
   <div id="depois-foco">
@@ -306,8 +316,8 @@
   <p class="rodape">Valores aproximados: dependem da cotação do dólar no dia. Os preços avulsos já incluem a taxa de serviço de 15%. Todos da mesma cabine precisam ter o mesmo pacote (com pacote alcoólico, menores de 18 ficam com o sem álcool).</p>
 </main>
 
-<script src="../mv.js?v=20261121k"></script>
-<script src="calc.js?v=20261121m"></script>
+<script src="../mv.js?v=20261122a"></script>
+<script src="calc.js?v=20261122a"></script>
 <script>
 (function () {
   "use strict";
@@ -356,12 +366,23 @@
       igual: true,
       voce: pessoa(),
       outros: [pessoa(), pessoa(), pessoa()], // adultos 2 a 4, cada um com a própria lista
+      criancas: link.criancas || 0,           // crianças de 2 a 17 anos (até 1 ano não paga)
+      filhos: [0, 1, 2, 3].map(function () { return { alcool: false, crianca: true, consumo: C.diaMinimoCrianca(ciaDia) }; }),
       atual: 0,            // adulto à vista em "Quero preencher cada um" (0 = você)
       preferencia: null,   // faixa dos 35%: "sem_preocupar" | "controlar"
     };
     var cias = cia ? [cia] : [];
     function nomeCia(c) { return c === "costa" ? "Costa" : "MSC"; }
-    function tituloCia() { document.querySelector(".topo h1").textContent = "Calculadora de bebidas" + (cia ? " " + nomeCia(cia) : ""); }
+    function tituloCia() {
+      document.querySelector(".topo h1").textContent = "Calculadora de bebidas" + (cia ? " " + nomeCia(cia) : "");
+      // Regra da cabine com o valor da criança na companhia da tela (22/11/2026).
+      if (cia) {
+        var av = document.getElementById("aviso-cabine"), k = C.CRIANCA[cia];
+        av.innerHTML = "";
+        av.appendChild(el("b", { texto: "Todos da cabine ficam com o mesmo pacote." }));
+        av.appendChild(document.createTextNode(" Crianças e adolescentes de 2 a 17 anos ficam com o pacote de menores, sem álcool (" + k.pacote + "): " + reais(k.dia) + " por dia, com qualquer pacote dos adultos. Até 1 ano não paga pacote."));
+      }
+    }
     // Escolha da companhia (só sem ela no link): troca = volta ao mínimo da companhia nova e refaz a tela.
     function montarCia() {
       var caixa = document.getElementById("cia-escolha");
@@ -378,6 +399,7 @@
         b.onclick = function () {
           cia = c; ciaDia = c; cias = [c];
           [estado.voce].concat(estado.outros).forEach(function (p) { p.consumo = C.diaMinimo(c, p.alcool, estado.foco); });
+          estado.filhos.forEach(function (p) { p.consumo = C.diaMinimoCrianca(c); });
           estado.preferencia = null;
           montarCia(); tituloCia(); montarFoco();
           montarPessoas(); atualizar();
@@ -406,11 +428,11 @@
     function montarViagem() {
       document.querySelectorAll(".v-grade .passo").forEach(function (span) {
         var campo = span.getAttribute("data-campo");
-        var lim = campo === "noites" ? [1, 30] : [1, 4];
+        var lim = campo === "noites" ? [1, 30] : campo === "criancas" ? [0, 4] : [1, 4];
         span.innerHTML = "";
         passo(estado[campo], lim[0], lim[1], function (v) {
           estado[campo] = v;
-          if (campo === "adultos") montarPessoas();
+          if (campo === "adultos" || campo === "criancas") montarPessoas();
           atualizar();
         }).forEach(function (b) { span.appendChild(b); });
       });
@@ -567,8 +589,15 @@
     // a lista só da pessoa escolhida (estado.atual) e os botões de ir e voltar embaixo. "Você" responde o álcool na
     // pergunta do topo; os outros, aqui. ANTES: uma seção por adulto, uma embaixo da outra, depois da sua lista.
     function individual() { return estado.adultos > 1 && !estado.igual; }
-    function pessoaN(i) { return i === 0 ? estado.voce : estado.outros[i - 1]; }
-    function nomePessoa(i) { return i === 0 ? "Você" : "Adulto " + (i + 1); }
+    // Quem aparece nas abas: cada adulto (em "Quero preencher cada um") ou "Adultos" juntos (bebem parecido), e cada
+    // criança de 2 a 17 anos (22/11/2026). vezes = quantas pessoas a aba vale na conta.
+    function lista() {
+      var L = [];
+      if (individual()) for (var k = 0; k < estado.adultos; k++) L.push({ nome: k ? "Adulto " + (k + 1) : "Você", p: k ? estado.outros[k - 1] : estado.voce, vezes: 1 });
+      else L.push({ nome: estado.adultos > 1 ? "Adultos" : "Você", p: estado.voce, vezes: estado.adultos });
+      for (var j = 0; j < estado.criancas; j++) L.push({ nome: "Criança " + (j + 1), p: estado.filhos[j], vezes: 1, crianca: true });
+      return L;
+    }
     function irPara(i) {
       estado.atual = i; montarPessoas(); atualizar();
       var sec = document.getElementById("sec-itens");
@@ -581,38 +610,43 @@
     }
     function montarPessoas() {
       document.getElementById("sec-igual").classList.toggle("oculto", estado.adultos === 1);
-      var ind = individual();
-      if (!ind || estado.atual >= estado.adultos) estado.atual = 0;
-      var i = estado.atual, p = pessoaN(i);
+      var L = lista(), varias = L.length > 1;
+      if (estado.atual >= L.length) estado.atual = 0;
+      var i = estado.atual, q = L[i], p = q.p;
       var abas = document.getElementById("abas-pessoas"), passo = document.getElementById("passo-pessoas"), alc = document.getElementById("pessoa-alc");
-      abas.hidden = !ind; passo.hidden = !ind;
+      abas.hidden = !varias; passo.hidden = !varias;
       abas.innerHTML = ""; passo.innerHTML = ""; alc.innerHTML = ""; alc.className = "";
-      document.getElementById("itens-titulo").textContent = i === 0 ? "O que você beberia em um dia a bordo?" : "O que o " + nomePessoa(i) + " beberia em um dia a bordo?";
-      document.getElementById("itens-dica").textContent = "Já deixamos preenchido o mínimo em que o pacote vale a pena. Ajuste com − e + para o que " + (i === 0 ? "você beberia." : "essa pessoa beberia.");
-      if (ind) {
-        for (var k = 0; k < estado.adultos; k++) (function (k) {
-          var b = el("button", { type: "button", "aria-pressed": String(k === i) }, [nomePessoa(k), el("small", { "class": "ab-v", "data-i": String(k) })]);
+      var quem = q.crianca ? "a " + q.nome : q.nome === "Você" ? "você" : q.nome === "Adultos" ? "cada adulto" : "o " + q.nome;
+      document.getElementById("itens-titulo").textContent = "O que " + quem + " beberia em um dia a bordo?";
+      document.getElementById("itens-dica").textContent = q.crianca
+        ? "Só bebidas sem álcool. Já deixamos preenchido o mínimo em que o pacote de menores vale a pena. Ajuste com − e +."
+        : "Já deixamos preenchido o mínimo em que o pacote vale a pena. Ajuste com − e + para o que " + (q.nome === "Você" ? "você beberia." : q.nome === "Adultos" ? "cada adulto beberia." : "essa pessoa beberia.");
+      if (varias) {
+        L.forEach(function (x, k) {
+          var b = el("button", { type: "button", "aria-pressed": String(k === i) }, [x.nome, el("small", { "class": "ab-v", "data-i": String(k) })]);
           b.onclick = function () { if (k !== estado.atual) irPara(k); };
           abas.appendChild(b);
-        })(k);
-        if (i > 0) {
+        });
+        if (individual() && !q.crianca && i > 0) {
           var sn = el("div", { "class": "opcoes" });
           simNao(sn, p.alcool, ["Sim", "Não"], trocaAlcool(p));
           alc.className = "pessoa-alc";
-          alc.appendChild(el("p", { texto: "O " + nomePessoa(i) + " toma bebida alcoólica?" }));
+          alc.appendChild(el("p", { texto: "O " + q.nome + " toma bebida alcoólica?" }));
           alc.appendChild(sn);
-          passo.appendChild(botaoPasso("‹ " + nomePessoa(i - 1), "", function () { irPara(i - 1); }));
         }
-        if (i < estado.adultos - 1) passo.appendChild(botaoPasso(nomePessoa(i + 1) + " ›", "prox", function () { irPara(i + 1); }));
+        if (i > 0) passo.appendChild(botaoPasso("‹ " + L[i - 1].nome, "", function () { irPara(i - 1); }));
+        if (i < L.length - 1) passo.appendChild(botaoPasso(L[i + 1].nome + " ›", "prox", function () { irPara(i + 1); }));
         else passo.appendChild(botaoPasso("Ver o resultado ↓", "prox", function () { document.getElementById("resultados").scrollIntoView({ behavior: "smooth", block: "start" }); }));
       }
       montarItens(document.getElementById("itens-voce"), p);
     }
-    // Avulso por dia de cada adulto nas abas (o que a tela mostra para ele, como entra na conta).
+    // Avulso por dia de cada aba (o que a tela mostra para a pessoa, como entra na conta; "Adultos" = de cada um).
     function valoresAbas() {
       if (!cia) return;
+      var L = lista();
       document.querySelectorAll("#abas-pessoas .ab-v").forEach(function (sm) {
-        sm.textContent = reais(C.avulsoDia(cia, daTela(pessoaN(+sm.getAttribute("data-i"))), null)) + "/dia";
+        var x = L[+sm.getAttribute("data-i")];
+        if (x) sm.textContent = reais(C.avulsoDia(cia, daTela(x.p), null)) + "/dia" + (x.vezes > 1 ? " cada" : "");
       });
     }
 
@@ -658,15 +692,17 @@
         var chip = dif > 0 ? el("span", { "class": "chip menos", texto: reais(dif) + " a menos que avulso" })
           : dif < 0 ? el("span", { "class": "chip mais", texto: reais(-dif) + " a mais que avulso" }) : null;
         var extra = p.foraDoPacote > 0 ? el("div", { "class": "nota", texto: "+ " + reais(p.foraDoPacote) + " do que o pacote não cobre" }) : null;
+        // Parte das crianças no total do pacote (22/11/2026): pacote de menores × noites, por criança.
+        var dasCriancas = p.criancas ? el("div", { "class": "nota", texto: "Inclui " + (p.criancas === 1 ? "1 criança" : p.criancas + " crianças") + " no " + C.CRIANCA[r.cia].pacote + ": " + reais(p.pacoteCriancas) }) : null;
         return el("div", { "class": "pac" + (melhor ? " melhor" : "") }, [
           melhor ? el("span", { "class": "selo", texto: "Mais em conta" }) : null,
-          el("div", {}, [el("div", { "class": "pac-nome", texto: p.pacote }), chip ? el("div", {}, [chip]) : null, extra]),
+          el("div", {}, [el("div", { "class": "pac-nome", texto: p.pacote }), chip ? el("div", {}, [chip]) : null, extra, dasCriancas]),
           el("div", { "class": "pac-valor", texto: reais(p.total) }),
         ]);
       });
       var sug = el("div", { "class": "sugestao" }, textoSugestao(r).map(function (t) { return el("p", { texto: t }); }));
       var temRef = r.pacotes.some(function (p) { return p.fonte === "referencia"; });
-      var gente = r.adultos === 1 ? "1 adulto" : r.adultos + " adultos";
+      var gente = (r.adultos === 1 ? "1 adulto" : r.adultos + " adultos") + (r.criancas ? " e " + (r.criancas === 1 ? "1 criança" : r.criancas + " crianças") : "");
       return el("section", {}, [
         el("h2", { texto: "Resultado na " + c.nome }),
         el("div", { "class": "res-avulso" + (avulsoMelhor ? " melhor" : "") }, [
@@ -674,10 +710,10 @@
           el("div", {}, [el("div", { "class": "res-rot", texto: "Comprando avulso" }), el("div", { "class": "res-sub", texto: reais(r.avulsoDiaPessoa) + " por dia, por pessoa" })]),
           el("div", { "class": "res-valor" }, [reais(r.avulsoViagem), el("small", { texto: "viagem toda" })]),
         ]),
-        // Cada adulto, para ficar claro quanto é de cada um (21/11/2026): o avulso da viagem de cada pessoa.
-        individual() ? el("p", { "class": "res-pessoas" }, ["Avulso de cada um na viagem: "].concat(
-          Array.apply(null, Array(estado.adultos)).map(function (_, k) {
-            return el("span", {}, [(k ? " · " : ""), nomePessoa(k) + " ", el("b", { texto: reais(C.avulsoDia(r.cia, daTela(pessoaN(k)), null) * r.noites) })]);
+        // Cada um, para ficar claro quanto é de cada um (21/11/2026; crianças 22/11/2026): o avulso da viagem de cada aba.
+        lista().length > 1 ? el("p", { "class": "res-pessoas" }, ["Avulso de cada um na viagem: "].concat(
+          lista().map(function (x, k) {
+            return el("span", {}, [(k ? " · " : ""), x.nome + " ", el("b", { texto: reais(C.avulsoDia(r.cia, daTela(x.p), null) * r.noites * x.vezes) })]);
           }))) : null,
         r.pacotes.length ? el("div", { "class": "res-titulo", texto: "Com pacote · " + gente + ", viagem toda" }) : null,
         el("div", { "class": "pacotes" }, pacs),
@@ -777,6 +813,7 @@
       var rs = cias.map(function (ciaId) {
         // Foco escolhido e alguém bebe: compara só o pacote do foco com o sem pacote ("todos" = os três).
         return C.calcular({ cia: ciaId, noites: estado.noites, adultos: estado.adultos, perfis: perfis(),
+          criancas: estado.filhos.slice(0, estado.criancas).map(function (p) { return semAlcool(p); }),
           niveis: algumBebe() ? C.niveisDoFoco(estado.foco) : null,
           pacotesSaida: pacotesDaSaida(ciaId) });
       });

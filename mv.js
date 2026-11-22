@@ -162,6 +162,11 @@
     for (var k = 0; k < n; k++) { var x = String(xs[k] == null ? "" : xs[k]).trim(); r.push(/^(\d|1[0-7])$/.test(x) ? String(+x) : "x"); }
     return r.join(".");
   }
+  // Crianças que pagam pacote de bebidas: 2 anos ou mais; sem idade marcada conta (22/11/2026). Até 1 ano não paga.
+  function criancasPagantes(i, c) {
+    var xs = lerIdades(i, c);
+    return xs ? xs.split(".").filter(function (x) { return x !== "0" && x !== "1"; }).length : 0;
+  }
   function nomeIdade(x) { return x === "0" ? "menos de 1 ano" : x === "1" ? "1 ano" : x + " anos"; }
   function juntar(xs) { return xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " e " + xs[xs.length - 1]; }
   // "(5 e 12 anos)", "(5 anos e a outra eu te passo)", "" sem nenhuma idade marcada.
@@ -591,18 +596,21 @@
   // pelo número do link, sem depender do aparelho. ANTES: ia sem o w.
   // pesq (opcional): a pesquisa da tela (MV.linkPesquisa(f, "")). Com ela a calculadora sabe que veio do site e, no
   // "Usar este pacote", volta para a pesquisa em vez de mandar ao WhatsApp (21/11/2026).
-  function linkCalc(id, adultos, s, w, pesq) {
+  // cr (opcional): crianças de 2 a 17 anos, as que pagam pacote de bebidas (22/11/2026); vai como "cr" (1 a 4).
+  function linkCalc(id, adultos, s, w, pesq, cr) {
     var q = [];
     if (/^[A-Za-z0-9_-]{1,40}$/.test(String(id || ""))) q.push("id=" + id);
     var a = parseInt(adultos, 10);
     if (a >= 1 && a <= 4) q.push("adultos=" + a);
     if (s && s.id) q.push("saida=" + encodeURIComponent(s.id), "cia=" + (String(s.cia).toLowerCase() === "costa" ? "costa" : "msc"), "noites=" + s.noites);
     if (/^\d{10,15}$/.test(String(w || ""))) q.push("w=" + w);
+    var nc = parseInt(cr, 10);
+    if (nc >= 1 && nc <= 4) q.push("cr=" + nc);
     if (/^\?t=/.test(String(pesq || ""))) q.push("pesq=" + encodeURIComponent(String(pesq).slice(1)));
     return q.length ? "?" + q.join("&") : "";
   }
 
-  var api = { temAlerta: temAlerta, caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, temporada: temporada, temporadas: temporadas, lerCabines: lerCabines, cabinesDe: cabinesDe, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+  var api = { temAlerta: temAlerta, caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, criancasPagantes: criancasPagantes, temporada: temporada, temporadas: temporadas, lerCabines: lerCabines, cabinesDe: cabinesDe, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,

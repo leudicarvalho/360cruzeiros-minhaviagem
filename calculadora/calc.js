@@ -46,6 +46,23 @@
       qualidade: { refri: 2, agua: 1, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 4 },
     },
   };
+  // CRIANÇAS (Leonardo, 22/11/2026: "Pode fazer"; preços da conversa da pesquisa geral, teste na API do Visual Tour em
+  // 22/11/2026, docs/monitoramento/PARA-PLANO-AUDITORIA.md "Resposta: crianças nos pacotes de bebida"): de 2 a 17 anos
+  // a criança paga um valor FIXO por dia, o mesmo com qualquer pacote do adulto (com alcoólico ela cai no de menores);
+  // até 1 ano não paga. MSC "Não Alcoólico para Menores" R$ 109/dia (sem o desconto do adulto); Costa "My Drinks Young"
+  // R$ 177/dia (igual no Soft, no Drinks e no Plus). Sempre tem um maior na cabine (Leonardo: adolescente sozinho não existe).
+  var CRIANCA = {
+    msc: { dia: 109, pacote: "Não Alcoólico para Menores" },
+    costa: { dia: 177, pacote: "My Drinks Young (menores de 18)" },
+  };
+  // Dia já preenchido da criança = o mínimo em que o pacote de menores vale a pena, como o do adulto (Leonardo, 22/11/2026,
+  // proposta aprovada): MSC 3 refris + 2 águas = 112 contra 109; Costa 5 refris + 3 águas = 180 contra 177.
+  var DIA_MINIMO_CRIANCA = {
+    msc: { refri: 3, agua: 2, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
+    costa: { refri: 5, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
+  };
+  function diaMinimoCrianca(cia) { return Object.assign({}, DIA_MINIMO_CRIANCA[cia] || DIA_MINIMO_CRIANCA.msc); }
+
   // MSC e Costa lado a lado: o dia da MSC (a habilidade manda oferecer a MSC primeiro).
   // foco "qualidade" com álcool = o dia do premium; os outros focos = o dia do básico.
   function diaMinimo(cia, alcool, foco) {
@@ -214,8 +231,15 @@
     var adultos = inteiro(entrada.adultos, 1, 4, 2);
     var perfis = entrada.perfis && entrada.perfis.length ? entrada.perfis : [{ consumo: diaMinimo(cia, true), pessoas: adultos }];
 
-    var avulsoViagem = 0;
+    // criancas (opcional): o consumo de cada criança de 2 a 17 anos (só sem álcool). Avulso: o que ela bebe;
+    // com pacote: o de menores (CRIANCA) por dia, o mesmo com qualquer pacote do adulto.
+    var criancas = (entrada.criancas || []).slice(0, 4);
+    var avulsoViagem = 0, avulsoCriancas = 0;
     perfis.forEach(function (p) { avulsoViagem += avulsoDia(cia, p.consumo, null) * noites * p.pessoas; });
+    criancas.forEach(function (c) { avulsoCriancas += avulsoDia(cia, c, null) * noites; });
+    avulsoViagem += avulsoCriancas;
+    var pacoteCriancas = CRIANCA[cia].dia * noites * criancas.length;
+    var pessoas = adultos + criancas.length;
 
     // niveis (opcional): só os pacotes do foco (niveisDoFoco). Sem: os três.
     var lista = entrada.niveis && entrada.niveis.length ? entrada.niveis : ["sem_alcool", "basico", "premium"];
@@ -223,8 +247,10 @@
       var preco = precoPacote(cia, nivel, noites, entrada.pacotesSaida);
       var foraViagem = 0;
       perfis.forEach(function (p) { foraViagem += avulsoDia(cia, p.consumo, nivel) * noites * p.pessoas; });
-      var total = preco.valor * adultos + foraViagem;
-      return { nivel: nivel, pacote: CIAS[cia].niveis[nivel].pacote, porAdulto: preco.valor, fonte: preco.fonte, foraDoPacote: foraViagem, total: total };
+      criancas.forEach(function (c) { foraViagem += avulsoDia(cia, c, "sem_alcool") * noites; });
+      var total = preco.valor * adultos + pacoteCriancas + foraViagem;
+      return { nivel: nivel, pacote: CIAS[cia].niveis[nivel].pacote, porAdulto: preco.valor, fonte: preco.fonte, foraDoPacote: foraViagem,
+        criancas: criancas.length, pacoteCriancas: pacoteCriancas, total: total };
     });
 
     // O pacote mais em conta para o que ele bebe (empate: o mais simples).
@@ -236,15 +262,15 @@
     else faixa = "sem_pacote";
 
     return {
-      cia: cia, noites: noites, adultos: adultos,
-      avulsoViagem: avulsoViagem,
-      avulsoDiaPessoa: avulsoViagem / (noites * adultos),
+      cia: cia, noites: noites, adultos: adultos, criancas: criancas.length,
+      avulsoViagem: avulsoViagem, avulsoCriancas: avulsoCriancas,
+      avulsoDiaPessoa: avulsoViagem / (noites * pessoas),
       pacotes: pacotes,
       melhor: melhor,
       faixa: faixa,
       // pacote: economia com o pacote; sem_pacote: economia sem pacote; considerar: quanto a mais custa.
       valor: Math.abs(diferenca),
-      aMaisPorDiaPessoa: diferenca > 0 ? diferenca / (noites * adultos) : 0,
+      aMaisPorDiaPessoa: diferenca > 0 ? diferenca / (noites * pessoas) : 0,
       nivel: faixa === "pacote" ? melhor.nivel : faixa === "sem_pacote" ? "sem_pacote" : null,
     };
   }
@@ -315,6 +341,8 @@
       cia: cia === "msc" || cia === "costa" ? cia : "",
       noites: p.noites ? inteiro(p.noites, 1, 30, null) : null,
       adultos: p.adultos ? inteiro(p.adultos, 1, 4, null) : null,
+      // Crianças de 2 a 17 anos (cr), as que pagam pacote; até 1 ano a página não manda (22/11/2026).
+      criancas: p.cr ? inteiro(p.cr, 0, 4, null) : null,
       saida: String(p.saida || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 60),
       // Pacote da pesquisa (b=basico|premium): a pergunta do foco já vem marcada (21/11/2026). Outro valor = vazio.
       b: p.b === "basico" || p.b === "premium" ? p.b : "",
@@ -327,7 +355,7 @@
     };
   }
 
-  var api = { ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
+  var api = { CRIANCA: CRIANCA, DIA_MINIMO_CRIANCA: DIA_MINIMO_CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
     soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA,
     avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir,
     nivelDasDuas: nivelDasDuas, NIVEL_PARA_B: NIVEL_PARA_B, montarEnvio: montarEnvio, saidaDoDia: saidaDoDia, lerLink: lerLink };
