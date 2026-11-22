@@ -329,10 +329,35 @@
   .periodo { display: block; color: var(--texto); font-size: 13px; letter-spacing: -.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* Período: a volta fica ao lado e desce inteira quando não cabe (bloco do card, mais abaixo). */
   .periodo i { font-style: normal; }
-  .rota { display: block; color: var(--suave); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; height: 2.6em; }
   /* Computador: até 3 linhas para a rota inteira caber (Leonardo, 22/11/2026: "corrija para todas as cidades aparecerem").
      ANTES: 2 linhas cortavam em "..."; medido no Chrome: card 17px mais alto, todos iguais. Celular segue com 2 (já cabe). */
-  @media (min-width: 700px) { .rota { -webkit-line-clamp: 3; height: 3.9em; } }
+  /* Topo do card moderno (Leonardo, 22/11/2026: "a data ali pode ficar um pouco maior... a linha com as paradas"): a marca
+     colorida no nome do navio, sem o selo MSC/Costa; a rota vira uma linha de paradas na largura toda do card (bolinha,
+     traço, nome embaixo, até 2 linhas, mesma altura em todos os cards). ANTES: texto cinza "Santos → A, B → Santos" em 2 ou
+     3 linhas ao lado da data, com espaço branco embaixo. */
+  .c-topo { position: relative; flex-wrap: wrap; row-gap: 4px; }
+  .c-topo .fav { position: absolute; top: 6px; right: 6px; }
+  .c-topo .navio { padding-right: 26px; }
+  .navio em { font-style: normal; font-weight: 800; }
+  .navio em.m-msc { color: #1d3f72; }
+  .navio em.m-costa { color: var(--ouro-texto); }
+  .paradas { flex: 1 0 100%; display: flex; list-style: none; margin: 0; padding: 0; }
+  .paradas li { position: relative; flex: 1 1 0; min-width: 0; padding-top: 12px; text-align: center; font-size: 12px; line-height: 1.15; color: var(--texto); }
+  /* Nome numa linha só e podendo passar um pouco da coluna (Montevidéu não quebra no meio); mantém o card no limite de
+     ~650 px do celular (medido a 360 e 390 px). */
+  .paradas li span { display: block; white-space: nowrap; margin: 0 -8px; }
+  /* Nomes que encostariam (B. Camboriú, Punta del Este...): alternam em 2 alturas (MV.paradasAlternam). */
+  .paradas.alterna li:nth-child(even) span { padding-top: 13px; }
+  /* Computador: 3 cards lado a lado, todos guardam a altura da linha alternada para os preços ficarem alinhados. */
+  @media (min-width: 700px) { .paradas { min-height: 40px; } }
+  .paradas li::before { content: ''; position: absolute; z-index: 1; top: 0; left: 50%; width: 10px; height: 10px; margin-left: -5px; box-sizing: border-box; border-radius: 50%; background: #fff; border: 2px solid var(--marca); }
+  .paradas li::after { content: ''; position: absolute; top: 4px; left: 50%; width: 100%; height: 2px; background: #9fbfc8; }
+  .paradas li:last-child::after { display: none; }
+  .paradas li.ponta::before { background: var(--marca); }
+  .paradas li.ponta span { font-weight: 700; color: var(--marca); }
+  .paradas.so-pontas li.mar { flex: 2 1 0; }
+  .paradas.so-pontas li.mar::before { display: none; }
+  .paradas.so-pontas li.mar::after { left: -25%; width: 150%; }
   .cia { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .5px; padding: 1px 7px; border-radius: 999px; margin-right: 4px; vertical-align: 1px; }
   .cia.msc { background: #e3ecf8; color: #1d3f72; }
   .cia.costa { background: #fff3c7; color: #7a5a00; }
@@ -571,8 +596,8 @@
   @media all {
     .so-cel { display: inline; }
     .c-topo { padding: 8px 10px; gap: 8px; }
-    .dia-bloco { width: 56px; padding: 4px 0 5px; }
-    .dia-bloco b { font-size: 22px; margin: 2px 0 1px; }
+    .dia-bloco { width: 62px; padding: 5px 0 6px; }
+    .dia-bloco b { font-size: 26px; margin: 2px 0 1px; }
     .cabs:not(.uma) { gap: 6px; padding: 12px 10px 2px; grid-auto-rows: auto; }
     .cabs:not(.uma) .cab { padding: 5px 8px; }
     .cabs:not(.uma) .cab small { font-size: 12px; line-height: 1.25; }
@@ -782,7 +807,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261122d"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261122g"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -1114,14 +1139,30 @@
     return '<div class="card" data-i="' + i + '">' +
       '<div class="c-topo"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
         MV.nomeMesCurto(s.embarque) + ' ' + s.embarque.slice(2, 4) + '</span></div>' +
-        '<div class="c-info"><span class="navio">' + esc(s.navio) + '</span>' +
-        '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : s.cia === 'Temático' ? 'tematico' : 'msc') + '">' + esc(s.cia) + '</span><span class="noites">' + s.noites + ' noites</span><span class="volta"><i> · </i>volta ' + dm(MV.volta(s)) + '</span></span>' +
-        '<span class="rota">' + esc(MV.rotaTexto(s.roteiro)) + '</span></div>' +
+        '<div class="c-info">' + nomeNavio(s) +
+        '<span class="periodo">' + (s.cia === 'Temático' ? '<span class="cia tematico">Temático</span>' : '') + '<span class="noites">' + s.noites + ' noites</span><span class="volta"><i> · </i>volta ' + dm(MV.volta(s)) + '</span></span></div>' + linhaParadas(s) +
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
       '<div class="cabs' + (troca ? ' troca' : cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
       (temCrianca() ? '<div class="cri"><b>Com criança pode sair menos.</b> O valor depende da idade de cada uma.' +
         '<a class="btn" href="' + esc(linkWhats(MV.msgIdades(s, f, menor || cabs[0]))) + '" target="_blank" rel="noopener">Valor exato com as idades</a></div>' : '') +
       detalhe(s) + '</div>';
+  }
+
+  // Topo do card (Leonardo, 22/11/2026: "o Costa e o MSC fica repetido. Quem sabe o destaque para o MSC e para o Costa pode
+  // ser no nome do navio mesmo"): a marca vai colorida dentro do nome (MSC azul, Costa dourado); temático mantém o selo,
+  // porque o nome não diz. ANTES: selo "MSC"/"Costa" na linha das noites, repetindo o nome do navio.
+  function nomeNavio(s) {
+    var m = /^(MSC|Costa)\s+(.*)$/.exec(s.navio || '');
+    if (!m) return '<span class="navio">' + esc(s.navio) + '</span>';
+    return '<span class="navio"><em class="m-' + m[1].toLowerCase() + '">' + m[1] + '</em> ' + esc(m[2]) + '</span>';
+  }
+  // Linha com as paradas: bolinhas ligadas por um traço, Santos cheio nas pontas e o nome embaixo de cada uma.
+  function linhaParadas(s) {
+    var ps = MV.paradas(s.roteiro);
+    // Sem paradas (temáticos e minis "Santos, Santos": a API não diz): só Santos nas pontas, ligadas por um traço maior.
+    var lis = ps.map(function (p, i) { return '<li' + (i === 0 || i === ps.length - 1 ? ' class="ponta"' : '') + '><span>' + esc(p) + '</span></li>'; });
+    if (ps.length === 2) lis.splice(1, 0, '<li class="mar"><span></span></li>');
+    return '<ol class="paradas' + (ps.length === 2 ? ' so-pontas' : MV.paradasAlternam(ps) ? ' alterna' : '') + '" aria-label="Roteiro: ' + esc(ps.join(', ')) + '">' + lis.join('') + '</ol>';
   }
 
   // Linha do tempo (abre ao tocar na saída): o preço de cada dia da cabine, para os adultos e o pacote escolhidos.

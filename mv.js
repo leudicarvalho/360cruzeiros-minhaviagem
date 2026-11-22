@@ -269,6 +269,28 @@
     return meio ? "Santos → " + meio + " → Santos" : "Saída e volta em Santos";
   }
 
+  // Paradas do card em linha (Leonardo, 22/11/2026: "o percurso do navio podia ser bem mais moderno... fazer uma linha com
+  // as paradas"): ["Santos", ..., "Santos"]; sem paradas (temáticos e minis "Santos, Santos") = só as 2 pontas. Nomes longos
+  // encurtados para caber 6 paradas no celular. ANTES: só o texto "Santos → A, B → Santos" (rotaTexto, que segue na mensagem).
+  function paradas(roteiro) {
+    var meio = String(roteiro || "").split(/,\s*/).map(function (x) { return x.trim(); }).filter(Boolean);
+    if (meio[0] === "Santos") meio.shift();
+    if (meio[meio.length - 1] === "Santos") meio.pop();
+    meio = meio.filter(function (x) { return x !== "ida e volta" && x !== "Santos"; }).map(function (x) {
+      return x.replace("Balneário Camboriú", "B. Camboriú").replace("Buenos Aires", "B. Aires").replace("Praia de Copacabana", "Copacabana");
+    });
+    return ["Santos"].concat(meio, ["Santos"]);
+  }
+
+  // Nomes vizinhos que encostariam na linha de paradas (linha de ~246 px no card do celular de 360, ~6,2 px por letra a 12 px):
+  // aí eles alternam em 2 alturas, e quem fica na mesma altura está 2 colunas longe. Ex.: "B. Aires" e "Montevidéu" sim;
+  // "Búzios, Salvador, Maceió" não (uma linha só, card mais baixo).
+  function paradasAlternam(ps) {
+    var col = 246 / ps.length;
+    for (var i = 0; i + 1 < ps.length; i++) if ((ps[i].length + ps[i + 1].length) * 3.1 > col - 3) return true;
+    return false;
+  }
+
   // Total da cabine para os adultos, com o pacote: cabine + adultos x pacote por adulto (regra do termômetro).
   // undefined = sem preço de hoje para essa lotação/cabine; null = esgotada; pacote pedido que não existe = sem total.
   function total(s, a, cab, b) {
@@ -637,7 +659,7 @@
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
     lerIdades: lerIdades, textoIdades: textoIdades, lotacao: lotacao, gente: gente, msgIdades: msgIdades, msgSaida: msgSaida, PERGUNTAS_SAIDA: PERGUNTAS_SAIDA,
-    lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, rotaTexto: rotaTexto, total: total, precoOrdem: precoOrdem,
+    lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, rotaTexto: rotaTexto, paradas: paradas, paradasAlternam: paradasAlternam, total: total, precoOrdem: precoOrdem,
     incluso: incluso,
     filtrar: filtrar, esgotadaNa: esgotadaNa, outraComPreco: outraComPreco, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,
     linkPesquisa: linkPesquisa, resumo: resumo, resumoBarra: resumoBarra, conferirWhats: conferirWhats, linhaDoTempo: linhaDoTempo };
