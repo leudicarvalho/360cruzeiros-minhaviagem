@@ -394,7 +394,7 @@
   @media (min-width: 700px) {
     .grade > * { flex-basis: calc((100% - 24px) / 3); scroll-snap-align: start; }
     .grade > .vazio { flex-basis: 100%; }
-    .car-seta { display: flex; align-items: center; justify-content: center; position: absolute; top: 150px; z-index: 3; width: 46px; height: 46px;
+    .car-seta { display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; width: 46px; height: 46px;
       border-radius: 50%; border: 1px solid var(--linha); background: #fff; color: var(--marca); font: 700 28px/1 var(--fonte); cursor: pointer;
       box-shadow: 0 4px 14px rgba(16,37,46,.18); transition: opacity .2s; }
     .car-seta:hover { background: var(--marca); color: #fff; }
@@ -404,6 +404,8 @@
   }
   /* Setas no meio do espaço vazio ao lado dos cartões (Leonardo, 21/11/2026, print: "esse botão tem que ficar mais
      centralizado"): em tela larga saem de cima da borda do cartão. ANTES: left/right -8px, a seta cobria a borda. */
+  /* Setas no meio da altura dos cartões (Leonardo, 21/11/2026: "a rolagem da esquerda e da direita ficar bem centralizado.
+     Ela está mais acima dos cartões"). ANTES: top 150px (o card cresceu para ~638px e a seta ficou no 1º quarto). */
   @media (min-width: 1180px) { .car-seta.esq { left: -58px; } .car-seta.dir { right: -58px; } }
   .dica-baixo { text-align: center; margin: -4px 2px 12px; }
   .contagem { text-align: center; color: var(--suave); font-size: 13.5px; margin: 2px 0 10px; }
