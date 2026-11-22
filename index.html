@@ -496,6 +496,7 @@
   .faixa .marca.no-max::after { background: #d64535; }
   .alerta-preco { display: inline-flex; align-items: center; gap: 6px; margin: 8px 0 0; padding: 3px 10px 3px 4px; border-radius: 999px; font-size: 13px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
   .alerta-preco b { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 15px; font-weight: 800; }
+  .alerta-preco.guarda { visibility: hidden; }
   .alerta-preco.barato { background: #15803d; color: #fff; }
   .alerta-preco.barato b { background: #fff; color: #15803d; }
   .alerta-preco.caro { background: #fde3e0; color: var(--vermelho-texto); }
@@ -1053,7 +1054,9 @@
         (a === '1' ? '' : '<span>Total ' + ate + reais(t).replace('R$ ', '<i class="so-pc">R$ </i>') + '</span>') + '</div></div>';
     }).join('');
     var pk = MV.pacote(s, f.b);
-    var nota = (temCrianca() ? esc(MV.gente(f)) + ', cada criança contada como adulto' : a + (a === '1' ? ' adulto' : ' adultos')) + ', taxas inclusas' +
+    // "Cabine para 2 adultos, taxas inclusas" (Leonardo, 21/11/2026: "onde tem dois adultos, taxas inclusas, pode pôr cabine
+    // para dois adultos"). ANTES: "2 adultos, taxas inclusas".
+    var nota = 'Cabine para ' + (temCrianca() ? esc(MV.gente(f)) + ', cada criança contada como adulto' : a + (a === '1' ? ' adulto' : ' adultos')) + ', taxas inclusas' +
       (s.bebidas === 'a bordo' ? '. Bebidas vendidas somente a bordo' : f.b === 'sem' ? '<span class="so-pc">, sem pacote de bebidas</span>' :
         pk ? '<span class="so-pc">, com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)</span>' : '') +   // no celular o pacote fica só no selo do histórico (opção B, 21/11/2026)
       (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
@@ -1168,7 +1171,10 @@
     // Mais curto, numa linha, seta numa bolinha e fundo forte (Leonardo, 21/11/2026: "pode ser menor preço desde tal, a flecha
     // pode ser mais destacada e o fundo tem que ser bem mais destacado"). ANTES: "↓ Menor preço desde dd/mm. Boa hora para
     // garantir." / "↑ Já esteve mais baixo desde dd/mm. Vale acompanhar." em texto sem fundo.
-    var alerta = '';
+    // Sem alerta, um selo invisível do mesmo tamanho guarda o lugar, para todos os cards terem a mesma altura (Leonardo,
+    // 21/11/2026: "quando tem menor preço do histórico... está deixando o card maior. Quando não tem nada, ele está ficando
+    // menor"). ANTES: sem alerta, o card ficava ~30 px mais baixo.
+    var alerta = '<p class="alerta-preco guarda" aria-hidden="true"><b>↓</b>Menor preço do histórico</p>';
     if (MV.temAlerta(fx)) {
       var barato = fx.hoje.v === fx.min.v;
       alerta = '<p class="alerta-preco ' + (barato ? 'barato' : 'caro') + '">' +
