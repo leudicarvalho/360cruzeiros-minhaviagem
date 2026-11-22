@@ -412,7 +412,16 @@
     padding: 2px 7px; border-radius: 999px; background: var(--ouro-escuro); color: #10252e; }
   .pp { color: var(--suave); font-size: 12.5px; padding: 2px 14px 10px; }
   .pp b { color: var(--texto); font-weight: 700; }
-  .pp .pp-bt { all: unset; cursor: pointer; color: var(--marca); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+  /* Painel da troca de cabine, à direita do preço (21/11/2026, variação B; ANTES: links sublinhados na linha cinza). */
+  .cabs.troca { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); grid-auto-rows: auto; }
+  .cabs.troca .cab .cab-fantasma, .cabs.troca .cab small i { display: none; }
+  .cabs.troca .cab small { color: var(--ouro-texto); font-weight: 700; }
+  .troca-painel { background: var(--ouro-claro); border: 1px solid #f0cf8a; border-radius: 12px; padding: 5px 6px; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; }
+  .troca-bts { display: flex; flex-direction: column; gap: 4px; }
+  .troca-bt { flex: 1 1 auto; border-radius: 8px; padding: 5px 8px; font: 700 13px var(--fonte); line-height: 1.2; cursor: pointer; white-space: nowrap; border: 1.5px solid var(--marca); }
+  .troca-bt.volta { background: #fff; color: var(--marca); }
+  .troca-bt.todas { background: var(--marca); color: #fff; }
+  .troca-bt:hover { filter: brightness(1.08); }
   /* Criança: idade de cada uma no painel e o aviso com o botão em cada saída (21/11/2026) */
   .idades { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .idades:empty { display: none; }
@@ -562,6 +571,13 @@
     .legenda { display: none; }
     .acoes { display: flex; gap: 8px; margin-top: 10px; }
     .acoes .btn { margin-top: 0 !important; flex: 1 1 0; min-width: 0; font-size: 13px; padding: 9px 6px; line-height: 1.2; display: flex; align-items: center; justify-content: center; }
+  }
+  /* Troca de cabine no celular, alinhada ao card do celular (827ea9b): o painel fica à direita do preço, sem crescer o card;
+     os 2 botões ficam um embaixo do outro quando não cabem lado a lado. */
+  @media (max-width: 699px) {
+    .cabs.troca { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 6px; }
+    .troca-painel { padding: 5px 6px; }
+    .troca-bt { padding: 5px 6px; font-size: 12.5px; }
   }
 </style>
 </head>
@@ -1031,8 +1047,15 @@
     // Esgotada nas cabines escolhidas (Leonardo, 21/11/2026, "Mostrar como Esgotada"): diz a cabine que ainda tem preço.
     var outra = MV.esgotadaNa(s, Object.assign({}, f, { a: a })) ? MV.outraComPreco(s, Object.assign({}, f, { a: a })) : null;
     if (outra) nota += '. Ainda tem ' + NOME[outra.c] + ': ' + reais(outra.t / a) + ' por pessoa';
-    if (troca) nota = '<b>Vendo ' + NOME[troca] + '</b> · <button class="pp-bt" data-volta="' + esc(s.id) + '">Voltar</button> · ' +
-      '<button class="pp-bt" data-todas="' + troca + '">Ver todas em ' + NOME[troca] + '</button>';
+    // Troca de cabine em painel ao lado do preço (Leonardo, 21/11/2026: "os botões estão muito ruins. Tem que ser dois
+    // botões bem claros... Tem todo o lado direito do card para aproveitar"; escolheu a variação B): painel dourado
+    // à direita do preço com os botões Voltar e "Todas em <cabine>". A linha cinza volta a ser a de sempre.
+    // ANTES: "Vendo <cabine> · Voltar · Ver todas em <cabine>" como links sublinhados no lugar da linha cinza.
+    // O "Vendo <cabine>" vai no título do preço e o painel leva só os 2 botões, para o card não crescer (mesma altura dos outros).
+    if (troca) celulas = celulas.replace('<small>' + NOME[troca], '<small>Vendo ' + NOME[troca]) +
+      '<div class="troca-painel"><div class="troca-bts">' +
+      '<button class="troca-bt volta" data-volta="' + esc(s.id) + '">&#8630; Voltar</button>' +
+      '<button class="troca-bt todas" data-todas="' + troca + '">Todas em ' + NOME[troca] + ' &rarr;</button></div></div>';
     // Histórico sempre aberto, sem botão de recolher (Leonardo, 21/11/2026: "não vamos deixar recolher, fica sempre padrão
     // expandido"). ANTES: vinha aberto com um botão no pé para recolher e abrir de novo.
     return '<div class="card" data-i="' + i + '">' +
@@ -1042,7 +1065,7 @@
         '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : s.cia === 'Temático' ? 'tematico' : 'msc') + '">' + esc(s.cia) + '</span>' + s.noites + ' noites<span class="volta"><i> · </i>volta ' + dm(MV.volta(s)) + '</span></span>' +
         '<span class="rota">' + esc(MV.rotaTexto(s.roteiro)) + '</span></div>' +
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
-      '<div class="cabs' + (cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
+      '<div class="cabs' + (troca ? ' troca' : cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
       (temCrianca() ? '<div class="cri"><b>Com criança pode sair menos.</b> O valor depende da idade de cada uma.' +
         '<a class="btn" href="' + esc(linkWhats(MV.msgIdades(s, f, menor || cabs[0]))) + '" target="_blank" rel="noopener">Valor exato com as idades</a></div>' : '') +
       detalhe(s) + '</div>';
