@@ -296,6 +296,14 @@
     <div class="opcoes" id="igual"></div>
   </section>
 
+  <!-- Crianças parecidas entre si (Leonardo, 22/11/2026: "pode acontecer é ter um bebe semelhante entre as crianças e entre
+       os adultos, mas sempre vai ter que preencher, no mínimo, o consumo de uma criança"): só com 2 ou mais crianças; a
+       criança nunca entra no "parecido" dos adultos. -->
+  <section id="sec-igual-criancas" class="oculto">
+    <h2>As crianças bebem parecido entre si?</h2>
+    <div class="opcoes" id="igual-criancas"></div>
+  </section>
+
   <section id="sec-itens">
     <div class="abas-pessoas" id="abas-pessoas" hidden></div>
     <h2 id="itens-titulo">O que você beberia em um dia a bordo?</h2>
@@ -367,6 +375,7 @@
       voce: pessoa(),
       outros: [pessoa(), pessoa(), pessoa()], // adultos 2 a 4, cada um com a própria lista
       criancas: link.criancas || 0,           // crianças de 2 a 17 anos (até 1 ano não paga)
+      criancasIguais: true,                   // "As crianças bebem parecido entre si?" (só com 2 ou mais)
       filhos: [0, 1, 2, 3].map(function () { return { alcool: false, crianca: true, consumo: C.diaMinimoCrianca(ciaDia) }; }),
       atual: 0,            // adulto à vista em "Quero preencher cada um" (0 = você)
       preferencia: null,   // faixa dos 35%: "sem_preocupar" | "controlar"
@@ -595,7 +604,8 @@
       var L = [];
       if (individual()) for (var k = 0; k < estado.adultos; k++) L.push({ nome: k ? "Adulto " + (k + 1) : "Você", p: k ? estado.outros[k - 1] : estado.voce, vezes: 1 });
       else L.push({ nome: estado.adultos > 1 ? "Adultos" : "Você", p: estado.voce, vezes: estado.adultos });
-      for (var j = 0; j < estado.criancas; j++) L.push({ nome: "Criança " + (j + 1), p: estado.filhos[j], vezes: 1, crianca: true });
+      if (estado.criancas > 1 && estado.criancasIguais) L.push({ nome: "Crianças", p: estado.filhos[0], vezes: estado.criancas, crianca: true });
+      else for (var j = 0; j < estado.criancas; j++) L.push({ nome: "Criança " + (j + 1), p: estado.filhos[j], vezes: 1, crianca: true });
       return L;
     }
     function irPara(i) {
@@ -610,13 +620,14 @@
     }
     function montarPessoas() {
       document.getElementById("sec-igual").classList.toggle("oculto", estado.adultos === 1);
+      document.getElementById("sec-igual-criancas").classList.toggle("oculto", estado.criancas < 2);
       var L = lista(), varias = L.length > 1;
       if (estado.atual >= L.length) estado.atual = 0;
       var i = estado.atual, q = L[i], p = q.p;
       var abas = document.getElementById("abas-pessoas"), passo = document.getElementById("passo-pessoas"), alc = document.getElementById("pessoa-alc");
       abas.hidden = !varias; passo.hidden = !varias;
       abas.innerHTML = ""; passo.innerHTML = ""; alc.innerHTML = ""; alc.className = "";
-      var quem = q.crianca ? "a " + q.nome : q.nome === "Você" ? "você" : q.nome === "Adultos" ? "cada adulto" : "o " + q.nome;
+      var quem = q.nome === "Crianças" ? "cada criança" : q.crianca ? "a " + q.nome : q.nome === "Você" ? "você" : q.nome === "Adultos" ? "cada adulto" : "o " + q.nome;
       document.getElementById("itens-titulo").textContent = "O que " + quem + " beberia em um dia a bordo?";
       document.getElementById("itens-dica").textContent = q.crianca
         ? "Só bebidas sem álcool. Já deixamos preenchido o mínimo em que o pacote de menores vale a pena. Ajuste com − e +."
@@ -813,7 +824,8 @@
       var rs = cias.map(function (ciaId) {
         // Foco escolhido e alguém bebe: compara só o pacote do foco com o sem pacote ("todos" = os três).
         return C.calcular({ cia: ciaId, noites: estado.noites, adultos: estado.adultos, perfis: perfis(),
-          criancas: estado.filhos.slice(0, estado.criancas).map(function (p) { return semAlcool(p); }),
+          // Parecidas entre si: a lista da 1ª criança vale para todas (22/11/2026).
+          criancas: estado.filhos.slice(0, estado.criancas).map(function (p) { return semAlcool(estado.criancasIguais ? estado.filhos[0] : p); }),
           niveis: algumBebe() ? C.niveisDoFoco(estado.foco) : null,
           pacotesSaida: pacotesDaSaida(ciaId) });
       });
@@ -873,6 +885,7 @@
     montarPessoas();
     simNao(document.getElementById("alcool"), true, ["Sim", "Não"], trocaAlcool(estado.voce));
     simNao(document.getElementById("igual"), true, ["Sim, parecido", "Quero preencher cada um"], function (sim) { estado.igual = sim; estado.atual = 0; montarPessoas(); atualizar(); });
+    simNao(document.getElementById("igual-criancas"), true, ["Sim, parecido", "Quero preencher cada uma"], function (sim) { estado.criancasIguais = sim; estado.atual = 0; montarPessoas(); atualizar(); });
     mostrarFoco();
     atualizar();
   }
