@@ -335,7 +335,7 @@
 </main>
 
 <script src="../mv.js?v=20261122a"></script>
-<script src="calc.js?v=20261122e"></script>
+<script src="calc.js?v=20261122f"></script>
 <script>
 (function () {
   "use strict";
@@ -378,9 +378,13 @@
     // (Leonardo, 21/11/2026). Vale o link primeiro; a pesquisa só preenche o que o link não traz.
     var pref = ler("mv_pref"), pesq = pref ? MV.lerPesquisa(pref) : null;
     var foco0 = C.focoDaPesquisa(link.b || (pesq && pesq.b) || "");
-    function pessoa() { return { alcool: true, consumo: C.diaMinimo(ciaDia, true, foco0) }; }
+    // Dia já preenchido contra a diária REAL do pacote desta saída (Leonardo, 22/11/2026: "ficar o mínimo possível para
+    // valer a pena o pacote"); sem a saída, contra a referência. ANTES: sempre contra a referência.
+    var noites0 = link.noites || (saida && saida.noites) || (pesq && C.noitesDaPesquisa(pesq.t)) || 4;
+    function pacotesIni(c) { return saida && saida.cia === c && noites0 === saida.noites ? saida.pacotes : null; }
+    function pessoa() { return { alcool: true, consumo: C.diaMinimo(ciaDia, true, foco0, pacotesIni(ciaDia), noites0) }; }
     var estado = {
-      noites: link.noites || (saida && saida.noites) || (pesq && C.noitesDaPesquisa(pesq.t)) || 4,
+      noites: noites0,
       foco: foco0,         // "economia" | "qualidade" | "todos" | null (ainda não respondeu)
       adultos: link.adultos || 2,
       igual: true,
@@ -432,7 +436,7 @@
         var b = el("button", { type: "button", "aria-pressed": String(cia === c), texto: nomeCia(c) });
         b.onclick = function () {
           cia = c; ciaDia = c; cias = [c];
-          [estado.voce].concat(estado.outros).forEach(function (p) { p.consumo = C.diaMinimo(c, p.alcool, estado.foco); });
+          [estado.voce].concat(estado.outros).forEach(function (p) { p.consumo = C.diaMinimo(c, p.alcool, estado.foco, pacotesDaSaida(c), estado.noites); });
           estado.filhos.forEach(function (p) { p.consumo = C.diaMinimoCrianca(c); });
           estado.preferencia = null;
           montarCia(); tituloCia(); montarFoco();
@@ -594,7 +598,7 @@
           estado.foco = o[0];
           estado.preferencia = null;
           // Troca o foco = volta ao mínimo daquele foco quem bebe (como ao trocar o álcool).
-          [estado.voce].concat(estado.outros).forEach(function (p) { if (p.alcool) p.consumo = C.diaMinimo(ciaDia, true, o[0]); });
+          [estado.voce].concat(estado.outros).forEach(function (p) { if (p.alcool) p.consumo = C.diaMinimo(ciaDia, true, o[0], pacotesDaSaida(ciaDia), estado.noites); });
           montarPessoas();
           mostrarFoco();
           atualizar();
@@ -618,7 +622,7 @@
 
     // Trocar o álcool de uma pessoa volta a lista dela ao mínimo daquele caso (com ou sem álcool).
     function trocaAlcool(p) {
-      return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim, estado.foco); montarPessoas(); mostrarFoco(); atualizar(); };
+      return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim, estado.foco, pacotesDaSaida(ciaDia), estado.noites); montarPessoas(); mostrarFoco(); atualizar(); };
     }
 
     // Uma por adulto em "Quero preencher cada um" (Leonardo, 21/11/2026: "uma opção de ir e voltar para todas as pessoas.

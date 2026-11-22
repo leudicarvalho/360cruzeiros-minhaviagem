@@ -34,26 +34,26 @@
   // contra o My Drinks 270). Com 1 drink a menos, o pacote já não compensa (o teste confere).
   // Foco "qualidade" (21/11/2026): o mínimo em que o premium compensa (MSC 2 refris + 1 água + 6 drinks premium = 543
   // contra o Premium Extra 485, com 5 = 464; 22/11/2026: média do premium caiu de 84 para 79 com o cardápio oficial, ANTES 5 drinks = 489; Costa o mesmo com 4 = 413 contra o My Drinks Plus 360; contas com a média das marcas, 21/11/2026). Com 1 a menos já não compensa.
-  // DIA VARIADO E COLADO NO PACOTE (Leonardo, 22/11/2026: "ficou 7.266, muito acima do pacote... o valor do mínimo que
-  // compensa para o pacote e não coloque tudo em doses. Pode colocar cerveja, tem que variar um pouco as coisas"): o dia
-  // mistura cerveja e drink, marca por marca ("<item>_<n>" = a n-ª marca de CIAS[cia].itens[item]), fica poucos reais
-  // acima da diária do pacote e, tirando QUALQUER uma das bebidas, o pacote já não compensa (o teste confere).
-  // MSC Easy 285: 2 refris + 1 água + 1 chope Stella + 1 Amstel + 2 drinks clássicos = 294.
-  // MSC Premium Extra 485: 2 refris + 1 água + 3 Heineken/Budweiser/Stella + 2 Aperol Spritz/Negroni + 2 doses de
-  // Johnnie Walker Black/Chivas/Grey Goose = 492.
-  // Costa My Drinks 270: 2 refris + 1 água + 2 chopes + 1 taça de vinho + 1 caipirinha + 1 Cuba Libre/Gin Tônica = 282.
-  // Costa My Drinks Plus 360: 2 refris + 1 água + 2 cafés + 2 Weissbier + 2 gin tônicas premium = 373.
-  // ANTES (até 22/11/2026): tudo numa marca só (MSC premium = 6 doses, avulso 519 por dia contra 485).
-  var DIA_MINIMO = {
+  // DIA JÁ PREENCHIDO = O MÍNIMO PARA O PACOTE DAQUELA SAÍDA VALER A PENA (Leonardo, 22/11/2026: "O objetivo geral de
+  // colocar as bebidas default era ficar o mínimo possível para valer a pena o pacote de bebidas. Está extrapolando muito";
+  // "não coloque tudo em doses. Pode colocar cerveja, tem que variar"). O dia é montado na hora contra a diária REAL do
+  // pacote (o da saída no arquivo do dia, ou a referência sem saída): vai pondo as bebidas na ordem de SEQ (variada:
+  // refri, cerveja, drink, água...) até passar da diária e depois tira a mais cara que ainda deixa acima, até nenhuma poder
+  // sair. Resultado: poucos reais acima da diária e, tirando QUALQUER bebida, o pacote já não compensa.
+  // "<item>_<n>" = a n-ª marca de CIAS[cia].itens[item].
+  // ANTES: tabela fixa contra a referência (MSC Easy 285, Premium Extra 485), mas os pacotes da MSC no site custam bem
+  // menos (22/11/2026: Easy 208 a 256 por dia, Premium Extra 259 a 448, Não Alcoólico 161 a 205), e o dia ficava muito
+  // acima do pacote (ex.: 492 contra 287).
+  var SEQ = {
     msc: {
-      sem_alcool: { refri: 6, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
-      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja_0: 1, cerveja_1: 1, drink_0: 2 },
-      qualidade: { refri: 2, agua: 1, cafe: 0, longneck_1: 3, premium_2: 2, premium_4: 2 },
+      sem_alcool: ["refri", "agua", "refri", "cafe"],
+      basico: ["refri", "cerveja_0", "drink_0", "agua", "cerveja_1", "drink_0", "vinho_0", "refri"],
+      premium: ["refri", "longneck_1", "premium_2", "agua", "premium_4", "longneck_2", "artesanal_0", "cafe", "premium_1", "refri"],
     },
     costa: {
-      sem_alcool: { refri: 5, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
-      com_alcool: { refri: 2, agua: 1, cafe: 0, cerveja_0: 2, vinho_0: 1, drink_1: 1, drink_2: 1 },
-      qualidade: { refri: 2, agua: 1, cafe: 2, artesanal_0: 2, premium_0: 2 },
+      sem_alcool: ["refri", "agua", "refri", "cafe"],
+      basico: ["refri", "cerveja_0", "drink_1", "agua", "vinho_0", "drink_2", "longneck_0", "refri"],
+      premium: ["refri", "artesanal_0", "premium_0", "agua", "cafe", "artesanal_0", "refri", "premium_0"],
     },
   };
   // Dólar dos preços avulsos (habilidade precos-bebidas-msc-costa-2026: "US$ x 1,15 x câmbio", câmbio de referência
@@ -70,22 +70,43 @@
     msc: { dia: 109, pacote: "Não Alcoólico para Menores" },
     costa: { dia: 177, pacote: "My Drinks Young (menores de 18)" },
   };
-  // Dia já preenchido da criança = o mínimo em que o pacote de menores vale a pena, como o do adulto (Leonardo, 22/11/2026,
-  // proposta aprovada): MSC 3 refris + 2 águas = 112 contra 109; Costa 5 refris + 3 águas = 180 contra 177.
-  var DIA_MINIMO_CRIANCA = {
-    msc: { refri: 3, agua: 2, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
-    costa: { refri: 5, agua: 3, cafe: 0, cerveja: 0, longneck: 0, artesanal: 0, vinho: 0, drink: 0, premium: 0 },
-  };
-  function diaMinimoCrianca(cia) { return Object.assign({}, DIA_MINIMO_CRIANCA[cia] || DIA_MINIMO_CRIANCA.msc); }
+  // Dia já preenchido da criança = o mínimo em que o pacote de menores vale a pena, montado como o do adulto (montarDia)
+  // contra a diária de menores (CRIANCA). ANTES (até 22/11/2026): tabela fixa (MSC 3 refris + 2 águas, Costa 5 + 3).
+  function diaMinimoCrianca(cia) {
+    var c = CIAS[cia] ? cia : "msc";
+    return montarDia(c, "sem_alcool", CRIANCA[c].dia);
+  }
 
-  // MSC e Costa lado a lado: o dia da MSC (a habilidade manda oferecer a MSC primeiro).
-  // foco "qualidade" com álcool = o dia do premium; os outros focos = o dia do básico.
-  function diaMinimo(cia, alcool, foco) {
-    var t = DIA_MINIMO[cia] || DIA_MINIMO.msc;
-    var d = !alcool ? t.sem_alcool : foco === "qualidade" ? t.qualidade : t.com_alcool;
+  // Preço de uma chave do consumo ("refri" ou "longneck_1").
+  function precoChave(cia, k) {
+    var m = /^(.+)_(\d+)$/.exec(k), c = CIAS[cia];
+    return m ? Math.round(precoMarca(c.itens[m[1]].marcas[+m[2]])) : c.avulso[k];
+  }
+  // Monta o dia contra a diária "alvo" (SEQ e a regra no topo).
+  function montarDia(cia, tipo, alvo) {
+    var seq = SEQ[cia][tipo], d = {}, total = 0, i = 0;
+    while (total < alvo && i < 300) { var k = seq[i % seq.length]; d[k] = (d[k] || 0) + 1; total += precoChave(cia, k); i++; }
+    for (;;) {
+      var sai = null;
+      Object.keys(d).forEach(function (k) {
+        if (d[k] > 0 && total - precoChave(cia, k) >= alvo && (!sai || precoChave(cia, k) > precoChave(cia, sai))) sai = k;
+      });
+      if (!sai) break;
+      d[sai]--; total -= precoChave(cia, sai);
+    }
     var c = {};
+    ITENS.forEach(function (it) { c[it.id] = 0; });
     Object.keys(d).forEach(function (k) { c[k] = d[k]; });
     return comMarcas(cia, c);
+  }
+  // Dia já preenchido do adulto: sem álcool contra o pacote sem álcool; foco "qualidade" contra o premium; os outros
+  // contra o básico. pacotesSaida e noites: os da saída (diária = valor da viagem / noites); sem eles, a referência.
+  function diaMinimo(cia, alcool, foco, pacotesSaida, noites) {
+    var c = CIAS[cia] ? cia : "msc";
+    var nivel = !alcool ? "sem_alcool" : foco === "qualidade" ? "premium" : "basico";
+    var n = noites > 0 ? noites : 1;
+    var alvo = Math.ceil(precoPacote(c, nivel, n, pacotesSaida).valor / n);
+    return montarDia(c, nivel, alvo);
   }
 
   // Preço avulso por item (R$, com 15%) e o que cada nível cobre. Número = limite por dia (água no My Drinks: 1 por dia).
@@ -442,8 +463,8 @@
     };
   }
 
-  var api = { chaveMarca: chaveMarca, comMarcas: comMarcas, mudarMarca: mudarMarca, CAMBIO: CAMBIO, CRIANCA: CRIANCA, DIA_MINIMO_CRIANCA: DIA_MINIMO_CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
-    soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA, PERTO: PERTO,
+  var api = { SEQ: SEQ, montarDia: montarDia, precoChave: precoChave, chaveMarca: chaveMarca, comMarcas: comMarcas, mudarMarca: mudarMarca, CAMBIO: CAMBIO, CRIANCA: CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
+    soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA, PERTO: PERTO,
     avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir,
     nivelDasDuas: nivelDasDuas, NIVEL_PARA_B: NIVEL_PARA_B, montarEnvio: montarEnvio, saidaDoDia: saidaDoDia, lerLink: lerLink };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
