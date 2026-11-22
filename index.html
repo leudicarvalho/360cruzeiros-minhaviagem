@@ -350,6 +350,8 @@
   @media (max-width: 699px) { .cabs:not(.uma) .cab { padding: 9px 7px; } .cabs:not(.uma) .cab small { font-size: 12px; letter-spacing: -.2px; } }
   .cab .cab-v { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 10px; }
   .cab .cab-v span { font-size: 14.5px; font-weight: 600; margin-top: 2px; white-space: nowrap; }
+  /* Uma cabine só: o Total maior (Leonardo, 21/11/2026: "o total está ficando muito pequeno, ele pode ser maior"). ANTES: 14,5px. */
+  .cabs.uma .cab .cab-v span { font-size: 17px; font-weight: 700; color: var(--texto); }
   .cab.esg b { color: var(--suave); font-size: 14px; font-weight: 600; line-height: 23px; }   /* 23px = altura do valor (padronizar tudo, 21/11/2026) */
   /* Esgotada no mesmo tamanho das outras cabines, em vermelho (Leonardo, 21/11/2026: "deixar no mesmo tamanho do padrão para o
      card não ficar menor e ainda com um fundo vermelho e mais moderno"). ANTES: fundo cinza e "Esgotada" pequeno (14px). */
@@ -1065,8 +1067,8 @@
     // O "Vendo <cabine>" vai no título do preço e o painel leva só os 2 botões, para o card não crescer (mesma altura dos outros).
     if (troca) celulas = celulas.replace('<small>' + NOME[troca], '<small>Vendo ' + NOME[troca]) +
       '<div class="troca-painel"><div class="troca-bts">' +
-      '<button class="troca-bt volta" data-volta="' + esc(s.id) + '">&#8630; Voltar</button>' +
-      '<button class="troca-bt todas" data-todas="' + troca + '">Todas em ' + NOME[troca] + ' &rarr;</button></div></div>';
+      '<button class="troca-bt volta" data-volta="' + esc(s.id) + '">Desfazer</button>' +
+      '<button class="troca-bt todas" data-todas="' + troca + '">Todas em ' + NOME[troca] + '</button></div></div>';
     // Histórico sempre aberto, sem botão de recolher (Leonardo, 21/11/2026: "não vamos deixar recolher, fica sempre padrão
     // expandido"). ANTES: vinha aberto com um botão no pé para recolher e abrir de novo.
     return '<div class="card" data-i="' + i + '">' +
@@ -1117,7 +1119,9 @@
     // Sem pacote: o mesmo botão dourado "Descobrir o pacote de bebidas ideal" (Leonardo, 21/11/2026: "voltar como estava
     // ... E o fundo amarelo"). ANTES: botão branco com borda "Qual pacote de bebidas vale a pena? Calcule".
     var botao = calc ? calc.botao : 'Descobrir o pacote de bebidas ideal';
-    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc())) + '"><span>' + esc(botao).replace('Descobrir o pacote', '<i class="so-pc">Descobrir o pacote</i><i class="so-cel">Pacote</i>') + '</span></a>';
+    // No celular, "Pacote de bebidas" numa linha só (Leonardo, 21/11/2026, variação A: "vai ficar assim, só pacote de
+    // bebidas"). ANTES: "Pacote de bebidas ideal", que quebrava em 2 linhas ao lado do "Quero esta saída".
+    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc())) + '"><span>' + esc(botao).replace('Descobrir o pacote', '<i class="so-pc">Descobrir o pacote</i><i class="so-cel">Pacote</i>').replace(' ideal', '<i class="so-pc"> ideal</i>') + '</span></a>';
   }
 
   // Linha do pacote escolhido, à parte do histórico: valor por adulto e desde quando não muda.
