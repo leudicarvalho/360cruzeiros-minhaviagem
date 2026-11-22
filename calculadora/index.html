@@ -141,6 +141,8 @@
   .opcoes.foco button[aria-pressed="true"] small, .opcoes.foco button[aria-pressed="true"] .f-preco span,
   .opcoes.foco button[aria-pressed="true"] .f-total { color: #d3e3e9; }
   .opcoes.foco button[aria-pressed="true"] .f-total.mais { color: #ffd98a; }
+  .aviso-cabine { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff7e6; border: 1px solid #f1d39a; color: #5c4300; font-size: 13.5px; line-height: 1.4; }
+  .aviso-cabine b { color: #3d2c00; }
   .foco-nota { font-size: 13px; color: var(--suave); margin: -4px 0 10px; }
   .colunas { display: grid; gap: 14px; }
   /* Celular (Leonardo, 21/11/2026: "no celular tá muito ruim, principalmente a seção do drink premium ou destilado. Fica
@@ -171,6 +173,19 @@
      avulso numa etiqueta. ANTES: uma frase com o avulso e uma tabela simples (nome e valor). */
   .res-avulso { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--fundo); border: 1.5px solid var(--linha); border-radius: 14px; padding: 14px 16px; margin: 4px 0 16px; }
   .res-rot { font-size: 11.5px; font-weight: 800; color: var(--suave); text-transform: uppercase; letter-spacing: .05em; }
+  /* Abas dos adultos e o ir e voltar (21/11/2026). */
+  .abas-pessoas { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; margin: 0 0 14px; }
+  .abas-pessoas button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 10px; border: 1px solid #c9d5db; background: #fff; color: var(--texto); font: 700 14px var(--fonte); cursor: pointer; min-width: 0; }
+  .abas-pessoas button small { font-size: 12px; font-weight: 600; color: var(--suave); white-space: nowrap; }
+  .abas-pessoas button[aria-pressed="true"] { background: var(--marca); border-color: var(--marca); color: #fff; }
+  .abas-pessoas button[aria-pressed="true"] small { color: #d3e3e9; }
+  .pessoa-alc { margin: 0 0 12px; }
+  .pessoa-alc p { font-weight: 700; margin: 0 0 8px; }
+  .passo-pessoas { display: flex; gap: 10px; margin-top: 14px; }
+  .passo-pessoas button { flex: 1; padding: 12px 8px; border-radius: 10px; border: 1px solid var(--marca); background: #fff; color: var(--marca); font: 700 15px var(--fonte); cursor: pointer; }
+  .passo-pessoas button.prox { background: var(--marca); color: #fff; }
+  .res-pessoas { font-size: 13px; color: var(--suave); margin: 8px 0 0; }
+  .res-pessoas b { color: var(--texto); }
   .res-sub { font-size: 12.5px; color: var(--suave); margin-top: 2px; }
   .res-valor { font-size: 24px; font-weight: 900; color: var(--texto); white-space: nowrap; letter-spacing: -.01em; text-align: right; }
   .res-valor small { display: block; font-size: 11.5px; font-weight: 600; color: var(--suave); letter-spacing: 0; }
@@ -255,21 +270,30 @@
     <h2>Quais bebidas alcoólicas você quer ver?</h2>
     <p class="foco-nota" id="foco-nota">Preço por pessoa, por dia.</p>
     <div class="opcoes foco" id="foco"></div>
+    <!-- Regra da cabine bem à vista (Leonardo, 21/11/2026: "tem que deixar claro na tela que todas as pessoas da cabine
+         têm que ter o mesmo pacote de bebidas, exceto quando for selecionado um pacote alcoólico e na cabine tiver
+         crianças"). ANTES: só no rodapé, em letra pequena, e só para os adultos. -->
+    <p class="aviso-cabine"><b>Todos da cabine ficam com o mesmo pacote.</b> Com pacote alcoólico, crianças e adolescentes (até 17 anos) ficam automaticamente com o pacote sem álcool. Até 2 anos não paga pacote.</p>
   </section>
 
   <div id="depois-foco">
-  <section>
-    <h2>O que você beberia em um dia a bordo?</h2>
-    <p class="dica">Já deixamos preenchido o mínimo em que o pacote vale a pena. Ajuste com − e + para o que você beberia.</p>
-    <div id="itens-voce"></div>
-  </section>
-
+  <!-- Cada adulto (Leonardo, 21/11/2026: "tem que ter uma opção de ir e voltar para todas as pessoas. Para ficar claro o
+       que ficou de cada um"): a pergunta "bebem parecido?" vem antes da lista; em "Quero preencher cada um", uma aba por
+       pessoa com o avulso por dia dela, a lista da pessoa escolhida e os botões de ir e voltar. ANTES: a pergunta vinha
+       depois da sua lista e cada adulto ganhava uma seção solta embaixo, uma depois da outra. -->
   <section id="sec-igual">
     <h2>Os outros adultos da cabine bebem parecido com você?</h2>
     <div class="opcoes" id="igual"></div>
   </section>
 
-  <div id="outros"></div>
+  <section id="sec-itens">
+    <div class="abas-pessoas" id="abas-pessoas" hidden></div>
+    <h2 id="itens-titulo">O que você beberia em um dia a bordo?</h2>
+    <p class="dica" id="itens-dica">Já deixamos preenchido o mínimo em que o pacote vale a pena. Ajuste com − e + para o que você beberia.</p>
+    <div id="pessoa-alc"></div>
+    <div id="itens-voce"></div>
+    <div class="passo-pessoas" id="passo-pessoas" hidden></div>
+  </section>
 
   <div class="colunas" id="resultados"></div>
 
@@ -279,11 +303,11 @@
   </div>
   </div>
 
-  <p class="rodape">Valores aproximados: dependem da cotação do dólar no dia. Os preços avulsos já incluem a taxa de serviço de 15%. Todos os adultos da mesma cabine precisam ter o mesmo pacote.</p>
+  <p class="rodape">Valores aproximados: dependem da cotação do dólar no dia. Os preços avulsos já incluem a taxa de serviço de 15%. Todos da mesma cabine precisam ter o mesmo pacote (com pacote alcoólico, menores de 18 ficam com o sem álcool).</p>
 </main>
 
 <script src="../mv.js?v=20261121k"></script>
-<script src="calc.js?v=20261121l"></script>
+<script src="calc.js?v=20261121m"></script>
 <script>
 (function () {
   "use strict";
@@ -332,6 +356,7 @@
       igual: true,
       voce: pessoa(),
       outros: [pessoa(), pessoa(), pessoa()], // adultos 2 a 4, cada um com a própria lista
+      atual: 0,            // adulto à vista em "Quero preencher cada um" (0 = você)
       preferencia: null,   // faixa dos 35%: "sem_preocupar" | "controlar"
     };
     var cias = cia ? [cia] : [];
@@ -355,8 +380,7 @@
           [estado.voce].concat(estado.outros).forEach(function (p) { p.consumo = C.diaMinimo(c, p.alcool, estado.foco); });
           estado.preferencia = null;
           montarCia(); tituloCia(); montarFoco();
-          montarItens(document.getElementById("itens-voce"), estado.voce);
-          montarOutros(); atualizar();
+          montarPessoas(); atualizar();
         };
         caixa.appendChild(b);
       });
@@ -386,7 +410,7 @@
         span.innerHTML = "";
         passo(estado[campo], lim[0], lim[1], function (v) {
           estado[campo] = v;
-          if (campo === "adultos") montarOutros();
+          if (campo === "adultos") montarPessoas();
           atualizar();
         }).forEach(function (b) { span.appendChild(b); });
       });
@@ -512,8 +536,7 @@
           estado.preferencia = null;
           // Troca o foco = volta ao mínimo daquele foco quem bebe (como ao trocar o álcool).
           [estado.voce].concat(estado.outros).forEach(function (p) { if (p.alcool) p.consumo = C.diaMinimo(ciaDia, true, o[0]); });
-          montarItens(document.getElementById("itens-voce"), estado.voce);
-          montarOutros();
+          montarPessoas();
           mostrarFoco();
           atualizar();
         };
@@ -534,28 +557,63 @@
       });
     }
 
-    function trocaAlcool(p, caixaItens) {
-      return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim, estado.foco); montarItens(caixaItens, p); mostrarFoco(); atualizar(); };
+    // Trocar o álcool de uma pessoa volta a lista dela ao mínimo daquele caso (com ou sem álcool).
+    function trocaAlcool(p) {
+      return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim, estado.foco); montarPessoas(); mostrarFoco(); atualizar(); };
     }
 
-    // Cada adulto a mais ganha o próprio bloco, já preenchido com o mínimo, só quando "Quero preencher cada um" (21/11/2026, Leonardo; ANTES "Não, quero preencher cada um").
-    function montarOutros() {
-      var caixa = document.getElementById("outros");
-      caixa.innerHTML = "";
+    // Uma por adulto em "Quero preencher cada um" (Leonardo, 21/11/2026: "uma opção de ir e voltar para todas as pessoas.
+    // Para ficar claro o que ficou de cada um"): aba por pessoa com o avulso por dia dela (valoresAbas, a cada atualizar),
+    // a lista só da pessoa escolhida (estado.atual) e os botões de ir e voltar embaixo. "Você" responde o álcool na
+    // pergunta do topo; os outros, aqui. ANTES: uma seção por adulto, uma embaixo da outra, depois da sua lista.
+    function individual() { return estado.adultos > 1 && !estado.igual; }
+    function pessoaN(i) { return i === 0 ? estado.voce : estado.outros[i - 1]; }
+    function nomePessoa(i) { return i === 0 ? "Você" : "Adulto " + (i + 1); }
+    function irPara(i) {
+      estado.atual = i; montarPessoas(); atualizar();
+      var sec = document.getElementById("sec-itens");
+      if (sec.getBoundingClientRect().top < 0) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function botaoPasso(texto, classe, acao) {
+      var b = el("button", { type: "button", "class": classe, texto: texto });
+      b.onclick = acao;
+      return b;
+    }
+    function montarPessoas() {
       document.getElementById("sec-igual").classList.toggle("oculto", estado.adultos === 1);
-      if (estado.adultos === 1 || estado.igual) return;
-      for (var i = 0; i < estado.adultos - 1; i++) {
-        var p = estado.outros[i];
-        var itens = el("div", {});
-        var alc = el("div", { "class": "opcoes" });
-        simNao(alc, p.alcool, ["Sim", "Não"], trocaAlcool(p, itens));
-        montarItens(itens, p);
-        caixa.appendChild(el("section", {}, [
-          el("h2", { texto: "Adulto " + (i + 2) }),
-          el("p", { "class": "dica", texto: "Toma bebida alcoólica?" }), alc,
-          el("p", { "class": "dica", style: "margin-top:12px", texto: "O que essa pessoa beberia em um dia a bordo?" }), itens,
-        ]));
+      var ind = individual();
+      if (!ind || estado.atual >= estado.adultos) estado.atual = 0;
+      var i = estado.atual, p = pessoaN(i);
+      var abas = document.getElementById("abas-pessoas"), passo = document.getElementById("passo-pessoas"), alc = document.getElementById("pessoa-alc");
+      abas.hidden = !ind; passo.hidden = !ind;
+      abas.innerHTML = ""; passo.innerHTML = ""; alc.innerHTML = ""; alc.className = "";
+      document.getElementById("itens-titulo").textContent = i === 0 ? "O que você beberia em um dia a bordo?" : "O que o " + nomePessoa(i) + " beberia em um dia a bordo?";
+      document.getElementById("itens-dica").textContent = "Já deixamos preenchido o mínimo em que o pacote vale a pena. Ajuste com − e + para o que " + (i === 0 ? "você beberia." : "essa pessoa beberia.");
+      if (ind) {
+        for (var k = 0; k < estado.adultos; k++) (function (k) {
+          var b = el("button", { type: "button", "aria-pressed": String(k === i) }, [nomePessoa(k), el("small", { "class": "ab-v", "data-i": String(k) })]);
+          b.onclick = function () { if (k !== estado.atual) irPara(k); };
+          abas.appendChild(b);
+        })(k);
+        if (i > 0) {
+          var sn = el("div", { "class": "opcoes" });
+          simNao(sn, p.alcool, ["Sim", "Não"], trocaAlcool(p));
+          alc.className = "pessoa-alc";
+          alc.appendChild(el("p", { texto: "O " + nomePessoa(i) + " toma bebida alcoólica?" }));
+          alc.appendChild(sn);
+          passo.appendChild(botaoPasso("‹ " + nomePessoa(i - 1), "", function () { irPara(i - 1); }));
+        }
+        if (i < estado.adultos - 1) passo.appendChild(botaoPasso(nomePessoa(i + 1) + " ›", "prox", function () { irPara(i + 1); }));
+        else passo.appendChild(botaoPasso("Ver o resultado ↓", "prox", function () { document.getElementById("resultados").scrollIntoView({ behavior: "smooth", block: "start" }); }));
       }
+      montarItens(document.getElementById("itens-voce"), p);
+    }
+    // Avulso por dia de cada adulto nas abas (o que a tela mostra para ele, como entra na conta).
+    function valoresAbas() {
+      if (!cia) return;
+      document.querySelectorAll("#abas-pessoas .ab-v").forEach(function (sm) {
+        sm.textContent = reais(C.avulsoDia(cia, daTela(pessoaN(+sm.getAttribute("data-i"))), null)) + "/dia";
+      });
     }
 
     function semAlcool(p) {
@@ -616,6 +674,11 @@
           el("div", {}, [el("div", { "class": "res-rot", texto: "Comprando avulso" }), el("div", { "class": "res-sub", texto: reais(r.avulsoDiaPessoa) + " por dia, por pessoa" })]),
           el("div", { "class": "res-valor" }, [reais(r.avulsoViagem), el("small", { texto: "viagem toda" })]),
         ]),
+        // Cada adulto, para ficar claro quanto é de cada um (21/11/2026): o avulso da viagem de cada pessoa.
+        individual() ? el("p", { "class": "res-pessoas" }, ["Avulso de cada um na viagem: "].concat(
+          Array.apply(null, Array(estado.adultos)).map(function (_, k) {
+            return el("span", {}, [(k ? " · " : ""), nomePessoa(k) + " ", el("b", { texto: reais(C.avulsoDia(r.cia, daTela(pessoaN(k)), null) * r.noites) })]);
+          }))) : null,
         r.pacotes.length ? el("div", { "class": "res-titulo", texto: "Com pacote · " + gente + ", viagem toda" }) : null,
         el("div", { "class": "pacotes" }, pacs),
         temRef ? el("p", { "class": "nota", texto: "Pacotes pelo preço médio por dia; o valor exato depende da saída." }) : null,
@@ -718,6 +781,7 @@
           pacotesSaida: pacotesDaSaida(ciaId) });
       });
       precosFoco();
+      valoresAbas();
       var caixa = document.getElementById("resultados");
       // Alguém bebe e ainda não escolheu básico ou premium: nada de resultado misturando os dois (21/11/2026).
       if (algumBebe() && !estado.foco) { caixa.innerHTML = ""; document.getElementById("sec-final").classList.add("oculto"); return; }
@@ -769,11 +833,9 @@
     montarCia();
     montarViagem();
     montarFoco();
-    var itensVoce = document.getElementById("itens-voce");
-    montarItens(itensVoce, estado.voce);
-    simNao(document.getElementById("alcool"), true, ["Sim", "Não"], trocaAlcool(estado.voce, itensVoce));
-    simNao(document.getElementById("igual"), true, ["Sim, parecido", "Quero preencher cada um"], function (sim) { estado.igual = sim; montarOutros(); atualizar(); });
-    montarOutros();
+    montarPessoas();
+    simNao(document.getElementById("alcool"), true, ["Sim", "Não"], trocaAlcool(estado.voce));
+    simNao(document.getElementById("igual"), true, ["Sim, parecido", "Quero preencher cada um"], function (sim) { estado.igual = sim; estado.atual = 0; montarPessoas(); atualizar(); });
     mostrarFoco();
     atualizar();
   }
