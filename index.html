@@ -502,12 +502,15 @@
   .alerta-preco.caro { background: #fde3e0; color: var(--vermelho-texto); }
   .alerta-preco.caro b { background: var(--vermelho-texto); color: #fff; }
   .faixa .marca.ponta-d span { transform: translateX(-40%); }
-  .extremos { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12.5px; line-height: 1.25; }
-  .extremos span { color: var(--suave); }
-  .extremos span b { display: block; font-size: 14px; font-weight: 700; }
-  .extremos .mn b { color: #15803d; }
-  .extremos .mx { text-align: right; }
-  .extremos .mx b { color: var(--vermelho-texto); }
+  /* Uma linha só no card do computador (~286 px): 12px, e 11px com preço de 5 dígitos (Suíte). Medido no Chrome em
+     21/11/2026: com 12,5px e 8px de folga os dois selos quebravam em 2 linhas. */
+  .extremos { display: flex; flex-wrap: nowrap; justify-content: space-between; gap: 4px; margin-top: 8px; font-size: 12px; font-weight: 700; line-height: 1.2; }
+  .extremos.longo { font-size: 11px; }
+  .extremos span { padding: 3px 5px; border-radius: 6px; white-space: nowrap; }
+  /* Celular (card ~272 px): 11px para todos, medido nos 90 cards a 390 px (ANTES, com 12px, passava até 13 px da borda). */
+  @media (max-width: 699px) { .extremos, .extremos.longo { font-size: 11px; } .extremos span { padding: 3px 4px; } }
+  .extremos .mn { background: #e3f4e8; color: #15803d; }
+  .extremos .mx { background: #fde3e0; color: var(--vermelho-texto); }
   .grafico { width: 100%; max-width: 520px; height: auto; display: block; margin-top: 8px; }
   .grafico text { fill: var(--suave); font: 600 11.5px var(--fonte); }
   .graf-box { position: relative; max-width: 520px; }
@@ -1189,6 +1192,12 @@
     // Marcas na barra (Leonardo, 21/11/2026, 6ª rodada: "não é para ter a linha tracejada... é para só marcar lá em cima...
     // o mais barato, um risco ali no verde, e o mais caro no vermelho. Se o hoje for igual a qualquer um dos dois, as
     // linhas vão ficar sobrepostas. E vai ter um alerta"). ANTES: só a marca Hoje na barra e riscos tracejados no gráfico.
+    // Menor e maior numa legenda em cima da barra, só preço e dia (Leonardo, 21/11/2026, escolheu a opção "B · Legenda em
+    // cima": "Fica só o menor e o maior e a data"). Dia = o último com esse preço; se for hoje, "hoje". ANTES: embaixo da
+    // barra, "R$ X / menor preço em (ou desde) dd/mm" e "R$ Y / maior preço em dd/mm", e o valor em cima das barras.
+    function quando(dia) { return fx.hoje && dia === fx.hoje.dia ? 'hoje' : dm(dia); }
+    if (fx.min.v !== fx.max.v) html += '<div class="extremos' + (fx.max.v >= 10000 ? ' longo' : '') + '"><span class="mn">Menor ' + reais(fx.min.v) + ' · ' + quando(fx.min.dia) + '</span>' +
+      '<span class="mx">Maior ' + reais(fx.max.v) + ' · ' + quando(fx.max.dia) + '</span></div>';
     if (fx.pos !== null && fx.min.v !== fx.max.v) {
       var pct = Math.max(2, Math.min(98, fx.pos * 100)), lado = pct < 15 ? ' ponta-e' : pct > 85 ? ' ponta-d' : '';
       var ext = fx.hoje && fx.hoje.v === fx.min.v ? ' no-min' : fx.hoje && fx.hoje.v === fx.max.v ? ' no-max' : '';
@@ -1214,8 +1223,6 @@
         // data"). ANTES: "Menor/Maior preço desde dd/mm" (1º dia do histórico), em choque com "menor preço desde" da linha de cima.
         (barato ? '<b>↓</b>Menor preço do histórico' : '<b>↑</b>Maior preço do histórico') + '</p>';
     }
-    html += '<div class="extremos"><span class="mn"><b>' + reais(fx.min.v) + '</b>menor preço ' + (fx.min.ateHoje ? 'desde ' : 'em ') + dm(fx.min.dia) + '</span>' +
-      '<span class="mx"><b>' + reais(fx.max.v) + '</b>maior preço em ' + dm(fx.max.dia) + '</span></div>';
     // Alerta de volta embaixo do menor e maior preço (Leonardo, 21/11/2026: "pode ficar ali embaixo... nesse lugar, só que
     // com um fundo bem mais destacado"). ANTES (7f17b21): logo abaixo do "Preço de hoje".
     html += alerta;
@@ -1228,24 +1235,19 @@
   // sem encostar. As barras começam em 85% do menor preço (do zero, R$ 100 de diferença nem apareceria). Toque/mouse na
   // coluna mostra o balão com o preço do dia. ANTES: linha arredondada com bolinhas e o "×" nos dias esgotados.
   function grafico(pts, fx, semLegenda) {
-    var W = 320, H = 92, e = 6, d = 6, t = 24, b = 20;   // ~1/3 mais baixo (opção B, 21/11/2026); computador igual ao celular desde 21/11/2026 (ANTES: 124 no computador)
+    var W = 320, H = 92, e = 6, d = 6, t = 8, b = 20;   // t 8 desde 21/11/2026, sem os números em cima (ANTES: 24)   // ~1/3 mais baixo (opção B, 21/11/2026); computador igual ao celular desde 21/11/2026 (ANTES: 124 no computador)
     // Sem o selo de menor/maior preço, as barras ganham o lugar dele (Leonardo, 21/11/2026: "quando não tem menor preço do
     // histórico ou maior preço do histórico, as barras do gráfico podem ficar um pouco maiores"): +40 na altura (~34 px na
     // tela, o tamanho do selo), e o card fica da mesma altura dos outros. ANTES: um selo invisível guardava o lugar.
     if (!semLegenda) H += 40;
     var mn = fx.min.v, mx = fx.max.v, igual = mn === mx, base = mn * (igual ? 0.8 : 0.85);
     var n = pts.length, slot = (W - e - d) / n, bw = Math.max(3, Math.min(34, slot * 0.72)), hoje = n - 1;
-    var imn = -1, imx = -1, lista = false;
-    pts.forEach(function (p, i) { if (p[1] === mn) imn = i; if (p[1] === mx) imx = i; if (p[2]) lista = true; });
     function X(i) { return e + slot * (i + 0.5); }
-    // Menor e maior perto um do outro: um número em cima do outro (Leonardo, 21/11/2026: "quando os dois preços, máximo e
-    // mínimo, estão muito perto, eles estão se entrelaçando. Tem que deixar um em cima e um embaixo"). O topo ganha 14 px
-    // para a 2ª linha. ANTES: os dois na mesma altura, afastados para os lados, e se encostavam.
-    var juntos = !igual && imn >= 0 && imx >= 0 && Math.abs(X(imn) - X(imx)) < 40;
-    if (juntos) t += 14;
     function y(v) { return t + (H - t - b) * (1 - (v - base) / (mx - base)); }
-    function cor(i) { return !igual && i === imx ? '#d64535' : !igual && i === imn ? '#1fa855' : i === hoje ? '#10252e' : '#9cc3cc'; }
-    function corTxt(i) { return !igual && i === imx ? '#b3261e' : !igual && i === imn ? '#15803d' : i === hoje ? '#10252e' : '#4b5f69'; }
+    // Todos os dias com o menor preço em verde e todos com o maior em vermelho (Leonardo, 21/11/2026, opção B). ANTES: só
+    // o último dia de cada um ficava colorido.
+    function cor(i) { var v = pts[i][1]; return !igual && v === mx ? '#d64535' : !igual && v === mn ? '#1fa855' : i === hoje ? '#10252e' : '#9cc3cc'; }
+    function corTxt(i) { return i === hoje ? '#10252e' : '#4b5f69'; }
     function ancora(cx, w) { return cx - w < e ? ['start', Math.max(e, cx - bw / 2)] : cx + w > W - d ? ['end', Math.min(W - d, cx + bw / 2)] : ['middle', cx]; }
     var barras = '', toques = '', rotulos = '';
     pts.forEach(function (p, i) {
@@ -1256,30 +1258,10 @@
       toques += '<rect class="pt" data-topo="1" x="' + (X(i) - slot / 2).toFixed(1) + '" y="' + (yy - 6).toFixed(1) + '" width="' + slot.toFixed(1) + '" height="' + (H - b - yy + 6).toFixed(1) +
         '" fill="transparent" data-tip="' + esc(reais(p[1]) + ' por pessoa · ' + dm(p[0])) + '" data-cor="' + cor(i) + '"/>';
     });
-    // Valores em cima: só o menor e o maior (Leonardo, 21/11/2026, alternativa "B": o preço de hoje já está grande no quadro
-    // "Preço de hoje"). Cada número fica acima da barra mais alta que ele cobre, com contorno branco, para nunca ficar
-    // encoberto; menor e maior colados se afastam para os lados. ANTES: hoje, menor e maior (e todos com até 5 dias) em cima
-    // da própria barra, e o número de hoje ficava atrás da barra vizinha mais alta.
-    function topo(cx, w) { var m = H - b; pts.forEach(function (p, k) { if (p[1] !== null && Math.abs(X(k) - cx) < w) m = Math.min(m, y(p[1])); }); return m; }
-    var topoJuntos = juntos ? Math.min(topo(X(imn), 22), topo(X(imx), 22)) : 0;
-    (igual ? [hoje] : [imx, imn]).forEach(function (i) {
-      var v = pts[i][1], cx = X(i);
-      if (v === null) return;
-      if (juntos) {   // maior na linha de cima, menor logo abaixo, cada um sobre a sua barra
-        var aj = ancora(cx, 22);
-        rotulos += '<text x="' + aj[1].toFixed(1) + '" y="' + (topoJuntos - 5 - (i === imx ? 14 : 0)).toFixed(1) + '" text-anchor="' + aj[0] + '" style="fill:' + corTxt(i) +
-          ';font-weight:800;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round">' + reais(v).replace('R$ ', '') + '</text>';
-        return;
-      }
-      var a = ancora(cx, 22);
-      if (a[0] === 'end' && a[1] - 40 < e) a = ['start', Math.max(e, cx - bw / 2)];
-      if (a[0] === 'start' && a[1] + 40 > W - d) a = ['end', Math.min(W - d, cx + bw / 2)];
-      var faixa = a[0] === 'middle' ? 22 : 40, meio = a[0] === 'middle' ? cx : a[0] === 'end' ? a[1] - 20 : a[1] + 20;
-      rotulos += '<text x="' + a[1].toFixed(1) + '" y="' + (topo(meio, faixa) - 5).toFixed(1) + '" text-anchor="' + a[0] + '" style="fill:' + corTxt(i) +
-        ';font-weight:800;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round">' + reais(v).replace('R$ ', '') + '</text>';
-    });
-    // Datas embaixo: hoje (ou "Esgotada"), menor, maior, o primeiro dia (e todas com até 7 dias), sem encostar (34).
-    var usados = [], ordem = [hoje].concat(igual ? [] : [imn, imx], [0]);
+    // Sem números em cima das barras e sem as datas do menor e do maior embaixo: estão na legenda em cima da faixa
+    // (Leonardo, 21/11/2026, opção B). ANTES: valor em cima do menor e do maior, e a data deles no eixo.
+    // Datas embaixo: hoje (ou "Esgotada") e o primeiro dia (e todas com até 7 dias), sem encostar (34).
+    var usados = [], ordem = [hoje, 0];
     if (n <= 7) for (var m = 0; m < n; m++) ordem.push(m);
     var esgHoje = pts[hoje][1] === null;
     ordem.forEach(function (i) {

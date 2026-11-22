@@ -554,13 +554,11 @@
     if (ok.length < 2) return null;
     var min = ok[0], max = ok[0];
     ok.forEach(function (p) { if (p[1] <= min[1]) min = p; if (p[1] >= max[1]) max = p; });
-    // Menor preço repetido em dias seguidos: vale o 1º dia dessa sequência (Leonardo, 21/11/2026, Musica 10/12 Varanda:
-    // R$ 2.544 desde 06/11 aparecia "menor preço em 21/11"). ANTES: o último dia com o menor preço.
-    var iMin = ok.indexOf(min), ateHoje = min === pts[pts.length - 1];
-    while (iMin > 0 && ok[iMin - 1][1] === min[1]) iMin--;
-    min = ok[iMin];
+    // Menor e maior repetidos: vale sempre o ÚLTIMO dia com esse preço, para os dois (Leonardo, 21/11/2026: "só não pode
+    // ficar um padrão diferente para cada lugar... defina se vai ser o primeiro ou o último dia"; o mais recente mostra que
+    // esteve nesse preço há pouco). ANTES: menor = 1º dia da última sequência ("desde dd/mm"), maior = último dia.
     var ult = pts[pts.length - 1], hoje = ult[1] === null ? null : { v: ult[1], dia: ult[0] };
-    var r = { hoje: hoje, min: { v: min[1], dia: min[0], ateHoje: ateHoje && min[0] !== ult[0] }, max: { v: max[1], dia: max[0] }, pos: null, nivel: "estavel" };
+    var r = { hoje: hoje, min: { v: min[1], dia: min[0] }, max: { v: max[1], dia: max[0] }, pos: null, nivel: "estavel" };
     if (hoje && max[1] > min[1]) {
       r.pos = (hoje.v - min[1]) / (max[1] - min[1]);
       r.nivel = r.pos <= 1 / 3 ? "baixo" : r.pos >= 2 / 3 ? "alto" : "medio";
