@@ -545,28 +545,38 @@
   .pronto h3 { color: var(--queda); }
   .mel { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   /* Card inteiro numa tela de celular (Leonardo, 21/11/2026: "achatar um pouco mais para ele caber na maioria das telas do
-     celular um cartão inteiro"; escolheu os cortes 1 a 5). Só no celular: (1) cabines numa linha, 3 ou mais sem o Total e o
-     "por pessoa" vai para a linha cinza; (2) os 2 botões lado a lado; (3) sem a frase da lista do site; (4) título do
-     histórico numa linha e gráfico mais baixo; (5) topo e linha cinza mais justos. ANTES: 871 px com as 4 cabines. */
+     celular um cartão inteiro"). Opção B (Leonardo, 21/11/2026: "ficou bem ruim sem informar o preço total... muito
+     apertado tudo em uma linha só"; escolheu "b"): cabines 2x2 baixas com o Total ao lado do preço; linha cinza curta
+     ("2 adultos, taxas inclusas") e o pacote só no selo do histórico, com o valor por adulto; "Preço de hoje" numa linha;
+     gráfico ~1/3 mais baixo; botões lado a lado; sem a frase da lista. ANTES (cortes 1 a 5, 827ea9b): cabines numa linha
+     sem o Total; antes disso 871 px com as 4 cabines. */
   .so-cel { display: none; font-style: normal; }
-  .cab small i { font-style: normal; }
+  .cab small i, .cab-v span i, i.so-pc { font-style: normal; }
   @media (max-width: 699px) {
     .so-cel { display: inline; }
     .c-topo { padding: 8px 10px; gap: 8px; }
     .dia-bloco { width: 56px; padding: 4px 0 5px; }
     .dia-bloco b { font-size: 22px; margin: 2px 0 1px; }
-    .cabs:not(.uma) { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; padding: 12px 10px 2px; }
-    .cabs:not(.uma) .cab { padding: 8px 4px 7px; }
-    .cabs:has(.cab:nth-child(3)) .cab small { font-size: 12px; letter-spacing: -.2px; }
-    .cabs:has(.cab:nth-child(3)) .cab b { font-size: 13px; letter-spacing: -.4px; }
-    .cabs:has(.cab:nth-child(3)) .cab b.longo { font-size: 11px; white-space: normal; }
-    .cabs:has(.cab:nth-child(3)) .cab.esg b { font-size: 11px; letter-spacing: -.3px; line-height: 19px; white-space: normal; }
-    .cabs:has(.cab:nth-child(3)) .cab.esgotada b { font-size: 12.5px; letter-spacing: -.5px; }
-    .cabs:has(.cab:nth-child(3)) .cab-v span, .cabs:has(.cab:nth-child(3)) .cab-fantasma { display: none; }
-    .cabs:has(.cab:nth-child(3)) .cab.menor::before { content: 'Melhor'; left: 4px; padding: 1px 6px; font-size: 11px; }
+    .cabs:not(.uma) { gap: 6px; padding: 12px 10px 2px; grid-auto-rows: auto; }
+    .cabs:not(.uma) .cab { padding: 5px 8px; }
+    .cabs:not(.uma) .cab small { font-size: 12px; line-height: 1.25; }
+    .cabs:not(.uma) .cab .cab-v { line-height: 1.15; }
+    .periodo .volta { display: inline; } .periodo i { display: inline; }
+    .cabs:not(.uma) .cab b { font-size: 17px; letter-spacing: -.4px; }
+    .cabs:not(.uma) .cab .cab-v span, .cabs:not(.uma) .cab .cab-fantasma { font-size: 12.5px; margin-top: 0; }
+    .cabs:not(.uma) .cab.esg b, .cabs:not(.uma) .cab.esgotada b { font-size: 15px; line-height: 20px; }
     .pp { font-size: 12px; padding: 2px 10px 6px; line-height: 1.35; }
     .detalhe { padding: 2px 10px 10px; }
-    .detalhe h3 { margin: 8px 0 5px; }
+    .detalhe h3 { margin: 8px 0 5px; font-size: 13px; }
+    .detalhe h3 .sem-beb { font-size: 11.5px; padding: 1px 6px; letter-spacing: -.1px; }
+    .nivel:not(.esgotada) { padding: 7px 10px; }
+    .nivel:not(.esgotada) .hoje-v { display: flex; align-items: center; gap: 6px; width: 100%; }
+    .nivel:not(.esgotada) .nv-topo { display: contents; }
+    .nivel:not(.esgotada) .hoje-v small { white-space: nowrap; font-size: 11.5px; letter-spacing: .2px; }
+    .nivel:not(.esgotada) .hoje-v strong { order: 2; font-size: 18px; }
+    .nivel:not(.esgotada) .nv-topo b { padding: 2px 7px; font-size: 12px; }
+    .nivel:not(.esgotada) .hoje-v strong em { display: none; }
+    .nivel:not(.esgotada) .nv-topo b { order: 3; margin-left: auto; }
     .grafico { margin-top: 4px; }
     .legenda { display: none; }
     .acoes { display: flex; gap: 8px; margin-top: 10px; }
@@ -1037,12 +1047,13 @@
       // Nome e "por pessoa" em cima; valor e total lado a lado (Leonardo, 21/11/2026: "mais para cima, varanda... por pessoa.
       // O total pode ir para o lado e ficar um pouquinho maior... Tá tudo muito espaço em branco"). ANTES: nome, valor,
       // "por pessoa" e total um embaixo do outro.
-      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '<i class="so-pc"> · por pessoa</i></small><div class="cab-v"><b' + (t / a >= 10000 || ate ? ' class="longo"' : '') + '>' + ate + reais(t / a) + '</b>' +
-        (a === '1' ? '' : '<span>Total ' + ate + reais(t) + '</span>') + '</div></div>';
+      return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '<i> · por pessoa</i></small><div class="cab-v"><b' + (t / a >= 10000 || ate ? ' class="longo"' : '') + '>' + ate + reais(t / a) + '</b>' +
+        (a === '1' ? '' : '<span>Total ' + ate + reais(t).replace('R$ ', '<i class="so-pc">R$ </i>') + '</span>') + '</div></div>';
     }).join('');
     var pk = MV.pacote(s, f.b);
-    var nota = '<i class="so-cel">Preço por pessoa · </i>' + (temCrianca() ? esc(MV.gente(f)) + ', cada criança contada como adulto' : a + (a === '1' ? ' adulto' : ' adultos')) + ', taxas inclusas' +
-      (s.bebidas === 'a bordo' ? '. Bebidas vendidas somente a bordo' : f.b === 'sem' ? ', sem pacote de bebidas' : pk ? ', com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)' : '') +
+    var nota = (temCrianca() ? esc(MV.gente(f)) + ', cada criança contada como adulto' : a + (a === '1' ? ' adulto' : ' adultos')) + ', taxas inclusas' +
+      (s.bebidas === 'a bordo' ? '. Bebidas vendidas somente a bordo' : f.b === 'sem' ? '<span class="so-pc">, sem pacote de bebidas</span>' :
+        pk ? '<span class="so-pc">, com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)</span>' : '') +   // no celular o pacote fica só no selo do histórico (opção B, 21/11/2026)
       (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
     // Esgotada nas cabines escolhidas (Leonardo, 21/11/2026, "Mostrar como Esgotada"): diz a cabine que ainda tem preço.
     var outra = MV.esgotadaNa(s, Object.assign({}, f, { a: a })) ? MV.outraComPreco(s, Object.assign({}, f, { a: a })) : null;
@@ -1093,7 +1104,7 @@
       if (fx) fx.desde = pts[0][0];
       corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx, MV.temAlerta(fx))) + (comPk ? '' : linhaPacote(s, a));
     }
-    return '<div class="detalhe"><h3>Histórico<span class="so-pc"> do preço do cruzeiro, por pessoa</span> <span class="sem-beb">' + (comPk ? 'com o pacote ' + esc(comPk.nome) : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
+    return '<div class="detalhe"><h3>Histórico<span class="so-pc"> do preço do cruzeiro, por pessoa</span> <span class="sem-beb">' + (comPk ? '<i class="so-pc">com o </i>pacote ' + esc(comPk.nome) + '<i class="so-cel"> · ' + reais(comPk.v) + '/adulto</i>' : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
       '<div class="termometro" hidden></div><div class="acoes">' + calcDaSaida(s) +
       (temCrianca() ? '' : '<button class="btn" style="margin-top:12px" data-quero="' + esc(s.id) + '" data-qcab="' + cab + '">Quero esta saída</button>') + '</div></div>';
   }
@@ -1106,7 +1117,7 @@
     // Sem pacote: o mesmo botão dourado "Descobrir o pacote de bebidas ideal" (Leonardo, 21/11/2026: "voltar como estava
     // ... E o fundo amarelo"). ANTES: botão branco com borda "Qual pacote de bebidas vale a pena? Calcule".
     var botao = calc ? calc.botao : 'Descobrir o pacote de bebidas ideal';
-    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc())) + '">' + esc(botao) + '</a>';
+    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc())) + '"><span>' + esc(botao).replace('Descobrir o pacote', '<i class="so-pc">Descobrir o pacote</i><i class="so-cel">Pacote</i>') + '</span></a>';
   }
 
   // Linha do pacote escolhido, à parte do histórico: valor por adulto e desde quando não muda.
@@ -1175,7 +1186,7 @@
   // sem encostar. As barras começam em 85% do menor preço (do zero, R$ 100 de diferença nem apareceria). Toque/mouse na
   // coluna mostra o balão com o preço do dia. ANTES: linha arredondada com bolinhas e o "×" nos dias esgotados.
   function grafico(pts, fx, semLegenda) {
-    var W = 320, H = 124, e = 6, d = 6, t = 24, b = 20;
+    var W = 320, H = celular() ? 92 : 124, e = 6, d = 6, t = 24, b = 20;   // celular: ~1/3 mais baixo (opção B, 21/11/2026)
     var mn = fx.min.v, mx = fx.max.v, igual = mn === mx, base = mn * (igual ? 0.8 : 0.85);
     var n = pts.length, slot = (W - e - d) / n, bw = Math.max(3, Math.min(34, slot * 0.72)), hoje = n - 1;
     var imn = -1, imx = -1, lista = false;
