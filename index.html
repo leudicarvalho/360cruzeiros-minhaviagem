@@ -367,6 +367,8 @@
   .cabs.uma .cab .cab-fantasma { display: none; }
   .cabs { grid-auto-rows: 1fr; }
   .cab.menor { border-color: var(--verde); background: #eefaf2; }
+  /* Selo da cabine que só vende com bebida (Leonardo, 22/11/2026: "Com selo bebida inclusa"; ex.: Suíte MSC com Premium Extra) */
+  .cab .cab-inc { display: block; font-style: normal; font-size: 11.5px; font-weight: 700; color: #1f6f43; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cab.menor::before { content: 'Melhor preço'; position: absolute; top: -10px; left: 8px; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
     padding: 2px 7px; border-radius: 999px; background: var(--verde-btn); color: #fff; }
 
@@ -780,7 +782,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261122c"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261122d"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -1070,6 +1072,8 @@
     if (troca) cabs = [troca];
     var menor = null;
     cabs.forEach(function (c) { var t = MV.total(s, a, c, f.b); if (typeof t === 'number' && (menor === null || t < MV.total(s, a, menor, f.b))) menor = c; });
+    // Selo "Bebida inclusa" (22/11/2026): a cabine só vende com o pacote na tarifa; o nome do pacote vai na dica e na nota.
+    var selo = function (c) { var x = MV.incluso(s, a, c); return x ? '<em class="cab-inc" title="Pacote ' + esc(x.nome) + ' incluso na tarifa">Bebida inclusa</em>' : ''; };
     var celulas = cabs.map(function (c) {
       var t = MV.total(s, a, c, f.b), esc1 = c === menor && cabs.length > 1 ? ' menor' : '';
       var fantasma = a === '1' ? '' : '<span class="cab-fantasma" aria-hidden="true">Total</span>';   // guarda a linha do Total
@@ -1083,7 +1087,7 @@
       // O total pode ir para o lado e ficar um pouquinho maior... Tá tudo muito espaço em branco"). ANTES: nome, valor,
       // "por pessoa" e total um embaixo do outro.
       return '<div class="cab' + esc1 + '"><small>' + NOME[c] + '<i> · ' + (cabs.length > 1 ? 'p/pessoa' : 'por pessoa') + '</i></small><div class="cab-v"><b' + (t / a >= 10000 || ate ? ' class="longo"' : '') + '>' + ate + reais(t / a) + '</b>' +
-        (a === '1' ? '' : '<span>Total ' + ate + reais(t).replace('R$ ', '<i class="so-pc">R$ </i>') + '</span>') + '</div></div>';
+        (a === '1' ? '' : '<span>Total ' + ate + reais(t).replace('R$ ', '<i class="so-pc">R$ </i>') + '</span>') + '</div>' + selo(c) + '</div>';
     }).join('');
     var pk = MV.pacote(s, f.b);
     // "Cabine para 2 adultos, taxas inclusas" (Leonardo, 21/11/2026: "onde tem dois adultos, taxas inclusas, pode pôr cabine
@@ -1092,6 +1096,7 @@
       (s.bebidas === 'a bordo' ? '. Bebidas vendidas somente a bordo' : f.b === 'sem' ? '<span class="so-pc">, sem pacote de bebidas</span>' :
         pk ? '<span class="so-pc">, com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)</span>' : '') +   // no celular o pacote fica só no selo do histórico (opção B, 21/11/2026)
       (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
+    cabs.forEach(function (c) { var x = MV.incluso(s, a, c); if (x && o && (c in o.cab) && o.cab[c] !== null) nota += '<span class="so-pc">. ' + NOME[c] + ' com o pacote ' + esc(x.nome) + ' incluso na tarifa</span>'; });   // no celular fica só o selo (altura do card)
     // Esgotada nas cabines escolhidas (Leonardo, 21/11/2026, "Mostrar como Esgotada"): diz a cabine que ainda tem preço.
     var outra = MV.esgotadaNa(s, Object.assign({}, f, { a: a })) ? MV.outraComPreco(s, Object.assign({}, f, { a: a })) : null;
     if (outra) nota += '. Ainda tem ' + NOME[outra.c] + ': ' + reais(outra.t / a) + ' por pessoa';
@@ -1139,7 +1144,7 @@
       else pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(porPessoa);
       var fx = MV.faixaPreco(pts);
       if (fx) fx.desde = pts[0][0];
-      corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx, MV.temAlerta(fx))) + (comPk ? '' : linhaPacote(s, a));
+      corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx, MV.temAlerta(fx))) + (comPk || MV.incluso(s, a, cab) ? '' : linhaPacote(s, a));   // cabine com bebida inclusa: sem a linha do pacote (22/11/2026)
     }
     // Selo do pacote ao lado de "Histórico" e sem a palavra "pacote" no celular (Leonardo, 21/11/2026: "o histórico pode
     // sempre ficar com aquele pacote premium extra bem ao lado... pode tirar a palavra pacote. Vai ficar só direto o nome

@@ -223,8 +223,9 @@
   function msgSaida(s, f, cab, salvaB, pergunta) {
     var a = String(f.a), na = Number(a), o = (s.ocup || {})[a], v = o && (cab in o.cab) ? o.cab[cab] : undefined;
     var pp = function (n) { return na > 1 ? rs(n) + " total (" + rs(n / na) + "/pessoa)" : rs(n); };
-    var b = f.b, pk = pacote(s, b), beb;
-    if (s.bebidas === "a bordo") beb = "Bebidas vendidas somente a bordo";
+    var b = f.b, pk = pacote(s, b), beb, inc = incluso(s, a, cab);
+    if (inc) { beb = "Pacote " + inc.nome + " incluso na tarifa"; pk = null; }   // 22/11/2026: bebida já está no preço
+    else if (s.bebidas === "a bordo") beb = "Bebidas vendidas somente a bordo";
     else if (b === "sem" || !b) beb = salvaB === "entender" ? "Ainda não decidi o pacote de bebidas" : "Sem pacote de bebidas";
     else beb = pk ? "Pacote " + pk.nome : "Pacote " + NOME_NIVEL[b].replace(/^pacote /, "") + " (preço a confirmar)";
     var l = ["Oi, Leonardo! Quero esta saída que vi na minha página:", "",
@@ -233,6 +234,7 @@
       "🥤 *" + beb + "*", "",
       "🛏️ " + (NOME_CABINE[cab] || cab) + " (" + gente(f) + ")"];
     if (typeof v !== "number") l.push("💰 " + (v === null ? "Esgotada nesta cabine" : "Preço a confirmar"));
+    else if (inc && NIVEL_ORDEM[f.b] > NIVEL_ORDEM[inc.nivel]) l.push("💰 " + pp(v) + " com o " + inc.nome + " (o pacote que escolhi: preço a confirmar)");
     else if (pk && pk.v) {
       l.push("💰 Cruzeiro: " + pp(v), "🥤 Pacote: " + pp(pk.v * na), "💰 Com o pacote: " + pp(v + na * pk.v));
     } else l.push("💰 " + pp(v));
@@ -240,6 +242,13 @@
     if (o && o.dia) l.push("Preço de " + diaMes(o.dia));
     l.push("", "*" + (pergunta || PERGUNTAS_SAIDA[0]) + "*");   // uma pergunta só, a tocada, em negrito (Leonardo, 21/11/2026)
     return l.join("\n");
+  }
+
+  var NIVEL_ORDEM = { soft: 1, basico: 2, premium: 3 };
+  // Pacote que já vem na tarifa da cabine ({nivel, nome}) ou null (22/11/2026).
+  function incluso(s, a, cab) {
+    var o = (s.ocup || {})[String(a)];
+    return o && o.inc && o.inc[cab] ? o.inc[cab] : null;
   }
 
   function pacote(s, b) {
@@ -267,6 +276,11 @@
     if (!o || !(cab in o.cab)) return undefined;
     var v = o.cab[cab];
     if (v === null) return null;
+    // Cabine só com bebida inclusa (Leonardo, 22/11/2026: "Com selo bebida inclusa"; ex.: Suíte MSC "Premium Extra Incluso"):
+    // o preço já tem o pacote, nunca soma outro por cima. Pacote pedido acima do incluso = sem total (preço a confirmar).
+    // ANTES: o site somava o pacote por cima e cobrava a bebida duas vezes.
+    var inc = incluso(s, a, cab);
+    if (inc) return NIVEL_ORDEM[b] > NIVEL_ORDEM[inc.nivel] ? undefined : Math.round(v);
     var pk = pacote(s, b);
     if (!pk) return undefined;
     return Math.round(v + Number(a) * pk.v);
@@ -624,6 +638,7 @@
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
     lerIdades: lerIdades, textoIdades: textoIdades, lotacao: lotacao, gente: gente, msgIdades: msgIdades, msgSaida: msgSaida, PERGUNTAS_SAIDA: PERGUNTAS_SAIDA,
     lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, rotaTexto: rotaTexto, total: total, precoOrdem: precoOrdem,
+    incluso: incluso,
     filtrar: filtrar, esgotadaNa: esgotadaNa, outraComPreco: outraComPreco, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,
     linkPesquisa: linkPesquisa, resumo: resumo, resumoBarra: resumoBarra, conferirWhats: conferirWhats, linhaDoTempo: linhaDoTempo };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
