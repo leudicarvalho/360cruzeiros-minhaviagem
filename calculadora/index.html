@@ -152,6 +152,18 @@
   .aviso-cabine { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff7e6; border: 1px solid #f1d39a; color: #5c4300; font-size: 13.5px; line-height: 1.4; }
   .selo-dolar { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin: 12px auto 4px; padding: 8px 14px; width: fit-content; max-width: 100%; border-radius: 999px; background: #eaf5ee; border: 1px solid #b7dcc4; color: #1d5b37; font-size: 14px; text-align: center; }
   .selo-dolar b { font-size: 16px; font-weight: 800; color: #12432a; }
+  .aviso-foco.espera { text-align: center; font-weight: 700; color: var(--marca); padding: 12px; }
+  .nota-perto { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff7e6; border: 1px solid #f1d39a; color: #5c4300; font-size: 13.5px; line-height: 1.4; }
+  .janela-fundo { position: fixed; inset: 0; background: rgba(16,37,46,.55); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+  .janela { background: #fff; border-radius: 16px; padding: 20px; width: 100%; max-width: 440px; max-height: calc(100vh - 32px); overflow: auto; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+  .janela h2 { margin-top: 0; }
+  .janela .passos { margin: 0 0 12px; padding-left: 20px; line-height: 1.45; }
+  .janela .passos li + li { margin-top: 6px; }
+  .janela .msg-whats { background: #e7f8ec; border: 1px solid #b7dcc4; border-radius: 10px; padding: 10px 12px; font-size: 14px; white-space: pre-wrap; margin: 0 0 6px; }
+  .janela label { display: block; font-weight: 700; margin: 8px 0 6px; }
+  .janela input[type=tel] { width: 100%; padding: 12px; border: 1px solid #c9d5db; border-radius: 10px; font: 600 16px var(--fonte); box-sizing: border-box; }
+  .janela .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .btn-sec { display: block; width: 100%; margin-top: 8px; padding: 12px; border-radius: 12px; border: 1px solid var(--marca); background: #fff; color: var(--marca); font: 700 15px var(--fonte); cursor: pointer; }
   .aviso-taxa { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--marca-clara); border: 1px solid #bcd6de; color: var(--texto); font-size: 13.5px; line-height: 1.4; }
   .aviso-taxa b { color: var(--marca); }
   .res-taxa { font-size: 12.5px; color: var(--suave); margin: -4px 0 10px; }
@@ -337,7 +349,7 @@
 </main>
 
 <script src="../mv.js?v=20261122a"></script>
-<script src="calc.js?v=20261122b"></script>
+<script src="calc.js?v=20261122c"></script>
 <script>
 (function () {
   "use strict";
@@ -363,7 +375,9 @@
     v.href = document.referrer; v.hidden = false;
   }
 
+  var precosDia = null;
   function iniciar(precos) {
+    precosDia = precos;
     var saida = C.saidaDoDia(precos, link.saida);
     // Uma calculadora por companhia (Leonardo, 21/11/2026): a do link ou a da saída; sem nenhuma, o cliente escolhe
     // no cartão do topo e o resto espera. ANTES: sem companhia, MSC e Costa lado a lado (main.duas).
@@ -655,7 +669,7 @@
       document.getElementById("itens-titulo").textContent = "O que " + quem + " beberia em um dia a bordo?";
       document.getElementById("itens-dica").textContent = q.crianca
         ? "Só bebidas sem álcool. Já deixamos preenchido o mínimo em que o pacote de menores vale a pena. Ajuste com − e +."
-        : "Já deixamos preenchido o mínimo em que o pacote vale a pena. Ajuste com − e + para o que " + (q.nome === "Você" ? "você beberia." : q.nome === "Adultos" ? "cada adulto beberia." : "essa pessoa beberia.");
+        : (cia && pacotesDaSaida(cia) ? "Já deixamos preenchido um dia comum a bordo." : "Já deixamos preenchido o mínimo em que o pacote vale a pena.") + " Ajuste com − e + para o que " + (q.nome === "Você" ? "você beberia." : q.nome === "Adultos" ? "cada adulto beberia." : "essa pessoa beberia.");
       if (varias) {
         L.forEach(function (x, k) {
           var b = el("button", { type: "button", "aria-pressed": String(k === i) }, [x.nome, el("small", { "class": "ab-v", "data-i": String(k) })]);
@@ -708,6 +722,7 @@
 
     function textoSugestao(r) {
       var nome = r.melhor.pacote;
+      if (r.faixa === "pacote" && Math.round(r.valor) === 0) return ["Com o que você bebe, o " + nome + " custa o mesmo que comprar avulso. Com o pacote, você não precisa fazer conta a cada pedido."];
       if (r.faixa === "pacote") return ["Com o que você bebe, o " + nome + " sai " + reais(r.valor) + " mais barato que comprar avulso."];
       if (r.faixa === "sem_pacote") return ["Pelo que você bebe, sem pacote sai mais em conta: você economiza " + reais(r.valor) + " comprando avulso."];
       return [
@@ -721,7 +736,9 @@
     function cartao(r) {
       var c = C.CIAS[r.cia];
       var menor = Math.min.apply(null, [r.avulsoViagem].concat(r.pacotes.map(function (p) { return p.total; })));
-      var avulsoMelhor = r.pacotes.length > 0 && r.avulsoViagem === menor;
+      // Empate (revisão Opus, 22/11/2026): avulso igual ao pacote = indica o pacote (pelo mesmo preço, sem fazer conta).
+      // ANTES: o selo "Mais em conta" ia para o avulso e a indicação para o pacote, ao mesmo tempo.
+      var avulsoMelhor = r.pacotes.length > 0 && r.avulsoViagem < Math.min.apply(null, r.pacotes.map(function (p) { return p.total; }));
       var pacs = r.pacotes.map(function (p) {
         var dif = Math.round(r.avulsoViagem - p.total), melhor = !avulsoMelhor && p.total === menor;
         var chip = dif > 0 ? el("span", { "class": "chip menos", texto: reais(dif) + " a menos que avulso" })
@@ -759,8 +776,8 @@
       ]);
     }
 
-    function nivelFinal(rs) {
-      var niveis = rs.map(function (r) { return C.decidir(r, estado.preferencia); });
+    function nivelFinal(rs, pref) {
+      var niveis = rs.map(function (r) { return C.decidir(r, pref); });
       if (niveis.some(function (n) { return n === null; })) return null;
       return rs.length > 1 ? C.nivelDasDuas(niveis[0], niveis[1]) : niveis[0];
     }
@@ -778,70 +795,136 @@
       return b;
     }
 
-    // "Usar este pacote": manda direto ao webhook 54 com o WhatsApp do link ou o que a página já guardou no aparelho
-    // (mv_whats), sem pedir nada. Sem código no link, ou sem WhatsApp, ou se o envio falhar: leva ao WhatsApp com o pacote.
-    // ANTES (até 21/11/2026): pedia o WhatsApp num formulário "Confirmar" (Leonardo: "eu havia pedido para ser diferente
-    // disso. Para o WhatsApp da pessoa já estar entre os parâmetros da pesquisa").
-    function usar(nivel, ciaId) {
+    // "Usar este pacote" (revisão Opus e Leonardo, 22/11/2026: "Não gostaria de depender só dele clicar e enviar uma
+    // mensagem para o WhatsApp"). Ordem: (1) a pesquisa vem do link da saída (pesq) ou da salva no aparelho (mv_pref);
+    // sem nenhuma, vai só o pacote. (2) Quem é: o WhatsApp do link (w) ou do aparelho; sem ele, a calculadora pede, como o
+    // Salvar do site. Sem código no link, vai com id "site" (o 1425 acha ou cria o contato pelo telefone). (3) Envio ao
+    // webhook 54 com 8 s de limite e 1 nova tentativa; junto vai o resumo (r) para a tarefa ou nota do Leonardo no CRM.
+    // (4) Gravou: vindo do site volta para a pesquisa (aí, sim, salva); por fora, mostra "Pronto". (5) Só se o cliente
+    // não quiser pôr o número ou o envio falhar 2 vezes: a janela do WhatsApp com a mensagem pronta (texto aprovado).
+    // ANTES: sem código, sem WhatsApp ou sem mv_pref ia ao WhatsApp; vindo do site sem eles voltava como "salva" sem
+    // gravar nada, e com o webhook fora do ar ficava "Atualizando..." para sempre.
+    function resumoEscolha(nivel, ciaId) {
+      var r = (estado.ultimo || [])[0], c = ciaId || (r && r.cia) || cia;
+      var pac = nivel === "sem_pacote" ? "Sem pacote" : C.CIAS[c].niveis[nivel].pacote;
+      var partes = [pac + " (" + nomeCia(c) + ")"];
+      var saida = C.saidaDoDia(precosDia, link.saida);
+      if (saida && saida.navio) partes.push("Navio " + saida.navio + ", " + saida.embarque.slice(8, 10) + "/" + saida.embarque.slice(5, 7));
+      partes.push(estado.noites + " noites");
+      partes.push((estado.adultos === 1 ? "1 adulto" : estado.adultos + " adultos") + (estado.criancas ? " e " + (estado.criancas === 1 ? "1 criança" : estado.criancas + " crianças") : ""));
+      if (r) {
+        var pk = r.pacotes.filter(function (x) { return x.nivel === nivel; })[0];
+        partes.push((pk ? "pacote " + reais(pk.total) + " na viagem (avulso " : "avulso ") + reais(r.avulsoViagem) + (pk ? ")" : " na viagem"));
+      }
+      return partes.join(" · ").replace(/[{}<>]/g, "").slice(0, 240);
+    }
+    function textoWhats(nivel, ciaId) {
+      var r = (estado.ultimo || [])[0], c = ciaId || (r && r.cia) || cia;
+      var pac = nivel === "sem_pacote" ? "ficar sem pacote" : "o " + C.CIAS[c].niveis[nivel].pacote;
+      var linhas = ["Calculadora 360: escolhi " + pac + " (" + nomeCia(c) + ")."];
+      var det = resumoEscolha(nivel, ciaId).split(" · ").slice(1).join(", ");
+      if (det) linhas.push(det + ".");
+      if (link.codigo) linhas.push("Cód. " + link.codigo);
+      return linhas.join(" ");
+    }
+    // Janela por cima da tela (texto aprovado pelo Leonardo em 22/11/2026, "pode fazer o restante").
+    function janela(conteudo) {
+      fecharJanela();
+      var fundo = el("div", { "class": "janela-fundo", id: "janela" }, [el("div", { "class": "janela", role: "dialog", "aria-modal": "true" }, conteudo)]);
+      fundo.onclick = function (ev) { if (ev.target === fundo) fecharJanela(); };
+      document.body.appendChild(fundo);
+    }
+    function fecharJanela() { var j = document.getElementById("janela"); if (j) j.remove(); }
+    function janelaWhats(nivel, ciaId, aviso) {
+      var pac = nivel === "sem_pacote" ? "a opção sem pacote" : "o " + C.CIAS[ciaId || cia].niveis[nivel].pacote;
+      var msg = textoWhats(nivel, ciaId);
+      janela([
+        el("h2", { texto: "Falta um passo para guardar sua escolha" }),
+        aviso ? el("p", { "class": "erro", texto: aviso }) : null,
+        el("ol", { "class": "passos" }, [
+          el("li", { texto: "Toque em “Abrir o WhatsApp”." }),
+          el("li", { texto: "A mensagem já vai estar escrita. Só toque em enviar, sem apagar nem mudar nada." }),
+          el("li", { texto: "Assim que ela chegar, eu atualizo a sua pesquisa com " + pac + "." }),
+        ]),
+        el("p", { "class": "dica", texto: "Mensagem que vai:" }),
+        el("p", { "class": "msg-whats", texto: msg }),
+        el("a", { "class": "btn", target: "_blank", rel: "noopener", texto: "Abrir o WhatsApp", href: linkWhats(msg) }),
+        botaoFechar("Voltar"),
+      ]);
+    }
+    function botaoFechar(t) { var b = el("button", { type: "button", "class": "btn-sec", texto: t }); b.onclick = fecharJanela; return b; }
+    // Pede o WhatsApp (mesmo jeito do Salvar por fora da página: MV.conferirWhats e honeypot).
+    function pedirWhats(nivel, ciaId) {
+      var campo = el("input", { type: "tel", inputmode: "tel", autocomplete: "tel", placeholder: "(11) 99999-9999", id: "c-whats" });
+      var hp = el("input", { type: "text", tabindex: "-1", autocomplete: "off", "aria-hidden": "true", "class": "hp" });
+      var erro = el("p", { "class": "erro", hidden: "hidden" });
+      var ok = el("button", { type: "button", "class": "btn", texto: "Guardar minha escolha" });
+      var pelo = el("button", { type: "button", "class": "btn-sec", texto: "Prefiro mandar pelo WhatsApp" });
+      ok.onclick = function () {
+        var c = MV.conferirWhats(campo.value);
+        if (!c.num) { erro.textContent = c.motivo; erro.hidden = false; return; }
+        guardar("mv_whats", c.num);
+        fecharJanela();
+        enviar(nivel, ciaId, c.num, hp.value);
+      };
+      pelo.onclick = function () { janelaWhats(nivel, ciaId, ""); };
+      janela([
+        el("h2", { texto: "Guardar sua escolha" }),
+        el("p", { texto: "Coloque seu WhatsApp para eu guardar o pacote escolhido e já saber o que você quer quando a gente conversar." }),
+        el("label", { "for": "c-whats", texto: "Seu WhatsApp, com DDD" }), campo, hp, erro, ok, pelo,
+      ]);
+      setTimeout(function () { try { campo.focus(); } catch (e) {} }, 50);
+    }
+    // POST com tempo limite (8 s) e 1 nova tentativa.
+    function postar(corpo) {
+      function uma() {
+        var ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+        var t = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
+        return fetch(WEBHOOK_PACOTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo), signal: ctl ? ctl.signal : undefined })
+          .then(function (r) { clearTimeout(t); if (!r.ok) throw new Error(r.status); });
+      }
+      return uma().catch(function () { return uma(); });
+    }
+    function pesquisaDoEnvio(nivel) {
+      var fonte = link.pesquisa || ler("mv_pref") || "";
+      if (!fonte) return null;
+      var p = MV.lerPesquisa(fonte);
+      p.b = C.NIVEL_PARA_B[nivel];
+      return p;
+    }
+    function enviar(nivel, ciaId, w, hp) {
       var final = document.getElementById("final");
-      final.innerHTML = "";
-      var escolha = nomeEscolha(nivel, ciaId);
-      function peloWhats(aviso) {
-        final.innerHTML = "";
-        // Deixa claro que falta enviar a mensagem sem mudar nada (Leonardo, 21/11/2026: "tem que deixar claro que não é para
-        // mudar nada e é para mandar mensagem, senão nada vai se atualizar"). ANTES: título "Atualizar minha pesquisa",
-        // "Para guardar o pacote na sua pesquisa, me chama no WhatsApp que eu atualizo para você." e botão "Chamar no WhatsApp".
-        final.appendChild(el("h2", { texto: "Falta um passo" }));
-        if (aviso) final.appendChild(el("p", { "class": "erro", texto: aviso }));
-        final.appendChild(el("p", { texto: "Sua pesquisa ainda não foi atualizada. Toque no botão abaixo e envie a mensagem do jeito que ela aparecer, sem mudar nada. Assim que ela chegar, eu atualizo sua pesquisa com " + escolha + "." }));
-        final.appendChild(el("a", { "class": "btn", target: "_blank", rel: "noopener", texto: "Enviar no WhatsApp",
-          href: linkWhats("Oi, Leonardo! Usei a calculadora de bebidas e o ideal para mim é " + escolha + ". Pode atualizar minha pesquisa?") }));
-      }
-      // Vai a pesquisa inteira (a que a página guardou no aparelho, mv_pref) com o pacote trocado, no formato do Salvar
-      // (MV.montarEnvio): o Entur não lê os campos mv_* do contato numa expressão, então o fluxo usa o que chega.
-      var w = wLink || MV.conferirWhats(ler("mv_whats") || "").num, pref = ler("mv_pref");
-      // Veio de uma saída do site (a página manda a pesquisa da tela em "pesq"): NUNCA vai para o WhatsApp. Troca o
-      // pacote e volta para a pesquisa; com código e WhatsApp também grava no CRM (webhook 54). Sem eles, ou se o envio
-      // falhar, volta do mesmo jeito e o Salvar da página cuida do resto (Leonardo, 21/11/2026: "Isso do WhatsApp não é
-      // para acontecer só quando... eu não venho de um botão de uma saída do site?"). ANTES: sem código, sem WhatsApp
-      // ou sem a pesquisa salva no aparelho (mv_pref), caía no "Falta um passo" mesmo vindo do site.
-      if (link.pesquisa) {
-        var pesqSite = MV.lerPesquisa(link.pesquisa);
-        pesqSite.b = C.NIVEL_PARA_B[nivel];
-        var voltar = function () { location.href = "../" + MV.linkPesquisa(pesqSite, link.codigo) + (w ? "&w=" + w : ""); };
-        if (!link.codigo || !w) { voltar(); return; }
-        final.appendChild(el("p", { "class": "dica", texto: "Atualizando sua pesquisa..." }));
-        fetch(WEBHOOK_PACOTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(MV.montarEnvio(pesqSite, link.codigo, w, "")) })
-          .then(function (r) {
-            if (!r.ok) throw new Error(r.status);
-            guardar("mv_pref", MV.linkPesquisa(pesqSite, ""));
-            var ls = {}; try { ls = JSON.parse(ler("mv_links") || "{}") || {}; } catch (e) { ls = {}; }
-            Object.keys(ls).forEach(function (k) { ls[k] = "superado"; });
-            guardar("mv_links", JSON.stringify(ls));
-          })
-          .catch(function () {})
-          .then(voltar);
-        return;
-      }
-      if (!link.codigo || !w || !pref) { peloWhats(""); return; }
-      var pesquisa = MV.lerPesquisa(pref);
-      pesquisa.b = C.NIVEL_PARA_B[nivel];
-      final.appendChild(el("p", { "class": "dica", texto: "Enviando..." }));
-      var corpo = MV.montarEnvio(pesquisa, link.codigo, w, "");
-      fetch(WEBHOOK_PACOTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) })
-        .then(function (r) { if (!r.ok) throw new Error(r.status); })
-        // Gravou no CRM: volta para a pesquisa já com o pacote novo, sem mensagem no WhatsApp (Leonardo, 21/11/2026:
-        // "Tem só que atualizar o pacote de bebidas e voltar para a pesquisa"; escolheu gravar no CRM calado).
-        // Guarda a pesquisa nova no aparelho e marca os links já abertos como superados, como o Salvar da página.
-        // ANTES: mostrava "Pronto! Vou te mandar no WhatsApp o link da sua pesquisa com <pacote>." e o fluxo 1425 mandava o link.
-        .then(function () {
+      var pesquisa = pesquisaDoEnvio(nivel), id = link.codigo || "site";
+      var corpo = pesquisa ? MV.montarEnvio(pesquisa, id, w, hp) : { telefone: "+" + w, id: id, b: C.NIVEL_PARA_B[nivel], hp: hp || "" };
+      corpo.r = resumoEscolha(nivel, ciaId);
+      var aguarde = el("p", { "class": "dica", texto: "Guardando sua escolha..." });
+      final.appendChild(aguarde);
+      postar(corpo).then(function () {
+        if (pesquisa) {
           guardar("mv_pref", MV.linkPesquisa(pesquisa, ""));
-          var links = {}; try { links = JSON.parse(ler("mv_links") || "{}") || {}; } catch (e) { links = {}; }
-          Object.keys(links).forEach(function (k) { links[k] = "superado"; });
-          guardar("mv_links", JSON.stringify(links));
-          location.href = "../" + MV.linkPesquisa(pesquisa, link.codigo) + "&w=" + w;
-        })
-        .catch(function () { peloWhats("Não consegui enviar agora."); });
+          var ls = {}; try { ls = JSON.parse(ler("mv_links") || "{}") || {}; } catch (e) { ls = {}; }
+          Object.keys(ls).forEach(function (k) { ls[k] = "superado"; });
+          guardar("mv_links", JSON.stringify(ls));
+        }
+        // Do site: volta para a pesquisa com o pacote novo (gravou de verdade, então pode aparecer como salva).
+        if (link.pesquisa) { location.href = "../" + MV.linkPesquisa(pesquisa, link.codigo) + "&w=" + w; return; }
+        aguarde.remove();
+        var pac = nivel === "sem_pacote" ? "ficar sem pacote" : "o " + C.CIAS[ciaId || cia].niveis[nivel].pacote;
+        janela([
+          el("h2", { texto: "Pronto, escolha guardada!" }),
+          el("p", { texto: "Já recebi aqui que você escolheu " + pac + ". Não precisa mandar mais nada." }),
+          pesquisa ? el("a", { "class": "btn", href: "../" + MV.linkPesquisa(pesquisa, link.codigo) + "&w=" + w, texto: "Ver minha pesquisa" }) : null,
+          botaoFechar("Fechar"),
+        ]);
+      }).catch(function () {
+        aguarde.remove();
+        janelaWhats(nivel, ciaId, "Não consegui guardar sua escolha agora.");
+      });
+    }
+    function usar(nivel, ciaId) {
+      var w = wLink || MV.conferirWhats(ler("mv_whats") || "").num;
+      if (!w) { pedirWhats(nivel, ciaId); return; }
+      enviar(nivel, ciaId, w, "");
     }
 
     function atualizar() {
@@ -852,14 +935,22 @@
         return C.calcular({ cia: ciaId, noites: estado.noites, adultos: estado.adultos, perfis: perfis(),
           // Parecidas entre si: a lista da 1ª criança vale para todas (22/11/2026).
           criancas: estado.filhos.slice(0, estado.criancas).map(function (p) { return semAlcool(estado.criancasIguais ? estado.filhos[0] : p); }),
-          niveis: algumBebe() ? C.niveisDoFoco(estado.foco) : null,
+          // Ninguém bebe álcool: só o pacote sem álcool (revisão Opus, 22/11/2026; ANTES os 3 pacotes).
+          niveis: algumBebe() ? C.niveisDoFoco(estado.foco) : ["sem_alcool"],
           pacotesSaida: pacotesDaSaida(ciaId) });
       });
       precosFoco();
       valoresAbas();
       var caixa = document.getElementById("resultados");
       // Alguém bebe e ainda não escolheu básico ou premium: nada de resultado misturando os dois (21/11/2026).
-      if (algumBebe() && !estado.foco) { caixa.innerHTML = ""; document.getElementById("sec-final").classList.add("oculto"); return; }
+      if (algumBebe() && !estado.foco) {
+        caixa.innerHTML = "";
+        // Diz o que falta (revisão Opus, 22/11/2026; ANTES o resultado sumia sem aviso).
+        caixa.appendChild(el("p", { "class": "aviso-foco espera", texto: "Para ver o resultado, escolha acima o pacote básico ou o premium." }));
+        document.getElementById("sec-final").classList.add("oculto");
+        return;
+      }
+      estado.ultimo = rs;
       caixa.className = "colunas" + (rs.length > 1 ? " duas" : "");
       caixa.innerHTML = "";
       rs.forEach(function (r) { caixa.appendChild(cartao(r)); });
@@ -871,19 +962,27 @@
       sec.classList.remove("oculto");
       final.innerHTML = "";
       var naFaixa = rs.some(function (r) { return r.faixa === "considerar"; });
+      // Regra dos 15% (Leonardo, 22/11/2026): avulso a menos de 15% do pacote = já vem marcado "Pedir sem me preocupar"
+      // (pode trocar). estado.preferencia guarda só a escolha do cliente; pref = a que vale na tela.
+      var perto = naFaixa && rs.every(function (r) { return r.faixa !== "considerar" || r.perto; });
+      var pref = estado.preferencia || (perto ? "sem_preocupar" : null);
       if (naFaixa) {
         final.appendChild(el("h2", { texto: "A bordo, você prefere pedir sem se preocupar com a conta, ou prefere controlar cada pedido?" }));
         var ops = el("div", { "class": "opcoes" }, [
-          el("button", { type: "button", "data-v": "sem_preocupar", "aria-pressed": String(estado.preferencia === "sem_preocupar"), texto: "Pedir sem me preocupar" }),
-          el("button", { type: "button", "data-v": "controlar", "aria-pressed": String(estado.preferencia === "controlar"), texto: "Controlar cada pedido" }),
+          el("button", { type: "button", "data-v": "sem_preocupar", "aria-pressed": String(pref === "sem_preocupar"), texto: "Pedir sem me preocupar" }),
+          el("button", { type: "button", "data-v": "controlar", "aria-pressed": String(pref === "controlar"), texto: "Controlar cada pedido" }),
         ]);
         ops.querySelectorAll("button").forEach(function (b) {
           b.onclick = function () { estado.preferencia = b.getAttribute("data-v"); montarFinal(rs); };
         });
         final.appendChild(ops);
-        if (!estado.preferencia) return;
+        if (perto) {
+          var rp = rs.filter(function (r) { return r.faixa === "considerar"; })[0];
+          final.appendChild(el("p", { "class": "nota-perto", texto: "Comprando avulso, a economia seria de menos de 15%. Por isso indicamos o " + rp.melhor.pacote + ": você pede à vontade, sem fazer conta a cada pedido. Se preferir controlar cada pedido, é só trocar acima." }));
+        }
+        if (!pref) return;
       }
-      var nivel = nivelFinal(rs);
+      var nivel = nivelFinal(rs, pref);
       if (nivel) {
         var nomes = rs.length > 1
           ? (nivel === "sem_pacote" ? "Sem pacote" : rotulo("msc", nivel) + " na MSC ou " + rotulo("costa", nivel) + " na Costa")

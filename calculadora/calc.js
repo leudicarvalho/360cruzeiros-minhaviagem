@@ -155,6 +155,10 @@
 
   var NIVEIS = ["sem_pacote", "sem_alcool", "basico", "premium"];
   var FAIXA = 0.35; // regra dos 35% (venda consultiva)
+  // Regra dos 15% (Leonardo, 22/11/2026: "Se o valor individual não custar menos do que 15% do pacote, sempre indique o
+  // pacote... e já venha selecionado... não quero fazer contas... Não é obrigatório"): dentro da faixa dos 35%, se o
+  // avulso é pelo menos 85% do pacote, a tela já vem com "Pedir sem me preocupar" marcado (o cliente pode trocar).
+  var PERTO = 0.15;
 
   // Itens que aparecem para o foco, nas companhias da tela. Sem álcool: sempre. "economia": os do básico (de pelo
   // menos uma das companhias); "qualidade": os do premium (idem); "todos" ou sem foco: todos. Cada item leva o nível
@@ -280,6 +284,8 @@
       pacotes: pacotes,
       melhor: melhor,
       faixa: faixa,
+      // Na faixa e o avulso a menos de 15% do pacote: indicar o pacote já marcado (regra dos 15%, 22/11/2026).
+      perto: faixa === "considerar" && avulsoViagem >= melhor.total * (1 - PERTO),
       // pacote: economia com o pacote; sem_pacote: economia sem pacote; considerar: quanto a mais custa.
       valor: Math.abs(diferenca),
       aMaisPorDiaPessoa: diferenca > 0 ? diferenca / (noites * pessoas) : 0,
@@ -368,7 +374,7 @@
   }
 
   var api = { CAMBIO: CAMBIO, CRIANCA: CRIANCA, DIA_MINIMO_CRIANCA: DIA_MINIMO_CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
-    soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA,
+    soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, DIA_MINIMO: DIA_MINIMO, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA, PERTO: PERTO,
     avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir,
     nivelDasDuas: nivelDasDuas, NIVEL_PARA_B: NIVEL_PARA_B, montarEnvio: montarEnvio, saidaDoDia: saidaDoDia, lerLink: lerLink };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
