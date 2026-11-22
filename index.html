@@ -503,6 +503,8 @@
      ANTES disso: selo "Preço alto". */
   .nivel.alto { background: #fdecea; border-color: #f0a79e; } .nivel.alto small { color: #a12a1d; } .nivel.alto b { background: var(--vermelho-texto); }
   .nivel.estavel { background: #eef3f5; border-color: var(--linha); } .nivel.estavel b { background: var(--suave); }
+  /* Hoje só com bebida inclusa (22/11/2026): sem Em alta/Em baixa, o selo diz que o preço já tem o pacote */
+  .nivel.inclusa { background: #eef7f1; border-color: #9fd3b3; } .nivel.inclusa small { color: #1f6f43; } .nivel.inclusa b { background: #1f6f43; }
   /* Esgotada em vermelho claro, com "Esgotada" no lugar do valor (Leonardo, 21/11/2026). ANTES: quadro cinza com selo. */
   .nivel.esgotada { background: #fdecea; border-color: #f0a79e; } .nivel.esgotada small { color: #a12a1d; } .nivel.esgotada b { background: var(--vermelho-texto); }
   .nivel.esgotada .hoje-v strong { color: var(--vermelho-texto); }
@@ -619,6 +621,7 @@
     .nivel:not(.esgotada) .nv-topo b { padding: 2px 7px; font-size: 12px; }
     .nivel:not(.esgotada) .hoje-v strong em { display: none; }
     .nivel:not(.esgotada) .nv-topo b { order: 3; margin-left: auto; }
+    .nivel.inclusa .nv-topo b { padding: 2px 6px; font-size: 11px; }   /* "Bebida inclusa" é mais longo que os outros selos (22/11/2026) */
     .grafico { margin-top: 4px; }
     .legenda { display: none; }
     .acoes { display: flex; gap: 8px; margin-top: 10px; }
@@ -807,7 +810,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261122g"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261122h"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -1179,7 +1182,7 @@
       // (bebida só a bordo) ou poucos dias com pacote: sem bebidas. ANTES (21/11, até esta mudança): sempre sem bebidas,
       // com o pacote numa linha à parte; e antes disso com pacote, mas o histórico encurtava.
       var pk = (f.b === 'soft' || f.b === 'basico' || f.b === 'premium') ? MV.pacote(s, f.b) : null;
-      var porPessoa = function (p) { return [p[0], p[1] === null ? null : Math.round(p[1] / a), p[2]]; };
+      var porPessoa = function (p) { return [p[0], p[1] === null ? null : Math.round(p[1] / a), p[2], p[3]]; };   // p[3] = dia só com bebida inclusa (22/11/2026)
       var pts = pk && !pk.aBordo ? MV.linhaDoTempo(hist, s.id, a, cab, f.b).map(porPessoa) : [];
       if (pts.length >= 2) comPk = pk;
       else pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(porPessoa);
@@ -1232,7 +1235,7 @@
     // Selos curtos "Sem mudança" e "Esgotada" (Leonardo, 21/11/2026: "sim"; ANTES: "Preço sem mudança", "Esgotada hoje").
     // Selo curto ao lado de "Preço de hoje" (Leonardo, 21/11/2026: "Não precisa ser preço em alta, preço em baixa. Pode ser
     // só em alta e ao lado do preço de hoje... as três opções"). ANTES: "Preço em alta/Preço em baixa" à direita do valor.
-    var txt = { baixo: 'Em baixa', medio: 'Na média', alto: 'Em alta', estavel: 'Sem mudança', esgotada: 'Esgotada' }[fx.nivel];
+    var txt = { baixo: 'Em baixa', medio: 'Na média', alto: 'Em alta', estavel: 'Sem mudança', esgotada: 'Esgotada', inclusa: 'Bebida inclusa' }[fx.nivel];   // inclusa: 22/11/2026
     // Esgotada hoje (Leonardo, 21/11/2026: "Por que que hoje não tem nada? Se é esgotada, tem que dizer que tá esgotado"):
     // quadro vermelho claro, "Esgotada" no lugar do valor e o último preço com o dia. ANTES: só um selo cinza "Esgotada".
     var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><span class="nv-topo"><small>Preço de hoje</small><b>' + txt + '</b></span><strong>' +
@@ -1302,10 +1305,12 @@
     pts.forEach(function (p, i) {
       var x0 = (X(i) - bw / 2).toFixed(1);
       if (p[1] === null) { barras += '<rect x="' + x0 + '" y="' + (H - b - 8) + '" width="' + bw.toFixed(1) + '" height="8" rx="2" fill="#f2a69c"/>'; return; }
-      var yy = y(p[1]);
-      barras += '<rect x="' + x0 + '" y="' + yy.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (H - b - yy).toFixed(1) + '" rx="' + Math.min(4, bw / 2).toFixed(1) + '" fill="' + cor(i) + '"/>';
+      // Dia só com bebida inclusa (p[3], 22/11/2026): barra dourada, fora da escala do menor/maior (presa dentro do gráfico),
+      // e a dica diz "bebida inclusa". Nunca é comparada com os dias sem bebida.
+      var inc = p[3], yy = inc ? Math.max(t, Math.min(H - b - 6, y(p[1]))) : y(p[1]), corI = inc ? '#c99a1e' : cor(i);
+      barras += '<rect x="' + x0 + '" y="' + yy.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (H - b - yy).toFixed(1) + '" rx="' + Math.min(4, bw / 2).toFixed(1) + '" fill="' + corI + '"/>';
       toques += '<rect class="pt" data-topo="1" x="' + (X(i) - slot / 2).toFixed(1) + '" y="' + (yy - 6).toFixed(1) + '" width="' + slot.toFixed(1) + '" height="' + (H - b - yy + 6).toFixed(1) +
-        '" fill="transparent" data-tip="' + esc(reais(p[1]) + ' por pessoa · ' + dm(p[0])) + '" data-cor="' + cor(i) + '"/>';
+        '" fill="transparent" data-tip="' + esc(reais(p[1]) + ' por pessoa' + (inc ? ', bebida inclusa' : '') + ' · ' + dm(p[0])) + '" data-cor="' + corI + '"/>';
     });
     // Sem números em cima das barras e sem as datas do menor e do maior embaixo: estão na legenda em cima da faixa
     // (Leonardo, 21/11/2026, opção B). ANTES: valor em cima do menor e do maior, e a data deles no eixo.

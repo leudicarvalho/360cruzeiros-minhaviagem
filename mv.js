@@ -483,13 +483,15 @@
     var out = [];
     h[cab].forEach(function (p) {
       var dia = hist.dias[p[0]], v = p[1], extra = 0;
+      // Marca 2 = dia só com bebida inclusa (22/11/2026): o valor já tem o pacote, nunca soma; 4º campo true.
+      if (p[2] === 2) { out.push([dia, v === 0 ? null : Math.round(v), false, true]); return; }
       if (pk) {
         var ult = null;
         pk.forEach(function (q) { if (q[0] <= p[0]) ult = q; });
         if (!ult) return;   // sem pacote lido até esse dia: não dá para mostrar o total com pacote
         extra = Number(a) * ult[1];
       }
-      out.push([dia, v === 0 ? null : Math.round(v + extra), p[2] === 1]);
+      out.push([dia, v === 0 ? null : Math.round(v + extra), p[2] === 1, false]);
     });
     return out;
   }
@@ -595,12 +597,20 @@
   // nível: baixo (terço de baixo), medio, alto (terço de cima) ou estavel (sempre o mesmo). Esgotada hoje = hoje null.
   // Alerta de menor/maior preço: hoje igual ao menor ou ao maior, com preços diferentes no histórico.
   function temAlerta(fx) {
-    return !!(fx && fx.hoje && fx.min.v !== fx.max.v && (fx.hoje.v === fx.min.v || fx.hoje.v === fx.max.v));
+    return !!(fx && fx.hoje && !fx.hoje.inc && fx.min.v !== fx.max.v && (fx.hoje.v === fx.min.v || fx.hoje.v === fx.max.v));
   }
 
   function faixaPreco(pts) {
-    var ok = (pts || []).filter(function (p) { return p[1] !== null; });
+    // Dia só com bebida inclusa (p[3], 22/11/2026, Leonardo: "Não pode confundir tudo?") não entra no menor, no maior nem
+    // no "Em alta/Em baixa": é outro tipo de preço. Hoje assim = "Preço de hoje" com o selo "Bebida inclusa" (nivel "inclusa").
+    var ok = (pts || []).filter(function (p) { return p[1] !== null && !p[3]; });
     if (ok.length < 2) return null;
+    var ul = pts[pts.length - 1];
+    if (ul[3] && ul[1] !== null) {
+      var mi = ok[0], ma = ok[0];
+      ok.forEach(function (p) { if (p[1] <= mi[1]) mi = p; if (p[1] >= ma[1]) ma = p; });
+      return { hoje: { v: ul[1], dia: ul[0], inc: true }, min: { v: mi[1], dia: mi[0] }, max: { v: ma[1], dia: ma[0] }, pos: null, nivel: "inclusa" };
+    }
     var min = ok[0], max = ok[0];
     ok.forEach(function (p) { if (p[1] <= min[1]) min = p; if (p[1] >= max[1]) max = p; });
     // Menor e maior repetidos: vale sempre o ÚLTIMO dia com esse preço, para os dois (Leonardo, 21/11/2026: "só não pode
