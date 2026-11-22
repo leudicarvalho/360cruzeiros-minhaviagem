@@ -1120,7 +1120,7 @@
 
   // Histórico em BARRAS (Leonardo, 21/11/2026: experimento em print aprovado, "Pode trocar"): uma barra por dia lido; verde no
   // menor preço, vermelho no maior, escura hoje, azul clara nos outros; dia esgotado = barrinha rosa; esgotada hoje = data
-  // "Esgotada" em vermelho. Valor e data só no menor, maior e hoje (com até 5 dias, valor em todos; até 7, data em todos),
+  // "Esgotada" em vermelho. Valor em cima só no menor e no maior; data no menor, maior e hoje (até 7 dias, todas),
   // sem encostar. As barras começam em 85% do menor preço (do zero, R$ 100 de diferença nem apareceria). Toque/mouse na
   // coluna mostra o balão com o preço do dia. ANTES: linha arredondada com bolinhas e o "×" nos dias esgotados.
   function grafico(pts, fx, semLegenda) {
@@ -1143,17 +1143,24 @@
       toques += '<rect class="pt" data-topo="1" x="' + (X(i) - slot / 2).toFixed(1) + '" y="' + (yy - 6).toFixed(1) + '" width="' + slot.toFixed(1) + '" height="' + (H - b - yy + 6).toFixed(1) +
         '" fill="transparent" data-tip="' + esc(reais(p[1]) + ' por pessoa · ' + dm(p[0])) + '" data-cor="' + cor(i) + '"/>';
     });
-    // Valores em cima das barras: hoje, menor, maior (e todos com até 5 dias), sem encostar (40 de distância).
-    var usados = [], ordem = [hoje].concat(igual ? [] : [imn, imx]);
-    if (n <= 5) for (var k = 0; k < n; k++) ordem.push(k);
-    ordem.forEach(function (i) {
+    // Valores em cima: só o menor e o maior (Leonardo, 21/11/2026, alternativa "B": o preço de hoje já está grande no quadro
+    // "Preço de hoje"). Cada número fica acima da barra mais alta que ele cobre, com contorno branco, para nunca ficar
+    // encoberto; menor e maior colados se afastam para os lados. ANTES: hoje, menor e maior (e todos com até 5 dias) em cima
+    // da própria barra, e o número de hoje ficava atrás da barra vizinha mais alta.
+    function topo(cx, w) { var m = H - b; pts.forEach(function (p, k) { if (p[1] !== null && Math.abs(X(k) - cx) < w) m = Math.min(m, y(p[1])); }); return m; }
+    var juntos = !igual && Math.abs(X(imn) - X(imx)) < 40;
+    (igual ? [hoje] : [imx, imn]).forEach(function (i) {
       var v = pts[i][1], cx = X(i);
-      if (v === null || usados.some(function (u) { return Math.abs(u - cx) < 40; })) return;
-      usados.push(cx); var a = ancora(cx, 22);
-      rotulos += '<text x="' + a[1].toFixed(1) + '" y="' + (y(v) - 5).toFixed(1) + '" text-anchor="' + a[0] + '" style="fill:' + corTxt(i) + ';font-weight:800">' + reais(v).replace('R$ ', '') + '</text>';
+      if (v === null) return;
+      var a = juntos ? (X(i) < X(i === imn ? imx : imn) ? ['end', cx + bw / 2] : ['start', cx - bw / 2]) : ancora(cx, 22);
+      if (a[0] === 'end' && a[1] - 40 < e) a = ['start', Math.max(e, cx - bw / 2)];
+      if (a[0] === 'start' && a[1] + 40 > W - d) a = ['end', Math.min(W - d, cx + bw / 2)];
+      var faixa = a[0] === 'middle' ? 22 : 40, meio = a[0] === 'middle' ? cx : a[0] === 'end' ? a[1] - 20 : a[1] + 20;
+      rotulos += '<text x="' + a[1].toFixed(1) + '" y="' + (topo(meio, faixa) - 5).toFixed(1) + '" text-anchor="' + a[0] + '" style="fill:' + corTxt(i) +
+        ';font-weight:800;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round">' + reais(v).replace('R$ ', '') + '</text>';
     });
     // Datas embaixo: hoje (ou "Esgotada"), menor, maior, o primeiro dia (e todas com até 7 dias), sem encostar (34).
-    usados = []; ordem = [hoje].concat(igual ? [] : [imn, imx], [0]);
+    var usados = [], ordem = [hoje].concat(igual ? [] : [imn, imx], [0]);
     if (n <= 7) for (var m = 0; m < n; m++) ordem.push(m);
     var esgHoje = pts[hoje][1] === null;
     ordem.forEach(function (i) {
