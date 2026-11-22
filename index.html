@@ -365,7 +365,7 @@
   .cabs.uma .cab .cab-fantasma { display: none; }
   .cabs { grid-auto-rows: 1fr; }
   .cab.menor { border-color: var(--verde); background: #eefaf2; }
-  .cab.menor::before { content: 'Melhor preço'; position: absolute; top: -8px; left: 8px; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  .cab.menor::before { content: 'Melhor preço'; position: absolute; top: -10px; left: 8px; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
     padding: 2px 7px; border-radius: 999px; background: var(--verde-btn); color: #fff; }
 
   /* Resultado (Leonardo, 21/11/2026: "paginador... 3 por página, por conta do celular. E o celular vai ter que ter um
@@ -496,7 +496,6 @@
   .faixa .marca.no-max::after { background: #d64535; }
   .alerta-preco { display: inline-flex; align-items: center; gap: 6px; margin: 8px 0 0; padding: 3px 10px 3px 4px; border-radius: 999px; font-size: 13px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
   .alerta-preco b { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 15px; font-weight: 800; }
-  .alerta-preco.guarda { visibility: hidden; }
   .alerta-preco.barato { background: #15803d; color: #fff; }
   .alerta-preco.barato b { background: #fff; color: #15803d; }
   .alerta-preco.caro { background: #fde3e0; color: var(--vermelho-texto); }
@@ -584,6 +583,18 @@
     .legenda { display: none; }
     .acoes { display: flex; gap: 8px; margin-top: 10px; }
     .acoes .btn { margin-top: 0 !important; flex: 1 1 0; min-width: 0; font-size: 13px; padding: 9px 6px; line-height: 1.2; display: flex; align-items: center; justify-content: center; }
+  }
+  /* Selo "Melhor preço" sem cobrir o nome da cabine (Leonardo, 21/11/2026: "O melhor preço encobre o interna ou externa.
+     Tem que deixar ele um pouquinho mais para cima"): selo a -10px (ANTES -8px) e, no celular, a célula com o selo
+     ganha 7px em cima e as linhas da grade 11px entre si (ANTES 5px e 6px), para o selo da 2ª linha não pegar a 1ª. */
+  @media (max-width: 699px) {
+    /* "3 noites · volta dd/mm" sem cortar (Leonardo, 21/11/2026: "A volta também está sendo encoberta lá em cima... fica o
+       dia, barra da data e 3 pontinhos"): quando não cabe na linha (celular de 360 px), a volta desce inteira para a linha
+       de baixo. ANTES: cortava em "volta 2...". */
+    .periodo { white-space: normal; }
+    .periodo .volta, .periodo .noites { white-space: nowrap; }
+    .cabs:not(.uma) { row-gap: 11px; }
+    .cabs:not(.uma) .cab.menor { padding-top: 12px; }
   }
   /* Troca de cabine no celular, alinhada ao card do celular (827ea9b): o painel fica à direita do preço, sem crescer o card;
      os 2 botões ficam um embaixo do outro quando não cabem lado a lado. */
@@ -1078,7 +1089,7 @@
       '<div class="c-topo"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
         MV.nomeMesCurto(s.embarque) + ' ' + s.embarque.slice(2, 4) + '</span></div>' +
         '<div class="c-info"><span class="navio">' + esc(s.navio) + '</span>' +
-        '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : s.cia === 'Temático' ? 'tematico' : 'msc') + '">' + esc(s.cia) + '</span>' + s.noites + ' noites<span class="volta"><i> · </i>volta ' + dm(MV.volta(s)) + '</span></span>' +
+        '<span class="periodo"><span class="cia ' + (s.cia === 'Costa' ? 'costa' : s.cia === 'Temático' ? 'tematico' : 'msc') + '">' + esc(s.cia) + '</span><span class="noites">' + s.noites + ' noites</span><span class="volta"><i> · </i>volta ' + dm(MV.volta(s)) + '</span></span>' +
         '<span class="rota">' + esc(MV.rotaTexto(s.roteiro)) + '</span></div>' +
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
       '<div class="cabs' + (troca ? ' troca' : cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
@@ -1171,10 +1182,10 @@
     // Mais curto, numa linha, seta numa bolinha e fundo forte (Leonardo, 21/11/2026: "pode ser menor preço desde tal, a flecha
     // pode ser mais destacada e o fundo tem que ser bem mais destacado"). ANTES: "↓ Menor preço desde dd/mm. Boa hora para
     // garantir." / "↑ Já esteve mais baixo desde dd/mm. Vale acompanhar." em texto sem fundo.
-    // Sem alerta, um selo invisível do mesmo tamanho guarda o lugar, para todos os cards terem a mesma altura (Leonardo,
-    // 21/11/2026: "quando tem menor preço do histórico... está deixando o card maior. Quando não tem nada, ele está ficando
-    // menor"). ANTES: sem alerta, o card ficava ~30 px mais baixo.
-    var alerta = '<p class="alerta-preco guarda" aria-hidden="true"><b>↓</b>Menor preço do histórico</p>';
+    // Sem alerta, o gráfico de barras fica mais alto no lugar do selo (ver grafico()), para todos os cards terem a mesma
+    // altura (Leonardo, 21/11/2026: "quando tem menor preço do histórico... está deixando o card maior. Quando não tem nada,
+    // ele está ficando menor"). ANTES: sem alerta, o card ficava ~30 px mais baixo; depois, um selo invisível guardava o lugar.
+    var alerta = '';
     if (MV.temAlerta(fx)) {
       var barato = fx.hoje.v === fx.min.v;
       alerta = '<p class="alerta-preco ' + (barato ? 'barato' : 'caro') + '">' +
@@ -1197,6 +1208,10 @@
   // coluna mostra o balão com o preço do dia. ANTES: linha arredondada com bolinhas e o "×" nos dias esgotados.
   function grafico(pts, fx, semLegenda) {
     var W = 320, H = celular() ? 92 : 124, e = 6, d = 6, t = 24, b = 20;   // celular: ~1/3 mais baixo (opção B, 21/11/2026)
+    // Sem o selo de menor/maior preço, as barras ganham o lugar dele (Leonardo, 21/11/2026: "quando não tem menor preço do
+    // histórico ou maior preço do histórico, as barras do gráfico podem ficar um pouco maiores"): +40 na altura (~34 px na
+    // tela, o tamanho do selo), e o card fica da mesma altura dos outros. ANTES: um selo invisível guardava o lugar.
+    if (!semLegenda) H += 40;
     var mn = fx.min.v, mx = fx.max.v, igual = mn === mx, base = mn * (igual ? 0.8 : 0.85);
     var n = pts.length, slot = (W - e - d) / n, bw = Math.max(3, Math.min(34, slot * 0.72)), hoje = n - 1;
     var imn = -1, imx = -1, lista = false;
@@ -1257,7 +1272,9 @@
       '<line x1="' + e + '" y1="' + (H - b) + '" x2="' + (W - d) + '" y2="' + (H - b) + '" stroke="#dbe3e8"/>' + barras + rotulos + toques + '</svg>';
     return '<div class="graf-box">' + svg + '<div class="dica-graf" hidden></div></div>' + // Com o alerta de menor/maior preço, a legenda some para os cartões ficarem do mesmo tamanho (Leonardo, 21/11/2026:
     // "quando tivesse menor preço ou outro alerta de alta, não tem que aparecer aquela mensagem lá embaixo"). ANTES: aparecia sempre.
-    (lista && !semLegenda ? '<p class="legenda">Alguns dias vêm da lista do site, que pode variar um pouco.</p>' : '');
+    // Frase "Alguns dias vêm da lista do site, que pode variar um pouco." tirada também do computador (Leonardo, 21/11/2026:
+    // "Sim, esconder"; no celular já não aparecia): deixava alguns cards ~40 px mais altos. ANTES: aparecia sem alerta.
+    '';
   }
 
   // Chamada do topo: o menor preço por pessoa da pesquisa (cabine e pacote escolhidos).
