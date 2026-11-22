@@ -538,7 +538,7 @@
       return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim, estado.foco); montarItens(caixaItens, p); mostrarFoco(); atualizar(); };
     }
 
-    // Cada adulto a mais ganha o próprio bloco, já preenchido com o mínimo, só quando "Não, quero preencher cada um".
+    // Cada adulto a mais ganha o próprio bloco, já preenchido com o mínimo, só quando "Quero preencher cada um" (21/11/2026, Leonardo; ANTES "Não, quero preencher cada um").
     function montarOutros() {
       var caixa = document.getElementById("outros");
       caixa.innerHTML = "";
@@ -772,7 +772,7 @@
     var itensVoce = document.getElementById("itens-voce");
     montarItens(itensVoce, estado.voce);
     simNao(document.getElementById("alcool"), true, ["Sim", "Não"], trocaAlcool(estado.voce, itensVoce));
-    simNao(document.getElementById("igual"), true, ["Sim, parecido", "Não, quero preencher cada um"], function (sim) { estado.igual = sim; montarOutros(); atualizar(); });
+    simNao(document.getElementById("igual"), true, ["Sim, parecido", "Quero preencher cada um"], function (sim) { estado.igual = sim; montarOutros(); atualizar(); });
     montarOutros();
     mostrarFoco();
     atualizar();
