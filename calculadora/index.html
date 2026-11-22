@@ -400,11 +400,12 @@
       sd.innerHTML = "";
       sd.appendChild(document.createTextNode("Dólar base da calculadora:"));
       sd.appendChild(el("b", { texto: dolar() }));
-      sd.appendChild(document.createTextNode("(" + C.CAMBIO.quando + ") · preços já com a taxa de 15%"));
+      // Sem a data do dólar (Leonardo, 22/11/2026: "nem coloque a data, só deixa o dólar"). ANTES: "(setembro/2026) · ...".
+      sd.appendChild(document.createTextNode("· preços já com a taxa de 15%"));
       var av = document.getElementById("aviso-taxa");
       av.innerHTML = "";
       av.appendChild(el("b", { texto: "Preços já com a taxa de serviço de 15%." }));
-      av.appendChild(document.createTextNode(" O valor de cada bebida é o que você paga a bordo, sem nada a mais no fim. Dólar usado: " + dolar() + " (" + C.CAMBIO.quando + "); a bordo, o valor muda com o dólar do dia."));
+      av.appendChild(document.createTextNode(" O valor de cada bebida é o que você paga a bordo, sem nada a mais no fim. Dólar usado: " + dolar() + "; a bordo, o valor muda com o dólar do dia."));
     }
     function tituloCia() {
       document.querySelector(".topo h1").textContent = "Calculadora de bebidas" + (cia ? " " + nomeCia(cia) : "");
@@ -760,7 +761,7 @@
           }))) : null,
         r.pacotes.length ? el("div", { "class": "res-titulo", texto: "Com pacote · " + gente + ", viagem toda" }) : null,
         // Alerta da taxa e do dólar no resultado (Leonardo, 22/11/2026: "no resultado do pacote também, o alerta pode ser colocado").
-        r.pacotes.length ? el("p", { "class": "res-taxa", texto: "Pacotes com a taxa de serviço de 15% já embutida na diária. Avulso com a taxa de 15% e o dólar a " + dolar() + " (" + C.CAMBIO.quando + ")." }) : null,
+        r.pacotes.length ? el("p", { "class": "res-taxa", texto: "Pacotes com a taxa de serviço de 15% já embutida na diária. Avulso com a taxa de 15% e o dólar a " + dolar() + "." }) : null,
         el("div", { "class": "pacotes" }, pacs),
         temRef ? el("p", { "class": "nota", texto: "Pacotes pelo preço médio por dia; o valor exato depende da saída." }) : null,
         sug,
