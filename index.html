@@ -327,9 +327,8 @@
   .c-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
   .navio { display: block; font-weight: 700; font-size: 16px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .periodo { display: block; color: var(--texto); font-size: 13px; letter-spacing: -.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  /* Celular: a volta desce para a linha de baixo em todos os cartões (no computador fica ao lado), para nada ser cortado. */
+  /* Período: a volta fica ao lado e desce inteira quando não cabe (bloco do card, mais abaixo). */
   .periodo i { font-style: normal; }
-  @media (max-width: 699px) { .periodo .volta { display: block; } .periodo i { display: none; } }
   .rota { display: block; color: var(--suave); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; height: 2.6em; }
   .cia { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .5px; padding: 1px 7px; border-radius: 999px; margin-right: 4px; vertical-align: 1px; }
   .cia.msc { background: #e3ecf8; color: #1d3f72; }
@@ -347,7 +346,7 @@
   .cab span { display: block; color: var(--suave); font-size: 12.5px; margin-top: 2px; }
   .cab small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cabs:not(.uma) .cab { padding: 9px 8px; } .cabs:not(.uma) .cab small { font-size: 12.5px; letter-spacing: -.1px; }
-  @media (max-width: 699px) { .cabs:not(.uma) .cab { padding: 9px 7px; } .cabs:not(.uma) .cab small { font-size: 12px; letter-spacing: -.2px; } }
+  @media all { .cabs:not(.uma) .cab { padding: 9px 7px; } .cabs:not(.uma) .cab small { font-size: 12px; letter-spacing: -.2px; } }
   .cab .cab-v { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 10px; }
   .cab .cab-v span { font-size: 14.5px; font-weight: 600; margin-top: 2px; white-space: nowrap; }
   /* Uma cabine só: o Total maior (Leonardo, 21/11/2026: "o total está ficando muito pequeno, ele pode ser maior"). ANTES: 14,5px. */
@@ -440,7 +439,7 @@
   .detalhe .abas button { padding: 5px 10px; font-size: 13.5px; font-weight: 600; flex: 1 1 0; min-width: 0; }
   /* Abas das cabines numa linha só, também no celular (Leonardo, 21/11/2026: "deixar ali a seleção de interna, externa,
      varanda e suíte numa linha só"). ANTES: tamanho do texto, rolando para o lado quando não cabia. */
-  @media (max-width: 699px) { .detalhe .abas button { padding: 5px 4px; font-size: 13px; } }
+  @media all { .detalhe .abas button { padding: 5px 4px; font-size: 13px; } }
   /* Faixa do preço como no Google Flights (Leonardo, 21/11/2026: "horizontal e com cores verde e vermelho para dizer onde
      ele está atualmente e quando que foi o mais barato e o mais caro"; vem aberta). Verde = terço mais barato, amarelo =
      meio, vermelho = terço mais caro; a marca "Hoje" mostra onde o preço de hoje está. Embaixo, o caminho do preço por dia
@@ -456,7 +455,7 @@
   .nivel .hoje-v small { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
   .nivel .hoje-v strong { font-size: 22px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: var(--texto); white-space: nowrap; }
   /* Preço de hoje numa linha só no celular (Leonardo, 21/11/2026). ANTES: "por pessoa" caía para a linha de baixo. */
-  @media (max-width: 699px) { .nivel .hoje-v strong { font-size: 20px; } }
+  @media all { .nivel .hoje-v strong { font-size: 20px; } }
   .nivel .hoje-v strong em { display: inline; font-style: normal; font-size: 12.5px; font-weight: 500; color: var(--suave); letter-spacing: 0; margin-left: 4px; white-space: nowrap; }
   /* Quadro padronizado (Leonardo, 21/11/2026: "Isso tem que ser padronizado... O por pessoa pode ficar abaixo do valor...
      Daí tem espaço para o preço em baixa ou preço em alta caber nesse quadrado. Daí sempre todos eles vão ter a mesma
@@ -554,7 +553,12 @@
      sem o Total; antes disso 871 px com as 4 cabines. */
   .so-cel { display: none; font-style: normal; }
   .cab small i, .cab-v span i, i.so-pc { font-style: normal; }
-  @media (max-width: 699px) {
+  /* Card do computador igual ao do celular (Leonardo, 21/11/2026: "Pode deixar o card do computador igual ao do celular
+     ficou perfeito"): os blocos do card que eram só do celular (max-width 699px) valem em toda largura (@media all), e no
+     card o texto .so-pc some também no computador. ANTES: no computador as cabines altas com "por pessoa", pacote na linha
+     cinza, "Preço de hoje" em 2 linhas, gráfico de 124px, legenda e botões um embaixo do outro. */
+  .card .so-pc { display: none; }
+  @media all {
     .so-cel { display: inline; }
     .c-topo { padding: 8px 10px; gap: 8px; }
     .dia-bloco { width: 56px; padding: 4px 0 5px; }
@@ -588,7 +592,7 @@
   /* Selo "Melhor preço" sem cobrir o nome da cabine (Leonardo, 21/11/2026: "O melhor preço encobre o interna ou externa.
      Tem que deixar ele um pouquinho mais para cima"): selo a -10px (ANTES -8px) e, no celular, a célula com o selo
      ganha 7px em cima e as linhas da grade 11px entre si (ANTES 5px e 6px), para o selo da 2ª linha não pegar a 1ª. */
-  @media (max-width: 699px) {
+  @media all {
     /* "3 noites · volta dd/mm" sem cortar (Leonardo, 21/11/2026: "A volta também está sendo encoberta lá em cima... fica o
        dia, barra da data e 3 pontinhos"): quando não cabe na linha (celular de 360 px), a volta desce inteira para a linha
        de baixo. ANTES: cortava em "volta 2...". */
@@ -605,7 +609,7 @@
   }
   /* Troca de cabine no celular, alinhada ao card do celular (827ea9b): o painel fica à direita do preço, sem crescer o card;
      os 2 botões ficam um embaixo do outro quando não cabem lado a lado. */
-  @media (max-width: 699px) {
+  @media all {
     .cabs.troca { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 6px; }
     .troca-painel { padding: 5px 6px; }
     .troca-bt { padding: 5px 6px; font-size: 12.5px; }
@@ -1222,7 +1226,7 @@
   // sem encostar. As barras começam em 85% do menor preço (do zero, R$ 100 de diferença nem apareceria). Toque/mouse na
   // coluna mostra o balão com o preço do dia. ANTES: linha arredondada com bolinhas e o "×" nos dias esgotados.
   function grafico(pts, fx, semLegenda) {
-    var W = 320, H = celular() ? 92 : 124, e = 6, d = 6, t = 24, b = 20;   // celular: ~1/3 mais baixo (opção B, 21/11/2026)
+    var W = 320, H = 92, e = 6, d = 6, t = 24, b = 20;   // ~1/3 mais baixo (opção B, 21/11/2026); computador igual ao celular desde 21/11/2026 (ANTES: 124 no computador)
     // Sem o selo de menor/maior preço, as barras ganham o lugar dele (Leonardo, 21/11/2026: "quando não tem menor preço do
     // histórico ou maior preço do histórico, as barras do gráfico podem ficar um pouco maiores"): +40 na altura (~34 px na
     // tela, o tamanho do selo), e o card fica da mesma altura dos outros. ANTES: um selo invisível guardava o lugar.
