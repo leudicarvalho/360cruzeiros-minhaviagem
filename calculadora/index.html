@@ -143,6 +143,22 @@
   .opcoes.foco button[aria-pressed="true"] .f-total.mais { color: #ffd98a; }
   .foco-nota { font-size: 13px; color: var(--suave); margin: -4px 0 10px; }
   .colunas { display: grid; gap: 14px; }
+  /* Celular (Leonardo, 21/11/2026: "no celular tá muito ruim, principalmente a seção do drink premium ou destilado. Fica
+     tudo acumulado na esquerda... deixar muito mais moderna"): nome e − + na linha de cima; as marcas embaixo, na largura
+     toda, numa caixa clara com o preço à direita de cada uma. ANTES: o − + ao lado da lista apertava as marcas numa
+     coluna estreita. No computador nada muda. */
+  @media (max-width: 699px) {
+    .item.com-marcas { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 10px; }
+    .item.com-marcas .item-nome { display: contents; }
+    .item.com-marcas .nome-txt { grid-column: 1; grid-row: 1; font-weight: 700; }
+    .item.com-marcas .passo { grid-column: 2; grid-row: 1; }
+    .item.com-marcas .marcas { grid-column: 1 / -1; grid-row: 2; margin: 0; background: #f3f7f8; border: 1px solid var(--linha); border-radius: 12px; padding: 4px 12px; }
+    .item.com-marcas .marcas li { padding: 7px 0; gap: 12px; align-items: center; }
+    .item.com-marcas .marcas li + li { border-top: 1px solid var(--linha); }
+    .item.com-marcas .marcas li:last-child { min-height: 0; }
+    .item.com-marcas .marcas li:last-child b { align-self: center; line-height: normal; }
+    .item.com-marcas .marcas .media { justify-content: flex-end; font-size: 13.5px; }
+  }
   @media (min-width: 640px) { .colunas.duas { grid-template-columns: 1fr 1fr; } }
   .avulso { font-size: 15px; margin: 0 0 10px; }
   .avulso b { color: var(--marca); }
@@ -266,8 +282,8 @@
   <p class="rodape">Valores aproximados: dependem da cotação do dólar no dia. Os preços avulsos já incluem a taxa de serviço de 15%. Todos os adultos da mesma cabine precisam ter o mesmo pacote.</p>
 </main>
 
-<script src="../mv.js"></script>
-<script src="calc.js"></script>
+<script src="../mv.js?v=20261121k"></script>
+<script src="calc.js?v=20261121l"></script>
 <script>
 (function () {
   "use strict";
@@ -390,7 +406,7 @@
         var varia = precos.some(function (v) { return v !== precos[0]; });
         info = el("ul", { "class": "marcas" }, it.marcas.map(function (m) { return el("li", {}, [el("span", { texto: m.nome }), el("b", { texto: precoMarca(m) })]); })
           .concat(varia ? [el("li", { "class": "media", texto: "Na conta: média de " + reais(avulso) }) ] : []));
-        return el("div", { "class": "item com-marcas" }, [el("span", { "class": "item-nome" }, [it.nome, info]), span]);
+        return el("div", { "class": "item com-marcas" }, [el("span", { "class": "item-nome" }, [el("span", { "class": "nome-txt", texto: it.nome }), info]), span]);
       }
       // Sem álcool: o preço à direita, ao lado do − +, sem a palavra "avulso", no mesmo padrão das alcoólicas
       // (Leonardo, 21/11/2026: "o preço do sem álcool pode ficar ali à direita também e tirar o avulso").
@@ -470,7 +486,8 @@
         todos: [reais(dia(bas)).replace(" ", " ") + " a " + reais(dia(pre)).replace(" ", " "), "", false],
       };
       caixa.querySelectorAll("button").forEach(function (b) {
-        var d = dados[b.getAttribute("data-v")], preco = b.querySelector(".f-preco"), total = b.querySelector(".f-total");
+        var d = dados[b.getAttribute("data-v")]; if (!d) return;
+        var preco = b.querySelector(".f-preco"), total = b.querySelector(".f-total");
         preco.textContent = d[0] + " ";
         preco.appendChild(el("span", { texto: "/dia" }));
         total.textContent = d[1];
@@ -483,8 +500,9 @@
       if (!cia) return;
       // Cartões com preço (21/11/2026, ver o CSS .opcoes.foco). Preço e total entram em precosFoco(), a cada atualizar().
       [["economia", "$ Mais em conta", "Pacote básico", nomesNivel("basico"), "O que inclui: " + incluiNivel("basico") + "."],
-       ["qualidade", "$$$ Marcas top", "Pacote premium", nomesNivel("premium"), "Tudo do básico + " + incluiNivel("premium") + "."],
-       ["todos", "Na dúvida", "Comparar os dois", "Básico e premium", "A calculadora mostra qual vale mais para o que você toma."]].forEach(function (o) {
+       ["qualidade", "$$$ Marcas top", "Pacote premium", nomesNivel("premium"), "Tudo do básico + " + incluiNivel("premium") + "."]].forEach(function (o) {
+      // Só básico OU premium, nunca os dois juntos (Leonardo, 21/11/2026: "Não misture os dois, porque vai ficar muito
+      // difícil indicar alguma coisa"). ANTES: terceiro cartão "Na dúvida / Comparar os dois" (foco "todos").
         var b = el("button", { type: "button", "data-v": o[0], "aria-pressed": String(estado.foco === o[0]) }, [
           el("span", { "class": "f-etq " + o[0], texto: o[1] }), o[2], el("small", { texto: o[3] }),
           el("span", { "class": "f-preco" }), el("span", { "class": "f-total" }), el("span", { "class": "f-inclui", texto: o[4] })]);
@@ -646,6 +664,29 @@
       // Vai a pesquisa inteira (a que a página guardou no aparelho, mv_pref) com o pacote trocado, no formato do Salvar
       // (MV.montarEnvio): o Entur não lê os campos mv_* do contato numa expressão, então o fluxo usa o que chega.
       var w = wLink || MV.conferirWhats(ler("mv_whats") || "").num, pref = ler("mv_pref");
+      // Veio de uma saída do site (a página manda a pesquisa da tela em "pesq"): NUNCA vai para o WhatsApp. Troca o
+      // pacote e volta para a pesquisa; com código e WhatsApp também grava no CRM (webhook 54). Sem eles, ou se o envio
+      // falhar, volta do mesmo jeito e o Salvar da página cuida do resto (Leonardo, 21/11/2026: "Isso do WhatsApp não é
+      // para acontecer só quando... eu não venho de um botão de uma saída do site?"). ANTES: sem código, sem WhatsApp
+      // ou sem a pesquisa salva no aparelho (mv_pref), caía no "Falta um passo" mesmo vindo do site.
+      if (link.pesquisa) {
+        var pesqSite = MV.lerPesquisa(link.pesquisa);
+        pesqSite.b = C.NIVEL_PARA_B[nivel];
+        var voltar = function () { location.href = "../" + MV.linkPesquisa(pesqSite, link.codigo) + (w ? "&w=" + w : ""); };
+        if (!link.codigo || !w) { voltar(); return; }
+        final.appendChild(el("p", { "class": "dica", texto: "Atualizando sua pesquisa..." }));
+        fetch(WEBHOOK_PACOTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(MV.montarEnvio(pesqSite, link.codigo, w, "")) })
+          .then(function (r) {
+            if (!r.ok) throw new Error(r.status);
+            guardar("mv_pref", MV.linkPesquisa(pesqSite, ""));
+            var ls = {}; try { ls = JSON.parse(ler("mv_links") || "{}") || {}; } catch (e) { ls = {}; }
+            Object.keys(ls).forEach(function (k) { ls[k] = "superado"; });
+            guardar("mv_links", JSON.stringify(ls));
+          })
+          .catch(function () {})
+          .then(voltar);
+        return;
+      }
       if (!link.codigo || !w || !pref) { peloWhats(""); return; }
       var pesquisa = MV.lerPesquisa(pref);
       pesquisa.b = C.NIVEL_PARA_B[nivel];
@@ -678,6 +719,8 @@
       });
       precosFoco();
       var caixa = document.getElementById("resultados");
+      // Alguém bebe e ainda não escolheu básico ou premium: nada de resultado misturando os dois (21/11/2026).
+      if (algumBebe() && !estado.foco) { caixa.innerHTML = ""; document.getElementById("sec-final").classList.add("oculto"); return; }
       caixa.className = "colunas" + (rs.length > 1 ? " duas" : "");
       caixa.innerHTML = "";
       rs.forEach(function (r) { caixa.appendChild(cartao(r)); });

@@ -23,7 +23,8 @@
     { id: "premium", nome: "Drink premium ou destilado (whisky, gin...)", alcool: true },
   ];
 
-  // O que a pessoa busca: "economia" (só o básico), "qualidade" (só o premium) ou "todos" (os dois, em blocos).
+  // O que a pessoa busca: "economia" (só o básico) ou "qualidade" (só o premium). "todos" (os dois, em blocos) saiu da
+  // tela em 21/11/2026 (Leonardo: "sempre vai ser um ou outro"); fica aqui só para link e teste antigos.
   var FOCOS = ["economia", "qualidade", "todos"];
 
   // Dia já preenchido = o MÍNIMO em que o pacote passa a valer a pena (Leonardo, 21/11/2026: "coloque que é o
@@ -321,6 +322,8 @@
       // Quem confere o número é o MV.conferirWhats na tela. (Leonardo, 21/11/2026: o WhatsApp vem no link, a
       // calculadora não pede de novo.) ANTES: a calculadora não lia o w e pedia o WhatsApp num formulário.
       whats: /^\{\{.*\}\}$/.test(String(p.w || "")) ? "" : String(p.w || "").replace(/\D/g, "").slice(0, 15),
+      // Pesquisa da tela quando veio de uma saída do site (MV.linkCalc, 5º argumento): "?t=...". Vazio = abriu por fora.
+      pesquisa: /^t=/.test(String(p.pesq || "")) ? "?" + String(p.pesq).slice(0, 400) : "",
     };
   }
 

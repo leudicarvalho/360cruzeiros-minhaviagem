@@ -761,7 +761,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261121j"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261121k"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -1135,7 +1135,7 @@
     var botao = calc ? calc.botao : 'Descobrir o pacote de bebidas ideal';
     // No celular, "Pacote de bebidas" numa linha só (Leonardo, 21/11/2026, variação A: "vai ficar assim, só pacote de
     // bebidas"). ANTES: "Pacote de bebidas ideal", que quebrava em 2 linhas ao lado do "Quero esta saída".
-    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc())) + '"><span>' + esc(botao).replace('Descobrir o pacote', '<i class="so-pc">Descobrir o pacote</i><i class="so-cel">Pacote</i>').replace(' ideal', '<i class="so-pc"> ideal</i>') + '</span></a>';
+    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc(), MV.linkPesquisa(f, ''))) + '"><span>' + esc(botao).replace('Descobrir o pacote', '<i class="so-pc">Descobrir o pacote</i><i class="so-cel">Pacote</i>').replace(' ideal', '<i class="so-pc"> ideal</i>') + '</span></a>';
   }
 
   // Linha do pacote escolhido, à parte do histórico: valor por adulto e desde quando não muda.

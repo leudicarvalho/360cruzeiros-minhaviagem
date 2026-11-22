@@ -591,13 +591,16 @@
   // Link da calculadora: ?id=<código>&adultos=N e, com a saída, &saida=<id>&cia=msc|costa&noites=N (preço do pacote dela).
   // w = WhatsApp do contato (21/11/2026, Leonardo: o link não pode ficar sem o telefone): a calculadora salva o pacote
   // pelo número do link, sem depender do aparelho. ANTES: ia sem o w.
-  function linkCalc(id, adultos, s, w) {
+  // pesq (opcional): a pesquisa da tela (MV.linkPesquisa(f, "")). Com ela a calculadora sabe que veio do site e, no
+  // "Usar este pacote", volta para a pesquisa em vez de mandar ao WhatsApp (21/11/2026).
+  function linkCalc(id, adultos, s, w, pesq) {
     var q = [];
     if (/^[A-Za-z0-9_-]{1,40}$/.test(String(id || ""))) q.push("id=" + id);
     var a = parseInt(adultos, 10);
     if (a >= 1 && a <= 4) q.push("adultos=" + a);
     if (s && s.id) q.push("saida=" + encodeURIComponent(s.id), "cia=" + (String(s.cia).toLowerCase() === "costa" ? "costa" : "msc"), "noites=" + s.noites);
     if (/^\d{10,15}$/.test(String(w || ""))) q.push("w=" + w);
+    if (/^\?t=/.test(String(pesq || ""))) q.push("pesq=" + encodeURIComponent(String(pesq).slice(1)));
     return q.length ? "?" + q.join("&") : "";
   }
 
