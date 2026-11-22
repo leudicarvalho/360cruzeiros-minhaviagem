@@ -150,6 +150,8 @@
   .opcoes.foco button[aria-pressed="true"] .f-total { color: #d3e3e9; }
   .opcoes.foco button[aria-pressed="true"] .f-total.mais { color: #ffd98a; }
   .aviso-cabine { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff7e6; border: 1px solid #f1d39a; color: #5c4300; font-size: 13.5px; line-height: 1.4; }
+  .selo-dolar { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin: 12px auto 4px; padding: 8px 14px; width: fit-content; max-width: 100%; border-radius: 999px; background: #eaf5ee; border: 1px solid #b7dcc4; color: #1d5b37; font-size: 14px; text-align: center; }
+  .selo-dolar b { font-size: 16px; font-weight: 800; color: #12432a; }
   .aviso-taxa { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--marca-clara); border: 1px solid #bcd6de; color: var(--texto); font-size: 13.5px; line-height: 1.4; }
   .aviso-taxa b { color: var(--marca); }
   .res-taxa { font-size: 12.5px; color: var(--suave); margin: -4px 0 10px; }
@@ -265,6 +267,10 @@
       <div class="v-campo"><span class="v-rot">Crianças de 2 a 17</span><span class="passo" data-campo="criancas"></span><span class="v-nota">Até 1 ano não paga</span></div>
     </div>
   </section>
+
+  <!-- Dólar em destaque (Leonardo, 22/11/2026: "O dólar vai ter que ficar destacado na calculadora... De qual foi a base
+       utilizada"): selo logo abaixo da viagem, lido de CAMBIO (calc.js). -->
+  <p class="selo-dolar" id="selo-dolar"></p>
 
   <p class="cia-aviso" id="cia-aviso" hidden>👆 Toque em MSC ou Costa para ver qual pacote de bebidas vale a pena.</p>
 
@@ -390,6 +396,11 @@
     function nomeCia(c) { return c === "costa" ? "Costa" : "MSC"; }
     function dolar() { return "R$ " + C.CAMBIO.valor.toFixed(2).replace(".", ","); }
     function avisoTaxa() {
+      var sd = document.getElementById("selo-dolar");
+      sd.innerHTML = "";
+      sd.appendChild(document.createTextNode("Dólar base da calculadora:"));
+      sd.appendChild(el("b", { texto: dolar() }));
+      sd.appendChild(document.createTextNode("(" + C.CAMBIO.quando + ") · preços já com a taxa de 15%"));
       var av = document.getElementById("aviso-taxa");
       av.innerHTML = "";
       av.appendChild(el("b", { texto: "Preços já com a taxa de serviço de 15%." }));
