@@ -251,7 +251,7 @@
 
   /* Calendário (Leonardo, 21/11/2026: "abrir um calendário para poder selecionar... fácil de utilizar e que dê para informar
      manualmente também... facilidade no celular"): no celular sobe de baixo, no computador abre no meio. Dois campos para
-     digitar (dd/mm/aaaa, teclado numérico) e o mês com os dias que têm saída marcados; 1º toque = embarque, 2º = volta. */
+     digitar (dd/mm/aaaa, teclado numérico) e o mês com os dias que têm saída marcados; 1º toque = 1º dia de embarque, 2º = último dia de embarque (22/11/2026; ANTES 2º = volta). */
   .fundo-cal { position: fixed; inset: 0; background: rgba(16,37,46,.55); z-index: 11; display: flex; align-items: flex-end; justify-content: center; }
   .cal { width: 100%; max-width: 440px; max-height: 94vh; overflow: auto; background: #fff; border-radius: 20px 20px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(16,37,46,.3); }
   @media (min-width: 700px) { .fundo-cal { align-items: center; } .cal { border-radius: 20px; } }
@@ -735,11 +735,11 @@
     <h3><span id="cal-titulo">Quais dias você pode?</span><button id="cal-fechar" aria-label="Fechar">×</button></h3>
     <div class="cal-campos">
       <label id="lb-de">Embarcar a partir de<input id="cal-de" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10"></label>
-      <label id="lb-ate">Voltar até<input id="cal-ate" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10"></label>
+      <label id="lb-ate">Embarcar até<input id="cal-ate" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10"></label>
     </div>
     <div class="cal-mes"><button id="cal-ant" aria-label="Mês anterior">‹</button><b id="cal-nome"></b><button id="cal-prox" aria-label="Próximo mês">›</button></div>
     <div class="cal-grade" id="cal-grade"></div>
-    <p class="cal-legenda">Dia com saída de cruzeiro. Toque no dia do embarque e depois no dia da volta, ou digite as datas acima.</p>
+    <p class="cal-legenda">Dia com saída de cruzeiro. Toque no primeiro e no último dia em que você pode embarcar, ou digite as datas acima.</p>
     <div class="cal-acoes"><button class="btn contorno" id="cal-limpar">Limpar</button><button class="btn" id="cal-ok">Ver as saídas</button></div>
   </div>
 </div>
@@ -780,7 +780,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261122a"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261122b"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";

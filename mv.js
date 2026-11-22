@@ -120,11 +120,13 @@
   function addDias(iso, n) { var d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
   function volta(s) { return addDias(s.embarque, s.noites); }
   function doTipo(s, t) { return t === "mini" ? s.noites <= 4 : t === "longo" ? s.noites >= 5 : true; }
-  // Datas do cliente valem sobre os meses: a viagem inteira dentro da janela (embarca a partir de "de", volta até "ate").
+  // Datas do cliente valem sobre os meses e contam só o EMBARQUE: embarca entre "de" e "ate" (Leonardo, 22/11/2026:
+  // "posso colocar qualquer coisa, 2 a 3, 2 a 7, ela não acha essa"; "Sim, pelo embarque"; caso Virtuosa 02/01, 7 noites).
+  // ANTES: a viagem inteira dentro (volta até "ate"), e "02/01 a 02/01" não achava nenhuma saída.
   // Sem datas: embarque num dos meses marcados, ou algum dia no Carnaval marcado. Nada marcado = todas.
   function noPeriodo(s, f) {
     if (typeof f === "string") f = { p: f };
-    if (f.de || f.ate) return (!f.de || s.embarque >= f.de) && (!f.ate || volta(s) <= f.ate);
+    if (f.de || f.ate) return (!f.de || s.embarque >= f.de) && (!f.ate || s.embarque <= f.ate);
     var ps = lerPeriodo(f.p);
     if (!ps.length) return true;
     return ps.some(function (x) {
@@ -360,7 +362,7 @@
   function nomePeriodo(f) {
     if (f.de && f.ate) return "de " + dmA(f.de) + " a " + dmA(f.ate);
     if (f.de) return "a partir de " + dmA(f.de);
-    if (f.ate) return "voltando até " + dmA(f.ate);
+    if (f.ate) return "embarque até " + dmA(f.ate);
     var ps = lerPeriodo(f.p);
     if (!ps.length) return "todas as datas";
     var nomes = [], meses = ps.filter(function (x) { return /^m/.test(x); });
