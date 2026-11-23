@@ -325,7 +325,10 @@
   .dia-bloco b { display: block; font-size: 26px; font-weight: 800; margin: 3px 0 2px; }
   .dia-bloco span { display: block; font-size: 13.5px; font-weight: 600; text-transform: uppercase; color: var(--ouro); }
   .c-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
-  .navio { display: block; font-weight: 700; font-size: 16px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Nome em até 2 linhas (Leonardo, 23/11/2026: "Veja se consegue encaixar o festivalzinho em alto mar no layout que temos
+     sem aumentar o cartão. E se não der, coloque um tooltip"): cabe ao lado do quadro da data sem o card crescer; o que
+     passar de 2 linhas termina em "..." e o nome inteiro aparece ao passar o mouse. ANTES: 1 linha cortada em "...". */
+  .navio { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-weight: 700; font-size: 16px; line-height: 1.2; overflow: hidden; overflow-wrap: anywhere; }
   .periodo { display: block; color: var(--texto); font-size: 13px; letter-spacing: -.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* Período: a volta fica ao lado e desce inteira quando não cabe (bloco do card, mais abaixo). */
   .periodo i { font-style: normal; }
@@ -358,7 +361,8 @@
   .paradas li.ponta::before { background: var(--marca); }
   .paradas li.ponta span { font-weight: 700; color: var(--marca); }
   .paradas li.indef::before { border-color: #9fbfc8; }
-  .paradas li.indef span { color: var(--suave); font-style: italic; }
+  .paradas li.indef span { color: var(--suave); }
+  .paradas li.indef span i { font-style: italic; }
   .paradas.so-pontas li.mar { flex: 2 1 0; }
   .paradas.so-pontas li.mar::before { display: none; }
   .paradas.so-pontas li.mar::after { left: -25%; width: 150%; }
@@ -1160,8 +1164,10 @@
   // porque o nome não diz. ANTES: selo "MSC"/"Costa" na linha das noites, repetindo o nome do navio.
   function nomeNavio(s) {
     var m = /^(MSC|Costa)\s+(.*)$/.exec(s.navio || '');
-    if (!m) return '<span class="navio">' + esc(s.navio) + '</span>';
-    return '<span class="navio"><em class="m-' + m[1].toLowerCase() + '">' + m[1] + '</em> ' + esc(m[2]) + '</span>';
+    var dica = ' title="' + esc(s.navio) + '"';   // nome inteiro ao passar o mouse (23/11/2026)
+    // Hífen que não quebra ("alto-mar" desce inteiro para a 2ª linha, 23/11/2026).
+    if (!m) return '<span class="navio"' + dica + '>' + esc(s.navio).replace(/-(?=\S)/g, '‑') + '</span>';
+    return '<span class="navio"' + dica + '><em class="m-' + m[1].toLowerCase() + '">' + m[1] + '</em> ' + esc(m[2]) + '</span>';
   }
   // Linha com as paradas: bolinhas ligadas por um traço, Santos cheio nas pontas e o nome embaixo de cada uma.
   function linhaParadas(s) {
@@ -1169,11 +1175,13 @@
     // Temático tem sempre uma parada que eles não divulgam (Leonardo, 22/11/2026: "É Santos, uma parada e coloque a definir").
     // ANTES: só Santos nas pontas, sem parada no meio.
     var indef = s.cia === 'Temático' && ps.length === 2;
-    if (indef) ps = ['Santos', 'A definir', 'Santos'];
+    // "Sudeste" com "(a definir)" na linha de baixo (Leonardo, 23/11/2026: "o a definir pode ser entre parênteses na linha
+    // de baixo, sudeste"). ANTES: só "A definir".
+    if (indef) ps = ['Santos', 'Sudeste', 'Santos'];
     // Sem paradas (temáticos e minis "Santos, Santos": a API não diz): só Santos nas pontas, ligadas por um traço maior.
-    var lis = ps.map(function (p, i) { return '<li' + (i === 0 || i === ps.length - 1 ? ' class="ponta"' : indef ? ' class="indef"' : '') + '><span>' + esc(p) + '</span></li>'; });
+    var lis = ps.map(function (p, i) { return '<li' + (i === 0 || i === ps.length - 1 ? ' class="ponta"' : indef ? ' class="indef"' : '') + '><span>' + esc(p) + (indef && i === 1 ? '<br><i>(a definir)</i>' : '') + '</span></li>'; });
     if (ps.length === 2) lis.splice(1, 0, '<li class="mar"><span></span></li>');
-    return '<ol class="paradas' + (ps.length === 2 ? ' so-pontas' : MV.paradasAlternam(ps) ? ' alterna' : '') + '" aria-label="Roteiro: ' + esc(ps.join(', ')) + '">' + lis.join('') + '</ol>';
+    return '<ol class="paradas' + (ps.length === 2 ? ' so-pontas' : MV.paradasAlternam(ps) ? ' alterna' : '') + '" aria-label="Roteiro: ' + esc(ps.join(', ')) + (indef ? ' (Sudeste a definir)' : '') + '">' + lis.join('') + '</ol>';
   }
 
   // Linha do tempo (abre ao tocar na saída): o preço de cada dia da cabine, para os adultos e o pacote escolhidos.
