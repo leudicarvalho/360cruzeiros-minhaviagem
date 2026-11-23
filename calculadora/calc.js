@@ -154,7 +154,9 @@
     },
     costa: {
       nome: "Costa",
-      avulso: { refri: 27, agua: 15, cafe: 15 },
+      // Água 18,58 = o mesmo por garrafa do Pacote de Água (13 de 500 ml, R$ 241,50), para o avulso não ficar mais barato
+      // (Leonardo, 23/11/2026: "Deixa a garrafa também no mesmo preço do pacote"). ANTES: 15 (fonte única, vídeo). Conta: R$ 19.
+      avulso: { refri: 27, agua: 18.58, cafe: 15 },
       // Tabela de preços avulsos Costa da habilidade. Média das marcas na conta: drink clássico 55 (ANTES 54, só a
       // caipirinha), drink premium 86 (de 81 a 90; ANTES 81), vinho 44 (taça 42, espumante 45; ANTES 42).
       itens: {
