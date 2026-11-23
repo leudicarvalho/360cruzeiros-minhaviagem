@@ -222,6 +222,9 @@
   .btn:hover { background: var(--verde-escuro); }
   .btn.pequeno { padding: 10px; font-size: 14px; }
   /* Pacote para dividir (Costa, 23/11/2026) */
+  /* Gosto (23/11/2026): 4 botões numa linha; no celular 2 x 2 */
+  #gosto { display: grid; grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 480px) { #gosto { grid-template-columns: repeat(2, 1fr); } }
   .dividir { margin: 4px 0 12px; }
   .dividir .pac { margin: 0 0 10px; }
   .dividir .pac .nota { margin-top: 3px; }
@@ -299,6 +302,13 @@
   </section>
 
   <div id="depois-foco">
+  <!-- Gosto (Leonardo, 23/11/2026: "Pedir o que a pessoa mais gosta... cerveja, drinks, misturado"): preenche o dia só com
+       aquela bebida (Variado = como antes). Só para quem bebe álcool. Vinho só no pacote básico. -->
+  <section id="sec-gosto">
+    <h2>O que você mais gosta de beber?</h2>
+    <div class="opcoes" id="gosto"></div>
+  </section>
+
   <!-- Cada adulto (Leonardo, 21/11/2026: "tem que ter uma opção de ir e voltar para todas as pessoas. Para ficar claro o
        que ficou de cada um"): a pergunta "bebem parecido?" vem antes da lista; em "Quero preencher cada um", uma aba por
        pessoa com o avulso por dia dela, a lista da pessoa escolhida e os botões de ir e voltar. ANTES: a pergunta vinha
@@ -391,6 +401,7 @@
     var estado = {
       noites: noites0,
       foco: foco0,         // "economia" | "qualidade" | "todos" | null (ainda não respondeu)
+      gosto: "variado",    // "variado" | "cerveja" | "drinks" | "vinho" (23/11/2026)
       adultos: link.adultos || 2,
       igual: true,
       voce: pessoa(),
@@ -441,10 +452,10 @@
         var b = el("button", { type: "button", "aria-pressed": String(cia === c), texto: nomeCia(c) });
         b.onclick = function () {
           cia = c; ciaDia = c; cias = [c];
-          [estado.voce].concat(estado.outros).forEach(function (p) { p.consumo = C.diaMinimo(c, p.alcool, estado.foco, pacotesDaSaida(c), estado.noites); });
+          [estado.voce].concat(estado.outros).forEach(function (p) { p.consumo = C.diaMinimo(c, p.alcool, estado.foco, pacotesDaSaida(c), estado.noites, estado.gosto); });
           estado.filhos.forEach(function (p) { p.consumo = C.diaMinimoCrianca(c); });
           estado.preferencia = null;
-          montarCia(); tituloCia(); montarFoco();
+          montarCia(); tituloCia(); montarFoco(); montarGosto();
           montarPessoas(); atualizar();
         };
         caixa.appendChild(b);
@@ -550,6 +561,7 @@
     // Pergunta do foco: some se ninguém bebe álcool; o resto da tela espera a resposta de quem bebe.
     function mostrarFoco() {
       document.getElementById("sec-foco").classList.toggle("oculto", !algumBebe());
+      document.getElementById("sec-gosto").classList.toggle("oculto", !algumBebe());
       document.getElementById("depois-foco").classList.toggle("oculto", estado.voce.alcool && !estado.foco);
     }
     // Pergunta do pacote (Leonardo, 21/11/2026: "pagar menos, bebidas de marca melhor e quero ver todos... Tem que ter
@@ -586,6 +598,24 @@
         total.className = "f-total" + (d[2] ? " mais" : "");
       });
     }
+    // Pergunta do gosto (23/11/2026): troca = o dia de quem bebe volta ao mínimo, só com aquela bebida.
+    function montarGosto() {
+      var caixa = document.getElementById("gosto");
+      caixa.innerHTML = "";
+      [["variado", "Variado"], ["cerveja", "Cerveja"], ["drinks", "Drinks"], ["vinho", "Vinho"]].forEach(function (o) {
+        if (o[0] === "vinho" && estado.foco === "qualidade") return;
+        var b = el("button", { type: "button", "data-v": o[0], "aria-pressed": String(estado.gosto === o[0]), texto: o[1] });
+        b.onclick = function () {
+          estado.gosto = o[0];
+          estado.preferencia = null;
+          [estado.voce].concat(estado.outros).forEach(function (p) { if (p.alcool) p.consumo = C.diaMinimo(ciaDia, true, estado.foco, pacotesDaSaida(ciaDia), estado.noites, estado.gosto); });
+          montarGosto();
+          montarPessoas();
+          atualizar();
+        };
+        caixa.appendChild(b);
+      });
+    }
     function montarFoco() {
       var caixa = document.getElementById("foco");
       caixa.innerHTML = "";
@@ -603,7 +633,10 @@
           estado.foco = o[0];
           estado.preferencia = null;
           // Troca o foco = volta ao mínimo daquele foco quem bebe (como ao trocar o álcool).
-          [estado.voce].concat(estado.outros).forEach(function (p) { if (p.alcool) p.consumo = C.diaMinimo(ciaDia, true, o[0], pacotesDaSaida(ciaDia), estado.noites); });
+          // Vinho só no básico: no premium o gosto volta a Variado.
+          if (o[0] === "qualidade" && estado.gosto === "vinho") estado.gosto = "variado";
+          [estado.voce].concat(estado.outros).forEach(function (p) { if (p.alcool) p.consumo = C.diaMinimo(ciaDia, true, o[0], pacotesDaSaida(ciaDia), estado.noites, estado.gosto); });
+          montarGosto();
           montarPessoas();
           mostrarFoco();
           atualizar();
@@ -627,7 +660,7 @@
 
     // Trocar o álcool de uma pessoa volta a lista dela ao mínimo daquele caso (com ou sem álcool).
     function trocaAlcool(p) {
-      return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim, estado.foco, pacotesDaSaida(ciaDia), estado.noites); montarPessoas(); mostrarFoco(); atualizar(); };
+      return function (sim) { p.alcool = sim; p.consumo = C.diaMinimo(ciaDia, sim, estado.foco, pacotesDaSaida(ciaDia), estado.noites, estado.gosto); montarPessoas(); mostrarFoco(); atualizar(); };
     }
 
     // Uma por adulto em "Quero preencher cada um" (Leonardo, 21/11/2026: "uma opção de ir e voltar para todas as pessoas.
@@ -746,6 +779,8 @@
       function pago(n, u) { return "pag" + u[2] + (n === 1 ? "" : "s"); }
       d.pacotes.forEach(function (p) {
         linhas.push(el("div", { "class": "nota", texto: (p.n > 1 ? p.n + " " + p.nome.replace(/^Pacote/, "Pacotes") : "1 " + p.nome) + ": " + plural(p.qtd, p.unidade) + " já " + pago(p.qtd, p.unidade) + " · " + reaisJunto(p.valor) }));
+        if (p.detalhe) linhas.push(el("div", { "class": "nota", texto: "(" + p.detalhe + ")" }));
+        if (p.sobra > 0) linhas.push(el("div", { "class": "nota", texto: "Pelo que você marcou, sobram " + plural(p.sobra, p.unidade) + " do pacote" }));
         if (p.aMais > 0) linhas.push(el("div", { "class": "nota", texto: plural(p.aMais, p.unidade) + " a mais, " + pago(p.aMais, p.unidade) + " à parte · cerca de " + reaisJunto(p.aMaisValor) }));
       });
       if (Math.round(d.outras) > 0) linhas.push(el("div", { "class": "nota", texto: "Outras bebidas, pagas à parte · cerca de " + reaisJunto(d.outras) }));
@@ -756,7 +791,9 @@
         : "As bebidas dos pacotes podem ser divididas " + quem + ". O que passar disso e as outras bebidas são pagas à parte.";
       // Quanto sai a menos que o pacote por dia mais em conta (o cartão só aparece quando é mais barato).
       var dif = Math.round(r.melhor.total - d.total);
-      var chip = dif > 0 ? el("div", {}, [el("span", { "class": "chip menos", texto: reais(dif) + " a menos que o " + r.melhor.pacote })]) : null;
+      // Gosto cerveja ou vinho: o cartão aparece mesmo mais caro, então diz quanto a mais (23/11/2026).
+      var chip = dif > 0 ? el("div", {}, [el("span", { "class": "chip menos", texto: reais(dif) + " a menos que o " + r.melhor.pacote })])
+        : dif < 0 ? el("div", {}, [el("span", { "class": "chip mais", texto: reais(-dif) + " a mais que o " + r.melhor.pacote })]) : null;
       return el("div", { "class": "dividir" }, [
         el("div", { "class": "res-titulo", texto: "Pacote para dividir · viagem toda" }),
         el("div", { "class": "pac" }, [
@@ -986,7 +1023,7 @@
           criancas: estado.filhos.slice(0, estado.criancas).map(function (p) { return semAlcool(estado.criancasIguais ? estado.filhos[0] : p); }),
           // Ninguém bebe álcool: só o pacote sem álcool (revisão Opus, 22/11/2026; ANTES os 3 pacotes).
           niveis: algumBebe() ? C.niveisDoFoco(estado.foco) : ["sem_alcool"],
-          pacotesSaida: pacotesDaSaida(ciaId) });
+          pacotesSaida: pacotesDaSaida(ciaId), gosto: estado.gosto });
       });
       precosFoco();
       valoresAbas();
@@ -1057,6 +1094,7 @@
     montarCia();
     montarViagem();
     montarFoco();
+    montarGosto();
     montarPessoas();
     simNao(document.getElementById("alcool"), true, ["Sim", "Não"], trocaAlcool(estado.voce));
     simNao(document.getElementById("igual"), true, ["Sim, parecido", "Quero preencher cada um"], function (sim) { estado.igual = sim; estado.atual = 0; montarPessoas(); atualizar(); });

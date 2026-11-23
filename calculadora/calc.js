@@ -82,9 +82,18 @@
     var m = /^(.+)_(\d+)$/.exec(k), c = CIAS[cia];
     return m ? centavos(precoMarca(c.itens[m[1]].marcas[+m[2]])) : c.avulso[k];
   }
-  // Monta o dia contra a diária "alvo" (SEQ e a regra no topo).
-  function montarDia(cia, tipo, alvo) {
-    var seq = SEQ[cia][tipo], d = {}, total = 0, i = 0;
+  // GOSTO (Leonardo, 23/11/2026: "Pedir o que a pessoa mais gosta... variado vai continuar como está hoje. Só cerveja vai
+  // preencher algo que fique próximo do... pacote"; Costa cerveja "preencher até o My Drinks", porque o pacote é diário):
+  // "variado" = SEQ de sempre; os outros enchem só aquela bebida até a diária do pacote do foco (vinho: sempre contra o
+  // básico, porque o vinho não é item do premium). Vinho só aparece no foco "economia".
+  var GOSTOS = ["variado", "cerveja", "drinks", "vinho"];
+  var SEQ_GOSTO = {
+    msc: { cerveja: { basico: ["cerveja_0"], premium: ["longneck_1"] }, drinks: { basico: ["drink_0"], premium: ["premium_2"] }, vinho: { basico: ["vinho_0"] } },
+    costa: { cerveja: { basico: ["cerveja_0"], premium: ["artesanal_0"] }, drinks: { basico: ["drink_1"], premium: ["premium_0"] }, vinho: { basico: ["vinho_0"] } },
+  };
+  // Monta o dia contra a diária "alvo" (SEQ e a regra no topo). seqGosto: a sequência do gosto, no lugar da SEQ.
+  function montarDia(cia, tipo, alvo, seqGosto) {
+    var seq = seqGosto || SEQ[cia][tipo], d = {}, total = 0, i = 0;
     while (total < alvo && i < 300) { var k = seq[i % seq.length]; d[k] = (d[k] || 0) + 1; total += precoChave(cia, k); i++; }
     for (;;) {
       var sai = null;
@@ -101,12 +110,15 @@
   }
   // Dia já preenchido do adulto: sem álcool contra o pacote sem álcool; foco "qualidade" contra o premium; os outros
   // contra o básico. pacotesSaida e noites: os da saída (diária = valor da viagem / noites); sem eles, a referência.
-  function diaMinimo(cia, alcool, foco, pacotesSaida, noites) {
+  function diaMinimo(cia, alcool, foco, pacotesSaida, noites, gosto) {
     var c = CIAS[cia] ? cia : "msc";
     var nivel = !alcool ? "sem_alcool" : foco === "qualidade" ? "premium" : "basico";
+    var g = alcool && SEQ_GOSTO[c][gosto] ? SEQ_GOSTO[c][gosto] : null;
+    var seq = g ? g[nivel] || g.basico : null;
+    if (g && !g[nivel]) nivel = "basico"; // vinho: contra o básico
     var n = noites > 0 ? noites : 1;
     var alvo = Math.ceil(precoPacote(c, nivel, n, pacotesSaida).valor / n);
-    return montarDia(c, nivel, alvo);
+    return montarDia(c, nivel, alvo, seq);
   }
 
   // Preço avulso por item (R$, com 15%) e o que cada nível cobre. Número = limite por dia (água no My Drinks: 1 por dia).
@@ -190,6 +202,10 @@
       // unidade = [singular, plural, "o"|"a" para o "pago(s)/paga(s)"]. Um grupo = um item da tela; vale o maior pacote que o consumo enche (Amplo antes do Médio). Vinho fica para depois.
       fixos: [
         { item: "cerveja", unidade: ["chope", "chopes", "o"], pacotes: [{ nome: "Pacote de Cerveja", qtd: 20, valor: 646.30 }] },
+        // Vinho (23/11/2026, Leonardo: "deve dar umas 3 ou 4" taças por garrafa; a dose de restaurante é 150 ml = 5, em navio há
+        // relato de 187 ml = 4): 6 garrafas x 4 = 24 taças, e as 7 águas do pacote saem da conta da água. Vem antes da água.
+        { item: "vinho", unidade: ["taça de vinho", "taças de vinho", "a"], pacotes: [{ nome: "Pacote de Vinhos Classic Selection", qtd: 24, valor: 1320.95,
+          detalhe: "6 garrafas, cerca de 4 taças cada, e 7 águas", inclui: { agua: 7 } }] },
         { item: "agua", unidade: ["garrafa de água", "garrafas de água", "a"], pacotes: [{ nome: "Pacote de Água", qtd: 13, valor: 241.50 }] },
         { item: "refri", unidade: ["bebida sem álcool", "bebidas sem álcool", "a"], pacotes: [
           { nome: "Pacote Boys & Girls Amplo", qtd: 40, valor: 922.30 }, { nome: "Pacote Boys & Girls Médio", qtd: 20, valor: 518.65 }] },
@@ -352,35 +368,58 @@
   // ATÉ 1 PACOTE IGUAL POR ADULTO (Leonardo, 23/11/2026: "Sim, 1 por adulto"; no Visual Tour o pacote fixo é por hóspede e
   // opcional): em cada grupo, até "adultos" pacotes, sempre o maior que o que falta ainda enche. ANTES: 1 por cabine.
   // Volta { pacotes: [{ nome, n, qtd (unidades de todos), valor (de todos), unidade, aMais, aMaisValor }], outras, total }.
-  function pacoteDividir(cia, perfis, criancas, noites, avulsoViagem, adultos) {
+  // forcar: o item do gosto do cliente ("cerveja" ou "vinho"), cujo pacote aparece mesmo sem encher.
+  function pacoteDividir(cia, perfis, criancas, noites, avulsoViagem, adultos, forcar) {
     var c = CIAS[cia];
     if (!c.fixos) return null;
     var maximo = Math.max(1, adultos || 1);
-    var usados = [], total = 0, cobertoAvulso = 0;
+    var usados = [], total = 0, cobertoAvulso = 0, gratis = {}, forcado = false;
+    // Avulso da viagem só daquele item (cada marca pelo preço dela), para o que passa do pacote sair igual ao avulso.
+    function soItem(consumo, item) {
+      var d = {};
+      Object.keys(consumo).forEach(function (k) { var m = /^(.+)_(\d+)$/.exec(k); d[k] = (m ? m[1] : k) === item ? consumo[k] : 0; });
+      return d;
+    }
     c.fixos.forEach(function (g) {
-      var qtd = 0;
-      perfis.forEach(function (p) { qtd += inteiro(p.consumo[g.item], 0, 50, 0) * p.pessoas * noites; });
-      criancas.forEach(function (k) { qtd += inteiro(k[g.item], 0, 50, 0) * noites; });
-      var resta = qtd, doGrupo = [];
+      var qtd = 0, custo = 0;
+      perfis.forEach(function (p) {
+        qtd += inteiro(p.consumo[g.item], 0, 50, 0) * p.pessoas * noites;
+        custo += avulsoDia(cia, soItem(p.consumo, g.item), null) * p.pessoas * noites;
+      });
+      criancas.forEach(function (k) { qtd += inteiro(k[g.item], 0, 50, 0) * noites; custo += avulsoDia(cia, soItem(k, g.item), null) * noites; });
+      if (!qtd) return;
+      var unit = custo / qtd;
+      // Unidades que já vêm em outro pacote (as 7 águas do Pacote de Vinhos).
+      var deGraca = Math.min(qtd, gratis[g.item] || 0);
+      var resta = qtd - deGraca, doGrupo = [];
       for (var i = 0; i < maximo; i++) {
         var pk = g.pacotes.filter(function (x) { return resta >= x.qtd; })[0];
         if (!pk) break;
         var ja = doGrupo.filter(function (u) { return u.nome === pk.nome; })[0];
         if (ja) { ja.n++; ja.qtd += pk.qtd; ja.valor += pk.valor; }
-        else doGrupo.push({ nome: pk.nome, n: 1, item: g.item, qtd: pk.qtd, valor: pk.valor, unidade: g.unidade, aMais: 0, aMaisValor: 0 });
+        else doGrupo.push({ nome: pk.nome, n: 1, item: g.item, qtd: pk.qtd, valor: pk.valor, unidade: g.unidade, detalhe: pk.detalhe || "", aMais: 0, aMaisValor: 0, sobra: 0 });
         resta -= pk.qtd;
+        Object.keys(pk.inclui || {}).forEach(function (k) { gratis[k] = (gratis[k] || 0) + pk.inclui[k]; });
       }
-      if (!doGrupo.length) return;
-      var it = c.itens[g.item], unit = it && it.marcas.length === 1 ? centavos(precoMarca(it.marcas[0])) : c.avulso[g.item];
+      // Gosto do cliente (cerveja ou vinho): o pacote daquela bebida aparece mesmo sem encher, com o que sobra
+      // (Leonardo, 23/11/2026: "se coloca só vinho, o pacote de vinho para comparar, mesmo que não esteja próximo do valor").
+      if (!doGrupo.length && forcar === g.item) {
+        var menor = g.pacotes[g.pacotes.length - 1];
+        doGrupo.push({ nome: menor.nome, n: 1, item: g.item, qtd: menor.qtd, valor: menor.valor, unidade: g.unidade, detalhe: menor.detalhe || "", aMais: 0, aMaisValor: 0, sobra: menor.qtd - resta });
+        resta = 0;
+        Object.keys(menor.inclui || {}).forEach(function (k) { gratis[k] = (gratis[k] || 0) + menor.inclui[k]; });
+      }
+      if (forcar === g.item && doGrupo.length) forcado = true;
+      if (!doGrupo.length && !deGraca) return;
       var ult = doGrupo[doGrupo.length - 1];
-      ult.aMais = resta; ult.aMaisValor = unit * resta;
-      cobertoAvulso += unit * qtd;
+      if (ult) { ult.aMais = resta; ult.aMaisValor = unit * resta; }
+      cobertoAvulso += custo;
       doGrupo.forEach(function (u) { total += u.valor; usados.push(u); });
       total += unit * resta;
     });
     if (!usados.length) return null;
     var outras = Math.max(0, avulsoViagem - cobertoAvulso);
-    return { pacotes: usados, outras: outras, total: total + outras };
+    return { pacotes: usados, outras: outras, total: total + outras, forcado: forcado };
   }
 
   // entrada: { cia, noites, adultos, perfis: [{ consumo, pessoas }], pacotesSaida }
@@ -437,8 +476,8 @@
       nivel: faixa === "pacote" ? melhor.nivel : faixa === "sem_pacote" ? "sem_pacote" : null,
       // Pacote para dividir (só Costa, 23/11/2026): uma opção a mais no resultado; não muda a indicação acima.
       // Só aparece quando sai mais barato que o pacote por dia mais em conta (senão só confunde; Leonardo, 23/11/2026:
-      // "Não pode ficar muito confuso").
-      dividir: (function () { var d = pacoteDividir(cia, perfis, criancas, noites, avulsoViagem, adultos); return d && d.total < melhor.total ? d : null; })(),
+      // "Não pode ficar muito confuso"), ou quando o gosto é cerveja ou vinho (o pacote daquela bebida, para comparar).
+      dividir: (function () { var d = pacoteDividir(cia, perfis, criancas, noites, avulsoViagem, adultos, entrada.gosto === "cerveja" || entrada.gosto === "vinho" ? entrada.gosto : null); return d && (d.forcado || d.total < melhor.total) ? d : null; })(),
     };
   }
 
@@ -523,7 +562,7 @@
     };
   }
 
-  var api = { SEQ: SEQ, montarDia: montarDia, precoChave: precoChave, chaveMarca: chaveMarca, comMarcas: comMarcas, mudarMarca: mudarMarca, CAMBIO: CAMBIO, CRIANCA: CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
+  var api = { GOSTOS: GOSTOS, SEQ_GOSTO: SEQ_GOSTO, SEQ: SEQ, montarDia: montarDia, precoChave: precoChave, chaveMarca: chaveMarca, comMarcas: comMarcas, mudarMarca: mudarMarca, CAMBIO: CAMBIO, CRIANCA: CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
     soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA, PERTO: PERTO,
     avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir, pacoteDividir: pacoteDividir,
     nivelDasDuas: nivelDasDuas, NIVEL_PARA_B: NIVEL_PARA_B, montarEnvio: montarEnvio, saidaDoDia: saidaDoDia, lerLink: lerLink };
