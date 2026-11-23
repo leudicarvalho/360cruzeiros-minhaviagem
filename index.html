@@ -1129,7 +1129,10 @@
     // "Cabine para 2 adultos, taxas inclusas" (Leonardo, 21/11/2026: "onde tem dois adultos, taxas inclusas, pode pôr cabine
     // para dois adultos"). ANTES: "2 adultos, taxas inclusas".
     var nota = 'Cabine para ' + (temCrianca() ? esc(MV.gente(f)) + ', cada criança contada como adulto' : a + (a === '1' ? ' adulto' : ' adultos')) + ', taxas inclusas' +
-      (s.bebidas === 'a bordo' ? '. Bebidas vendidas somente a bordo' : f.b === 'sem' ? '<span class="so-pc">, sem pacote de bebidas</span>' :
+      // Temático: "Bebidas vendidas somente a bordo" foi para o lado do "Histórico", no lugar de "sem bebidas" (Leonardo,
+      // 23/11/2026: "isso pode ficar ao lado do histórico... retira o sem bebidas. Daí assim o card vai poder ter o tamanho
+      // dos outros"). ANTES: no fim desta linha, que descia para 2 linhas.
+      (s.bebidas === 'a bordo' ? '' : f.b === 'sem' ? '<span class="so-pc">, sem pacote de bebidas</span>' :
         pk ? '<span class="so-pc">, com o pacote ' + esc(pk.nome) + ' (' + reais(pk.v) + ' por adulto)</span>' : '') +   // no celular o pacote fica só no selo do histórico (opção B, 21/11/2026)
       (o && o.dia !== dados.leitura ? '. Preço de ' + dm(o.dia) : '');
     cabs.forEach(function (c) { var x = MV.incluso(s, a, c); if (x && o && (c in o.cab) && o.cab[c] !== null) nota += '<span class="so-pc">. ' + NOME[c] + ' com o pacote ' + esc(x.nome) + ' incluso na tarifa</span>'; });   // no celular fica só o selo (altura do card)
@@ -1210,7 +1213,7 @@
     // sempre ficar com aquele pacote premium extra bem ao lado... pode tirar a palavra pacote. Vai ficar só direto o nome
     // mesmo do pacote de bebidas com o seu preço"): "Premium Extra · R$ X/adulto", sem quebrar. ANTES: "pacote Premium Extra
     // · R$ X/adulto", que descia para a linha de baixo. No computador continua "com o pacote X".
-    return '<div class="detalhe"><h3>Histórico<span class="so-pc"> do preço do cruzeiro, por pessoa</span> <span class="sem-beb">' + (comPk ? '<i class="so-pc">com o pacote </i>' + esc(comPk.nome) + '<i class="so-cel"> · ' + reais(comPk.v) + '/adulto</i>' : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
+    return '<div class="detalhe"><h3>Histórico<span class="so-pc"> do preço do cruzeiro, por pessoa</span> <span class="sem-beb">' + (s.bebidas === 'a bordo' ? 'Bebidas vendidas somente a bordo' : comPk ? '<i class="so-pc">com o pacote </i>' + esc(comPk.nome) + '<i class="so-cel"> · ' + reais(comPk.v) + '/adulto</i>' : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
       '<div class="termometro" hidden></div><div class="acoes">' + calcDaSaida(s) +
       (temCrianca() ? '' : '<button class="btn" style="margin-top:12px" data-quero="' + esc(s.id) + '" data-qcab="' + cab + '"><i class="so-pc">Quero esta saída</i><i class="so-cel">Quero esta</i></button>') + '</div></div>';
   }
@@ -1264,9 +1267,11 @@
     // cima": "Fica só o menor e o maior e a data"). Dia = o último com esse preço; se for hoje, "hoje". ANTES: embaixo da
     // barra, "R$ X / menor preço em (ou desde) dd/mm" e "R$ Y / maior preço em dd/mm", e o valor em cima das barras.
     function quando(dia) { return fx.hoje && dia === fx.hoje.dia ? 'hoje' : dm(dia); }
-    if (fx.min.v !== fx.max.v) html += '<div class="extremos' + (fx.max.v >= 10000 ? ' longo' : '') + '"><span class="mn">Menor ' + reais(fx.min.v) + ' · ' + quando(fx.min.dia) + '</span>' +
+    // Preço sem mudança também com Menor/Maior e a faixa com o Hoje (Leonardo, 23/11/2026: "só tem o gráfico de barras, não
+    // tem aquele outro gráfico em cima. Mesmo tendo só 2 datas, tem que ter igual"). ANTES: com menor = maior, só as barras.
+    html += '<div class="extremos' + (fx.max.v >= 10000 ? ' longo' : '') + '"><span class="mn">Menor ' + reais(fx.min.v) + ' · ' + quando(fx.min.dia) + '</span>' +
       '<span class="mx">Maior ' + reais(fx.max.v) + ' · ' + quando(fx.max.dia) + '</span></div>';
-    if (fx.pos !== null && fx.min.v !== fx.max.v) {
+    if (fx.pos !== null) {
       var pct = Math.max(2, Math.min(98, fx.pos * 100)), lado = pct < 15 ? ' ponta-e' : pct > 85 ? ' ponta-d' : '';
       var ext = fx.hoje && fx.hoje.v === fx.min.v ? ' no-min' : fx.hoje && fx.hoje.v === fx.max.v ? ' no-max' : '';
       html += '<div class="faixa"><i class="risco-min" style="left:2%"></i><i class="risco-max" style="left:98%"></i>' +
