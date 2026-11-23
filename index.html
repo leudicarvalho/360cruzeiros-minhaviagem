@@ -305,6 +305,7 @@
   .volta-prefs { background: none; border: 0; color: var(--marca); font: 600 14px var(--fonte); text-decoration: underline; padding: 6px; cursor: pointer; }
   .btn { display: block; text-align: center; text-decoration: none; background: var(--verde-btn); color: #fff; font-weight: 700; font-size: 14px; padding: 11px; border-radius: 8px; border: 0; cursor: pointer; font-family: inherit; width: 100%; }
   .btn:hover { background: var(--verde-btn-hover); }
+  .btn.bebidas { background: linear-gradient(135deg, #2f6fb8, #1d3f72); color: #fff; }
   .btn.ouro { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: #10252e; }
   .btn.contorno { background: #fff; border: 2px solid var(--marca); color: var(--marca); }
   .btn:disabled { opacity: .45; cursor: default; }
@@ -1296,7 +1297,9 @@
     // invés de pacote de bebidas, pode ser só bebidas"; ANTES "Pacote de bebidas" e "Quero esta saída"). Antes disso:
     // No celular, "Pacote de bebidas" numa linha só (Leonardo, 21/11/2026, variação A: "vai ficar assim, só pacote de
     // bebidas"). ANTES: "Pacote de bebidas ideal", que quebrava em 2 linhas ao lado do "Quero esta saída".
-    return '<a class="btn ouro" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc(), MV.linkPesquisa(f, ''), MV.criancasPagantes(f.i, f.c))) + '"><span>' + '<i class="so-pc">' + esc(botao) + '</i><i class="so-cel">Bebidas</i>' + '</span></a>';
+    // Botão azul (Leonardo, 23/11/2026: "trocar o bebidas por outra cor... Azul tá bom para bebidas"): o amarelo agora é das
+    // barras do gráfico logo acima. ANTES: botão dourado (btn ouro).
+    return '<a class="btn bebidas" style="margin-top:12px" href="' + esc(CALCULADORA + MV.linkCalc(salva.id, adultosReais(), s, whatsCalc(), MV.linkPesquisa(f, ''), MV.criancasPagantes(f.i, f.c))) + '"><span>' + '<i class="so-pc">' + esc(botao) + '</i><i class="so-cel">Bebidas</i>' + '</span></a>';
   }
 
   // Linha do pacote escolhido, à parte do histórico: valor por adulto e desde quando não muda.
@@ -1385,7 +1388,7 @@
     function y(v) { return t + (H - t - b) * (1 - (v - base) / (mx - base)); }
     // Todos os dias com o menor preço em verde e todos com o maior em vermelho (Leonardo, 21/11/2026, opção B). ANTES: só
     // o último dia de cada um ficava colorido.
-    function cor(i) { var v = pts[i][1]; return !igual && v === mx ? '#d64535' : !igual && v === mn ? '#1fa855' : i === hoje ? '#10252e' : '#9cc3cc'; }
+    function cor(i) { var v = pts[i][1]; return !igual && v === mx ? '#d64535' : !igual && v === mn ? '#1fa855' : i === hoje ? '#10252e' : '#f2c230'; }   // meio em amarelo, a cor do "na média" da faixa (Leonardo, 23/11/2026: "Trocar no gráfico de barras o cinza por amarelo"; ANTES: azul acinzentado #9cc3cc)
     function corTxt(i) { return i === hoje ? '#10252e' : '#4b5f69'; }
     function ancora(cx, w) { return cx - w < e ? ['start', Math.max(e, cx - bw / 2)] : cx + w > W - d ? ['end', Math.min(W - d, cx + bw / 2)] : ['middle', cx]; }
     var barras = '', toques = '', rotulos = '';
