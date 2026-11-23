@@ -429,6 +429,25 @@
   .c-topo .c-info .periodo .noites { background: none; color: inherit; font-weight: 800; padding: 0 7px 0 0; border-right: 1px solid var(--divisa); }
   .c-topo .c-info .periodo .volta { color: inherit; padding: 0 0 0 7px; }
   .c-topo .c-info .periodo .volta i { color: inherit; opacity: .8; }
+  /* Data e bloco da companhia num bloco só (Leonardo, 23/11/2026: "Deixe num bloco só. Pode haver uma diferenciação um pouco da
+     cor da data e da parte da direita"). A data fica colada à esquerda num tom mais escuro da mesma cor; a sombra é cortada na
+     emenda. ANTES: data num quadrado separado, 10 px antes do bloco. */
+  .card .c-topo { column-gap: 0; }
+  .card .c-topo .dia-bloco { align-self: stretch; display: flex; flex-direction: column; justify-content: center; border-radius: 16px 0 0 16px;
+    box-shadow: 0 3px 10px rgba(16,37,46,.16); clip-path: inset(-14px 0 -14px -14px); }
+  .card .c-topo .c-info { border-radius: 0 16px 16px 0; clip-path: inset(-14px -14px -14px 0); }
+  .card.cia-msc .c-topo .dia-bloco { background: #142f57; }
+  .card.cia-tem .c-topo .dia-bloco { background: #4f1260; }
+  .card.cia-costa .c-topo .dia-bloco { background: #a37410; }
+  .card.cia-costa .c-topo .dia-bloco span { color: #fff1c4; }
+  /* Temático com a mesma altura dos outros no computador (Leonardo, 23/11/2026: "O a definir tá deixando o card um pouquinho
+     maior do que os outros. Deixa alinhado"). O bloco do temático tem 3 linhas (etiqueta, evento, noites | volta) e ficava 9 px
+     mais alto, descendo as paradas e os preços. ANTES: mesmo espaçamento interno dos outros. */
+  @media (min-width: 700px) {
+    .card.cia-tem .c-topo .c-info { padding-top: 5px; padding-bottom: 5px; }
+    .card.cia-tem .c-topo .c-info .navio.evento { margin-top: 0; }
+    .card.cia-tem .c-topo .c-info .periodo { margin-top: 3px; padding-top: 4px; }
+  }
   .cia { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .5px; padding: 1px 7px; border-radius: 999px; margin-right: 4px; vertical-align: 1px; }
   .cia.msc { background: #e3ecf8; color: #1d3f72; }
   .cia.costa { background: #fff3c7; color: #7a5a00; }
