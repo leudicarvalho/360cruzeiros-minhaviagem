@@ -373,8 +373,8 @@
   .card.cia-msc .c-topo { background: linear-gradient(180deg, #eaf1fb, #fff 70%); }
   .card.cia-costa .c-topo { background: linear-gradient(180deg, #fff4dc, #fff 70%); }
   .card.cia-tem .c-topo { background: linear-gradient(180deg, #f6ebf8, #fff 70%); }
-  .c-info { min-height: 84px; gap: 4px; justify-content: center; }
-  .dia-bloco { align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
+  .c-info { gap: 4px; justify-content: center; }
+  .navio .etiq { font-style: normal; font-size: 12px; letter-spacing: 1px; padding: 2px 8px; margin-right: 7px; vertical-align: 3px; }
   .card.cia-msc .dia-bloco { background: #1d3f72; }
   .card.cia-tem .dia-bloco { background: #5b1a6b; }
   .card.cia-costa .dia-bloco { background: #6b4706; }
@@ -383,10 +383,12 @@
   .etiq.costa { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: #10252e; }
   .etiq.tem { background: #6a1b7a; color: #fff; }
   .etiq i { font-style: normal; font-weight: 700; letter-spacing: .6px; opacity: .9; padding-left: 6px; border-left: 1px solid rgba(255,255,255,.45); }
-  .c-topo .navio { font-size: 21px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: #10252e; -webkit-line-clamp: 1; padding-right: 0; }
+  .c-topo .navio { font-size: 21px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: #10252e; -webkit-line-clamp: 1; padding-right: 26px; }
   .card.cia-msc .c-topo .navio { color: #1d3f72; }
   .card.cia-costa .c-topo .navio { color: #6b4706; }
-  .c-topo .navio.evento { font-size: 16px; letter-spacing: -.2px; line-height: 1.15; -webkit-line-clamp: 2; color: #4a1257; }
+  .c-topo .navio.evento { font-size: 16px; letter-spacing: -.2px; line-height: 1.15; -webkit-line-clamp: 1; color: #4a1257; }
+  /* Computador: evento numa linha (nome inteiro ao passar o mouse) para os 3 cards lado a lado terem a mesma altura; celular: 2 linhas. */
+  @media (max-width: 699px) { .c-topo .navio.evento { -webkit-line-clamp: 2; } }
   .c-topo .periodo { display: flex; flex-wrap: wrap; gap: 5px; overflow: visible; white-space: nowrap; font-size: 14px; }
   .c-topo .periodo .noites { font-size: 14px; padding: 2px 9px; }
   .c-topo .periodo .volta { display: inline-block; font-size: 14px; font-weight: 700; color: #10252e; background: #fff; border: 1px solid var(--linha); padding: 1px 9px; border-radius: 999px; }
@@ -1236,7 +1238,9 @@
     var dica = ' title="' + esc(s.navio) + '"';   // nome inteiro ao passar o mouse (23/11/2026)
     // Hífen que não quebra ("alto-mar" desce inteiro para a 2ª linha, 23/11/2026).
     if (!m) return '<span class="etiq tem">Temático<i>MSC Divina</i></span><span class="navio evento"' + dica + '>' + esc(s.navio).replace(/-(?=\S)/g, '‑') + '</span>';
-    return '<span class="etiq ' + m[1].toLowerCase() + '">' + (m[1] === 'MSC' ? 'MSC Cruzeiros' : 'Costa Cruzeiros') + '</span><span class="navio"' + dica + '>' + esc(m[2]) + '</span>';
+    // Marca junto do nome, sem "Cruzeiros" (Leonardo, 23/11/2026: "tira o cruzeiros de MSC e de Costa e deixa junto o nome do
+    // navio... vai voltar o card ao tamanho ideal"). ANTES: etiqueta "MSC Cruzeiros"/"Costa Cruzeiros" numa linha própria.
+    return '<span class="navio"' + dica + '><em class="etiq ' + m[1].toLowerCase() + '">' + m[1] + '</em>' + esc(m[2]) + '</span>';
   }
 
   // Linha com as paradas: bolinhas ligadas por um traço, Santos cheio nas pontas e o nome embaixo de cada uma.
