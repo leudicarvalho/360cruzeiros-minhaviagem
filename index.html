@@ -366,6 +366,30 @@
   .paradas.so-pontas li.mar { flex: 2 1 0; }
   .paradas.so-pontas li.mar::before { display: none; }
   .paradas.so-pontas li.mar::after { left: -25%; width: 150%; }
+  /* Topo moderno (Leonardo, 23/11/2026: "Deixar bem mais moderno"): etiqueta da marca, nome grande, noites e volta em
+     selos do mesmo tamanho, data mais alta e fundo leve na cor da marca. Altura do topo igual em todos os cards. */
+  .card .c-topo { min-height: 0; }
+  .card.cia-msc .c-topo { background: linear-gradient(180deg, #eaf1fb, #fff 70%); }
+  .card.cia-costa .c-topo { background: linear-gradient(180deg, #fff4dc, #fff 70%); }
+  .card.cia-tem .c-topo { background: linear-gradient(180deg, #f6ebf8, #fff 70%); }
+  .c-info { min-height: 84px; gap: 4px; justify-content: center; }
+  .dia-bloco { align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
+  .card.cia-msc .dia-bloco { background: #1d3f72; }
+  .card.cia-tem .dia-bloco { background: #5b1a6b; }
+  .card.cia-costa .dia-bloco { background: #6b4706; }
+  .etiq { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; line-height: 1.2; max-width: calc(100% - 26px); white-space: nowrap; overflow: hidden; }
+  .etiq.msc { background: #1d3f72; color: #fff; }
+  .etiq.costa { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: #10252e; }
+  .etiq.tem { background: #6a1b7a; color: #fff; }
+  .etiq i { font-style: normal; font-weight: 700; letter-spacing: .6px; opacity: .9; padding-left: 6px; border-left: 1px solid rgba(255,255,255,.45); }
+  .c-topo .navio { font-size: 21px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: #10252e; -webkit-line-clamp: 1; padding-right: 0; }
+  .card.cia-msc .c-topo .navio { color: #1d3f72; }
+  .card.cia-costa .c-topo .navio { color: #6b4706; }
+  .c-topo .navio.evento { font-size: 16px; letter-spacing: -.2px; line-height: 1.15; -webkit-line-clamp: 2; color: #4a1257; }
+  .c-topo .periodo { display: flex; flex-wrap: wrap; gap: 5px; overflow: visible; white-space: nowrap; font-size: 14px; }
+  .c-topo .periodo .noites { font-size: 14px; padding: 2px 9px; }
+  .c-topo .periodo .volta { display: inline-block; font-size: 14px; font-weight: 700; color: #10252e; background: #fff; border: 1px solid var(--linha); padding: 1px 9px; border-radius: 999px; }
+  .c-topo .periodo .volta i { font-weight: 500; color: var(--suave); }
   .cia { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .5px; padding: 1px 7px; border-radius: 999px; margin-right: 4px; vertical-align: 1px; }
   .cia.msc { background: #e3ecf8; color: #1d3f72; }
   .cia.costa { background: #fff3c7; color: #7a5a00; }
@@ -660,6 +684,40 @@
     .troca-painel { padding: 5px 6px; }
     .troca-bt { padding: 5px 6px; font-size: 12.5px; }
   }
+  /* Esgotada moderna (Leonardo, 23/11/2026: "deixe o esgotado mais centralizado. A borda ali vermelho à esquerda não precisa
+     ser tão grossa. Deixe bem mais moderno"): célula centralizada, borda fina tracejada, ícone de proibido antes da palavra.
+     ANTES: faixa vermelha de 3px à esquerda, texto alinhado à esquerda e fundo em degradê. */
+  .cabs .cab.esgotada { box-shadow: none; background: #fff7f6; border: 1px dashed #eea49b; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px; min-height: 60px; }
+  .cabs .cab.esgotada small { color: #a12a1d; font-weight: 600; }
+  .cabs .cab.esgotada b { display: inline-flex; align-items: center; gap: 5px; font-size: 16px; line-height: 20px; margin: 0; color: #b3261e; }
+  .cabs .cab.esgotada b::before { content: ''; flex: none; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; border: 2px solid currentColor;
+    background: linear-gradient(45deg, transparent 43%, currentColor 43%, currentColor 59%, transparent 59%); }
+  .cabs .cab.esgotada .cab-fantasma { position: absolute; }
+  /* Topo moderno no celular (23/11/2026): mais compacto para o card continuar cabendo numa tela; noites e volta numa linha. */
+  @media (max-width: 699px) {
+    .c-info { min-height: 0; gap: 3px; }
+    .etiq { font-size: 11px; letter-spacing: .6px; padding: 2px 7px; }
+    .c-topo .navio { font-size: 19px; }
+    .c-topo .navio.evento { font-size: 15px; }
+    .c-topo .periodo { flex-wrap: nowrap; gap: 4px; }
+    .c-topo .periodo .noites, .c-topo .periodo .volta { font-size: 13px; padding: 1px 7px; }
+    /* Preço de hoje com "Sem mudança" saía 9 px da borda a 390 px (achado ao conferir, 23/11/2026). */
+    .nivel:not(.esgotada) { padding: 7px 8px; }
+    .nivel:not(.esgotada) .hoje-v { gap: 4px; }
+    .nivel:not(.esgotada) .hoje-v small { font-size: 11px; letter-spacing: -.2px; }
+    .nivel:not(.esgotada) .nv-topo b { font-size: 11px; padding: 2px 5px; letter-spacing: 0; }
+  }
+  @media (max-width: 374px) {
+    .c-topo .periodo { gap: 3px; letter-spacing: -.2px; }
+    .c-topo .periodo .noites, .c-topo .periodo .volta { padding: 1px 5px; }
+    /* 360 px: "Bebidas só a bordo" e preço de hoje um pouco menor, para nada sair da borda (23/11/2026). */
+    .detalhe h3 .sem-beb i.longo { display: none; }
+    .nivel:not(.esgotada) .hoje-v strong { font-size: 15px; }
+    .extremos { gap: 2px; } .extremos span { padding: 3px 3px; letter-spacing: -.4px; }
+  }
+  .detalhe h3 .sem-beb i { font-style: normal; }
+  .detalhe h3 .sem-beb i.curto { display: none; }
+  @media (max-width: 374px) { .detalhe h3 .sem-beb i.curto { display: inline; } }
 </style>
 </head>
 <body>
@@ -1150,11 +1208,14 @@
       '<button class="troca-bt todas" data-todas="' + troca + '">Todas em ' + NOME[troca] + '</button></div></div>';
     // Histórico sempre aberto, sem botão de recolher (Leonardo, 21/11/2026: "não vamos deixar recolher, fica sempre padrão
     // expandido"). ANTES: vinha aberto com um botão no pé para recolher e abrir de novo.
-    return '<div class="card" data-i="' + i + '">' +
+    var cia = s.cia === 'Temático' ? 'tem' : /^Costa/.test(s.navio || '') ? 'costa' : 'msc', vt = MV.volta(s);
+    return '<div class="card cia-' + cia + '" data-i="' + i + '">' +
       '<div class="c-topo"><div class="dia-bloco"><small>' + MV.diaDaSemana(s.embarque) + '</small><b>' + s.embarque.slice(8, 10) + '</b><span>' +
         MV.nomeMesCurto(s.embarque) + ' ' + s.embarque.slice(2, 4) + '</span></div>' +
         '<div class="c-info">' + nomeNavio(s) +
-        '<span class="periodo">' + (s.cia === 'Temático' ? '<span class="cia tematico">Temático</span>' : '') + '<span class="noites">' + s.noites + ' noites</span><span class="volta"><i> · </i>volta ' + dm(MV.volta(s)) + '</span></span></div>' + linhaParadas(s) +
+        // Volta em selo próprio com o dia da semana (Leonardo, 23/11/2026: "A volta ali também tá muito pequena"). ANTES:
+        // "· volta dd/mm" em 13px ao lado das noites; o selo Temático saiu daqui e foi para a etiqueta de cima.
+        '<span class="periodo"><span class="noites">' + s.noites + ' noites</span><span class="volta"><i>volta</i> ' + MV.diaDaSemana(vt) + ' ' + dm(vt) + '</span></span></div>' + linhaParadas(s) +
         '<button class="fav' + (favs[s.id] ? ' sim' : '') + '" data-fav="' + esc(s.id) + '" aria-label="Marcar como favorita">' + (favs[s.id] ? '★' : '☆') + '</button></div>' +
       '<div class="cabs' + (troca ? ' troca' : cabs.length === 1 ? ' uma' : '') + '">' + celulas + '</div><p class="pp">' + nota + '</p>' +
       (temCrianca() ? '<div class="cri"><b>Com criança pode sair menos.</b> O valor depende da idade de cada uma.' +
@@ -1165,13 +1226,18 @@
   // Topo do card (Leonardo, 22/11/2026: "o Costa e o MSC fica repetido. Quem sabe o destaque para o MSC e para o Costa pode
   // ser no nome do navio mesmo"): a marca vai colorida dentro do nome (MSC azul, Costa dourado); temático mantém o selo,
   // porque o nome não diz. ANTES: selo "MSC"/"Costa" na linha das noites, repetindo o nome do navio.
+  // Topo do card mais moderno (Leonardo, 23/11/2026: "Tem muito espaço para fazer alguma coisa mais bonita no nome do navio.
+  // Nos temáticos, pode colocar que o navio é sempre o Divina... E destacar mais quando é MSC ou Costa. Tá muito pobre o
+  // destaque"): etiqueta cheia da marca (MSC azul, Costa dourada, Temático roxa com "MSC Divina") em cima do nome grande;
+  // o topo do card ganha um fundo leve na cor da marca. ANTES (22/11): "MSC"/"Costa" só colorido dentro do nome, 16px.
   function nomeNavio(s) {
     var m = /^(MSC|Costa)\s+(.*)$/.exec(s.navio || '');
     var dica = ' title="' + esc(s.navio) + '"';   // nome inteiro ao passar o mouse (23/11/2026)
     // Hífen que não quebra ("alto-mar" desce inteiro para a 2ª linha, 23/11/2026).
-    if (!m) return '<span class="navio"' + dica + '>' + esc(s.navio).replace(/-(?=\S)/g, '‑') + '</span>';
-    return '<span class="navio"' + dica + '><em class="m-' + m[1].toLowerCase() + '">' + m[1] + '</em> ' + esc(m[2]) + '</span>';
+    if (!m) return '<span class="etiq tem">Temático<i>MSC Divina</i></span><span class="navio evento"' + dica + '>' + esc(s.navio).replace(/-(?=\S)/g, '‑') + '</span>';
+    return '<span class="etiq ' + m[1].toLowerCase() + '">' + (m[1] === 'MSC' ? 'MSC Cruzeiros' : 'Costa Cruzeiros') + '</span><span class="navio"' + dica + '>' + esc(m[2]) + '</span>';
   }
+
   // Linha com as paradas: bolinhas ligadas por um traço, Santos cheio nas pontas e o nome embaixo de cada uma.
   function linhaParadas(s) {
     var ps = MV.paradas(s.roteiro);
@@ -1213,7 +1279,7 @@
     // sempre ficar com aquele pacote premium extra bem ao lado... pode tirar a palavra pacote. Vai ficar só direto o nome
     // mesmo do pacote de bebidas com o seu preço"): "Premium Extra · R$ X/adulto", sem quebrar. ANTES: "pacote Premium Extra
     // · R$ X/adulto", que descia para a linha de baixo. No computador continua "com o pacote X".
-    return '<div class="detalhe"><h3>Histórico<span class="so-pc"> do preço do cruzeiro, por pessoa</span> <span class="sem-beb">' + (s.bebidas === 'a bordo' ? 'Bebidas vendidas somente a bordo' : comPk ? '<i class="so-pc">com o pacote </i>' + esc(comPk.nome) + '<i class="so-cel"> · ' + reais(comPk.v) + '/adulto</i>' : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
+    return '<div class="detalhe"><h3>Histórico<span class="so-pc"> do preço do cruzeiro, por pessoa</span> <span class="sem-beb">' + (s.bebidas === 'a bordo' ? 'Bebidas <i class="longo">vendidas somente </i><i class="curto">só </i>a bordo' : comPk ? '<i class="so-pc">com o pacote </i>' + esc(comPk.nome) + '<i class="so-cel"> · ' + reais(comPk.v) + '/adulto</i>' : 'sem bebidas') + '</span></h3><div class="pilulas abas">' + abas + '</div>' + corpo +
       '<div class="termometro" hidden></div><div class="acoes">' + calcDaSaida(s) +
       (temCrianca() ? '' : '<button class="btn" style="margin-top:12px" data-quero="' + esc(s.id) + '" data-qcab="' + cab + '"><i class="so-pc">Quero esta saída</i><i class="so-cel">Quero esta</i></button>') + '</div></div>';
   }
