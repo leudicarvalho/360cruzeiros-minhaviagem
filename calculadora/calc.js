@@ -80,7 +80,7 @@
   // Preço de uma chave do consumo ("refri" ou "longneck_1").
   function precoChave(cia, k) {
     var m = /^(.+)_(\d+)$/.exec(k), c = CIAS[cia];
-    return m ? Math.round(precoMarca(c.itens[m[1]].marcas[+m[2]])) : c.avulso[k];
+    return m ? centavos(precoMarca(c.itens[m[1]].marcas[+m[2]])) : c.avulso[k];
   }
   // Monta o dia contra a diária "alvo" (SEQ e a regra no topo).
   function montarDia(cia, tipo, alvo) {
@@ -183,6 +183,17 @@
         premium: { pacote: "My Drinks Plus", cobre: { refri: true, agua: true, cafe: true, cerveja: true, longneck: true, artesanal: true, vinho: true, drink: true, premium: true } },
       },
       referenciaDia: { sem_alcool: 180, basico: 270, premium: 360 },
+      // PACOTE PARA DIVIDIR (Leonardo, 23/11/2026: "Pode programar"): os pacotes de quantidade fixa da habilidade ("Outras
+      // opções Costa"), preço fixo por reserva, sem mudar com as noites. São por pessoa e quem compra pode dar as bebidas para
+      // quem quiser (já estão pagas); o pacote por dia é de todos os adultos da cabine e vale só para quem está na cabine.
+      // Por isso a conta junta o consumo da cabine toda na viagem. Um pacote de cada (comprar 2 iguais não está confirmado).
+      // unidade = [singular, plural, "o"|"a" para o "pago(s)/paga(s)"]. Um grupo = um item da tela; vale o maior pacote que o consumo enche (Amplo antes do Médio). Vinho fica para depois.
+      fixos: [
+        { item: "cerveja", unidade: ["chope", "chopes", "o"], pacotes: [{ nome: "Pacote de Cerveja", qtd: 20, valor: 646.30 }] },
+        { item: "agua", unidade: ["garrafa de água", "garrafas de água", "a"], pacotes: [{ nome: "Pacote de Água", qtd: 13, valor: 241.50 }] },
+        { item: "refri", unidade: ["bebida sem álcool", "bebidas sem álcool", "a"], pacotes: [
+          { nome: "Pacote Boys & Girls Amplo", qtd: 40, valor: 922.30 }, { nome: "Pacote Boys & Girls Médio", qtd: 20, valor: 518.65 }] },
+      ],
     },
   };
 
@@ -224,6 +235,9 @@
 
   // Preço de cada marca (a faixa "de 81 a 90" conta pelo meio) e o avulso do item = média das marcas, arredondada.
   // Mudou um preço na habilidade precos-bebidas-msc-costa-2026: mude a marca aqui e a conta acompanha sozinha.
+  // Preço da marca em centavos (23/11/2026: chope R$ 32,32 igual ao pacote; ANTES arredondado ao real, 32, e 20 chopes
+  // avulsos saíam R$ 6 mais baratos que o Pacote de Cerveja). Marcas de preço inteiro não mudam.
+  function centavos(x) { return Math.round(x * 100) / 100; }
   function precoMarca(m) { return isFinite(m.de) ? (m.de + m.v) / 2 : m.v; }
   function mediaMarcas(marcas) {
     var t = 0;
@@ -315,7 +329,7 @@
       // Com quantidade por marca: cada marca pelo preço dela (faixa pelo meio, arredondado como a média).
       if (temMarcas(c, it.id, consumo)) {
         c.itens[it.id].marcas.forEach(function (m, n) {
-          total += inteiro(consumo[chaveMarca(it.id, n)], 0, 50, 0) * Math.round(precoMarca(m));
+          total += inteiro(consumo[chaveMarca(it.id, n)], 0, 50, 0) * centavos(precoMarca(m));
         });
         return;
       }
@@ -331,6 +345,29 @@
     var nome = CIAS[cia].niveis[nivel].pacote;
     if (pacotesSaida && pacotesSaida[nome] && isFinite(pacotesSaida[nome].valor)) return { valor: pacotesSaida[nome].valor, fonte: "saida" };
     return { valor: CIAS[cia].referenciaDia[nivel] * noites, fonte: "referencia" };
+  }
+
+  // Pacote para dividir (CIAS[cia].fixos): soma o consumo da cabine na viagem (adultos e crianças) por item e, onde o
+  // consumo enche um pacote, usa o pacote e o resto avulso. Sem pacote que encha = null (a tela não mostra o cartão).
+  // Volta { pacotes: [{ nome, qtd, valor, unidade, aMais, aMaisValor }], outras (avulso do resto), total }.
+  function pacoteDividir(cia, perfis, criancas, noites, avulsoViagem) {
+    var c = CIAS[cia];
+    if (!c.fixos) return null;
+    var usados = [], total = 0, cobertoAvulso = 0;
+    c.fixos.forEach(function (g) {
+      var qtd = 0;
+      perfis.forEach(function (p) { qtd += inteiro(p.consumo[g.item], 0, 50, 0) * p.pessoas * noites; });
+      criancas.forEach(function (k) { qtd += inteiro(k[g.item], 0, 50, 0) * noites; });
+      var pk = g.pacotes.filter(function (x) { return qtd >= x.qtd; })[0];
+      if (!pk) return;
+      var it = c.itens[g.item], unit = it && it.marcas.length === 1 ? centavos(precoMarca(it.marcas[0])) : c.avulso[g.item], aMais = qtd - pk.qtd;
+      cobertoAvulso += unit * qtd;
+      usados.push({ nome: pk.nome, item: g.item, qtd: pk.qtd, valor: pk.valor, unidade: g.unidade, aMais: aMais, aMaisValor: unit * aMais });
+      total += pk.valor + unit * aMais;
+    });
+    if (!usados.length) return null;
+    var outras = Math.max(0, avulsoViagem - cobertoAvulso);
+    return { pacotes: usados, outras: outras, total: total + outras };
   }
 
   // entrada: { cia, noites, adultos, perfis: [{ consumo, pessoas }], pacotesSaida }
@@ -385,6 +422,10 @@
       valor: Math.abs(diferenca),
       aMaisPorDiaPessoa: diferenca > 0 ? diferenca / (noites * pessoas) : 0,
       nivel: faixa === "pacote" ? melhor.nivel : faixa === "sem_pacote" ? "sem_pacote" : null,
+      // Pacote para dividir (só Costa, 23/11/2026): uma opção a mais no resultado; não muda a indicação acima.
+      // Só aparece quando sai mais barato que o pacote por dia mais em conta (senão só confunde; Leonardo, 23/11/2026:
+      // "Não pode ficar muito confuso").
+      dividir: (function () { var d = pacoteDividir(cia, perfis, criancas, noites, avulsoViagem); return d && d.total < melhor.total ? d : null; })(),
     };
   }
 
@@ -403,7 +444,8 @@
   }
 
   // Nível da calculadora -> valor do campo mv_bebidas (lista do passo 4: sem, soft, basico, premium).
-  var NIVEL_PARA_B = { sem_pacote: "sem", sem_alcool: "soft", basico: "basico", premium: "premium" };
+  // "dividir" (pacote para dividir, Costa) = sem pacote por dia: vai como "sem" e o resumo (r) diz quais pacotes.
+  var NIVEL_PARA_B = { sem_pacote: "sem", sem_alcool: "soft", basico: "basico", premium: "premium", dividir: "sem" };
 
   // Corpo do POST ao webhook 54 "pacote calculado (calculadora)" (docs/ideias/minha-viagem-4.md, seção 2):
   // { telefone: "+55...", id: <código do link>, b: sem|soft|basico|premium, hp: honeypot }. Nada além disso.
@@ -470,7 +512,7 @@
 
   var api = { SEQ: SEQ, montarDia: montarDia, precoChave: precoChave, chaveMarca: chaveMarca, comMarcas: comMarcas, mudarMarca: mudarMarca, CAMBIO: CAMBIO, CRIANCA: CRIANCA, diaMinimoCrianca: diaMinimoCrianca, ITENS: ITENS, FOCOS: FOCOS, itensDoFoco: itensDoFoco, blocoDoItem: blocoDoItem, niveisDoFoco: niveisDoFoco,
     soDoFoco: soDoFoco, precoMarca: precoMarca, mediaMarcas: mediaMarcas, focoDaPesquisa: focoDaPesquisa, noitesDaPesquisa: noitesDaPesquisa, diaMinimo: diaMinimo, CIAS: CIAS, NIVEIS: NIVEIS, FAIXA: FAIXA, PERTO: PERTO,
-    avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir,
+    avulsoDia: avulsoDia, precoPacote: precoPacote, calcular: calcular, decidir: decidir, pacoteDividir: pacoteDividir,
     nivelDasDuas: nivelDasDuas, NIVEL_PARA_B: NIVEL_PARA_B, montarEnvio: montarEnvio, saidaDoDia: saidaDoDia, lerLink: lerLink };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else raiz.CalcBebidas = api;

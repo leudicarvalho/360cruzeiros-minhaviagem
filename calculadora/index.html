@@ -221,6 +221,11 @@
   .btn { display: block; width: 100%; text-align: center; text-decoration: none; margin-top: 10px; padding: 14px; border: 0; border-radius: 12px; background: var(--verde); color: #fff; font: 700 16px/1.2 var(--fonte); cursor: pointer; }
   .btn:hover { background: var(--verde-escuro); }
   .btn.pequeno { padding: 10px; font-size: 14px; }
+  /* Pacote para dividir (Costa, 23/11/2026) */
+  .dividir { margin: 4px 0 12px; }
+  .dividir .pac { margin: 0 0 10px; }
+  .dividir .pac .nota { margin-top: 3px; }
+  .dividir .div-texto { margin: 0 0 6px; color: var(--texto); font-size: 13.5px; }
   .btn:disabled { opacity: .45; cursor: default; }
   .ok { color: var(--queda); font-weight: 700; }
   .rodape { color: var(--suave); font-size: 13px; }
@@ -727,6 +732,43 @@
       ];
     }
 
+    // PACOTE PARA DIVIDIR (Costa; texto aprovado pelo Leonardo em 23/11/2026, "Pode programar"): os pacotes de quantidade
+    // fixa que o consumo da cabine enche, com o que passa e as outras bebidas à parte. As bebidas já pagas podem ser
+    // divididas com quem quiser; o pacote por dia é de todos os adultos e só para quem está na cabine.
+    function plural(n, u) { return n + " " + (n === 1 ? u[0] : u[1]); }
+    // Valor sem quebrar entre "R$" e o número.
+    function reaisJunto(v) { return reais(v).replace(" ", " "); }
+    function blocoDividir(r) {
+      var d = r.dividir;
+      if (!d) return null;
+      var linhas = [];
+      // "pago/pagos/paga/pagas" pelo gênero (unidade[2]) e pela quantidade.
+      function pago(n, u) { return "pag" + u[2] + (n === 1 ? "" : "s"); }
+      d.pacotes.forEach(function (p) {
+        linhas.push(el("div", { "class": "nota", texto: "1 " + p.nome + ": " + plural(p.qtd, p.unidade) + " já " + pago(p.qtd, p.unidade) + " · " + reaisJunto(p.valor) }));
+        if (p.aMais > 0) linhas.push(el("div", { "class": "nota", texto: plural(p.aMais, p.unidade) + " a mais, " + pago(p.aMais, p.unidade) + " à parte · cerca de " + reaisJunto(p.aMaisValor) }));
+      });
+      if (Math.round(d.outras) > 0) linhas.push(el("div", { "class": "nota", texto: "Outras bebidas, pagas à parte · cerca de " + reaisJunto(d.outras) }));
+      var so = r.adultos + r.criancas === 1, um = d.pacotes.length === 1 ? d.pacotes[0] : null;
+      var quem = so ? "com quem você quiser" : "entre vocês e com quem vocês quiserem";
+      var texto = um
+        ? (um.unidade[2] === "a" ? "As " : "Os ") + plural(um.qtd, um.unidade) + " podem ser dividid" + um.unidade[2] + "s " + quem + ". O que passar disso e as outras bebidas são pag" + um.unidade[2] + "s à parte."
+        : "As bebidas dos pacotes podem ser divididas " + quem + ". O que passar disso e as outras bebidas são pagas à parte.";
+      // Quanto sai a menos que o pacote por dia mais em conta (o cartão só aparece quando é mais barato).
+      var dif = Math.round(r.melhor.total - d.total);
+      var chip = dif > 0 ? el("div", {}, [el("span", { "class": "chip menos", texto: reais(dif) + " a menos que o " + r.melhor.pacote })]) : null;
+      return el("div", { "class": "dividir" }, [
+        el("div", { "class": "res-titulo", texto: "Pacote para dividir · viagem toda" }),
+        el("div", { "class": "pac" }, [
+          el("div", {}, [el("div", { "class": "pac-nome", texto: "Pacote para dividir" }), chip].concat(linhas)),
+          el("div", { "class": "pac-valor", texto: reais(d.total) }),
+        ]),
+        el("p", { "class": "res-taxa div-texto", texto: texto }),
+        el("p", { "class": "res-taxa", texto: "Na Costa, todos os adultos da cabine compram o pacote por dia, e ele vale só para quem está na cabine." }),
+        botaoUsar("dividir", r.cia, true),
+      ]);
+    }
+
     // Resultado em cartões: avulso no topo, um cartão por pacote, o mais em conta (pacote ou avulso) em verde com selo,
     // e em cada pacote a diferença para o avulso (os dois são da cabine toda, viagem toda). Mesmas contas de antes.
     function cartao(r) {
@@ -767,6 +809,7 @@
         // Alerta da taxa e do dólar no resultado (Leonardo, 22/11/2026: "no resultado do pacote também, o alerta pode ser colocado").
         r.pacotes.length ? el("p", { "class": "res-taxa", texto: "Pacotes com a taxa de serviço de 15% já embutida na diária. Avulso com a taxa de 15% e o dólar a " + dolar() + "." }) : null,
         el("div", { "class": "pacotes" }, pacs),
+        blocoDividir(r),
         temRef ? el("p", { "class": "nota", texto: "Pacotes pelo preço médio por dia; o valor exato depende da saída." }) : null,
         sug,
       ]);
@@ -784,9 +827,18 @@
       return "o " + rotulo("msc", nivel) + " (MSC) ou " + rotulo("costa", nivel) + " (Costa)";
     }
 
+    // Nome do que foi escolhido (o pacote para dividir leva os nomes dos pacotes de quantidade).
+    function nomePac(nivel, c) {
+      if (nivel === "sem_pacote") return "Sem pacote";
+      if (nivel === "dividir") {
+        var r = (estado.ultimo || []).filter(function (x) { return x.cia === c && x.dividir; })[0];
+        return "Pacote para dividir" + (r ? " (" + r.dividir.pacotes.map(function (p) { return p.nome; }).join(", ") + ")" : "");
+      }
+      return C.CIAS[c].niveis[nivel].pacote;
+    }
     function botaoUsar(nivel, ciaId, pequeno) {
       var b = el("button", { type: "button", "class": "btn" + (pequeno ? " pequeno" : ""),
-        texto: nivel === "sem_pacote" ? "Seguir sem pacote na minha pesquisa" : "Usar este pacote na minha pesquisa" });
+        texto: nivel === "sem_pacote" ? "Seguir sem pacote na minha pesquisa" : nivel === "dividir" ? "Usar o pacote para dividir na minha pesquisa" : "Usar este pacote na minha pesquisa" });
       b.onclick = function () { usar(nivel, ciaId); };
       return b;
     }
@@ -802,7 +854,7 @@
     // gravar nada, e com o webhook fora do ar ficava "Atualizando..." para sempre.
     function resumoEscolha(nivel, ciaId) {
       var r = (estado.ultimo || [])[0], c = ciaId || (r && r.cia) || cia;
-      var pac = nivel === "sem_pacote" ? "Sem pacote" : C.CIAS[c].niveis[nivel].pacote;
+      var pac = nomePac(nivel, c);
       var partes = [pac + " (" + nomeCia(c) + ")"];
       var saida = C.saidaDoDia(precosDia, link.saida);
       if (saida && saida.navio) partes.push("Navio " + saida.navio + ", " + saida.embarque.slice(8, 10) + "/" + saida.embarque.slice(5, 7));
@@ -810,14 +862,15 @@
       partes.push((estado.adultos === 1 ? "1 adulto" : estado.adultos + " adultos") + (estado.criancas ? " e " + (estado.criancas === 1 ? "1 criança" : estado.criancas + " crianças") : ""));
       if (r) {
         var pk = r.pacotes.filter(function (x) { return x.nivel === nivel; })[0];
+        if (nivel === "dividir" && r.dividir) pk = r.dividir;
         partes.push((pk ? "pacote " + reais(pk.total) + " na viagem (avulso " : "avulso ") + reais(r.avulsoViagem) + (pk ? ")" : " na viagem"));
       }
       return partes.join(" · ").replace(/[{}<>]/g, "").slice(0, 240);
     }
     function textoWhats(nivel, ciaId) {
       var r = (estado.ultimo || [])[0], c = ciaId || (r && r.cia) || cia;
-      var pac = nivel === "sem_pacote" ? "ficar sem pacote" : "o " + C.CIAS[c].niveis[nivel].pacote;
-      var linhas = ["Calculadora 360: escolhi " + pac + " (" + nomeCia(c) + ")."];
+      var pac = nivel === "sem_pacote" ? "ficar sem pacote" : "o " + nomePac(nivel, c);
+      var linhas =["Calculadora 360: escolhi " + pac + " (" + nomeCia(c) + ")."];
       var det = resumoEscolha(nivel, ciaId).split(" · ").slice(1).join(", ");
       if (det) linhas.push(det + ".");
       if (link.codigo) linhas.push("Cód. " + link.codigo);
@@ -832,8 +885,8 @@
     }
     function fecharJanela() { var j = document.getElementById("janela"); if (j) j.remove(); }
     function janelaWhats(nivel, ciaId, aviso) {
-      var pac = nivel === "sem_pacote" ? "a opção sem pacote" : "o " + C.CIAS[ciaId || cia].niveis[nivel].pacote;
-      var msg = textoWhats(nivel, ciaId);
+      var pac = nivel === "sem_pacote" ? "a opção sem pacote" : "o " + nomePac(nivel, ciaId || cia);
+      var msg =textoWhats(nivel, ciaId);
       janela([
         el("h2", { texto: "Falta um passo para guardar sua escolha" }),
         aviso ? el("p", { "class": "erro", texto: aviso }) : null,
@@ -905,7 +958,7 @@
         // Do site: volta para a pesquisa com o pacote novo (gravou de verdade, então pode aparecer como salva).
         if (link.pesquisa) { location.href = "../" + MV.linkPesquisa(pesquisa, link.codigo) + "&w=" + w; return; }
         aguarde.remove();
-        var pac = nivel === "sem_pacote" ? "ficar sem pacote" : "o " + C.CIAS[ciaId || cia].niveis[nivel].pacote;
+        var pac = nivel === "sem_pacote" ? "ficar sem pacote" : "o " + nomePac(nivel, ciaId || cia);
         janela([
           el("h2", { texto: "Pronto, escolha guardada!" }),
           el("p", { texto: "Já recebi aqui que você escolheu " + pac + ". Não precisa mandar mais nada." }),
