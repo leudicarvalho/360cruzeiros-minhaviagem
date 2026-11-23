@@ -231,6 +231,20 @@
     .festas button { font-size: 13.5px; }
     .festas button .emo { font-size: 15px; letter-spacing: -3px; }
   }
+  /* SEM GASTAR FÉRIAS (Leonardo, 23/11/2026: fins de semana e feriadões numa seção só, abaixo do Réveillon e do Carnaval):
+     "Fins de semana" e um botão por feriadão da temporada, cada um com o dia e as saídas. */
+  .sem-ferias { margin-top: 14px; border: 1px solid #cfe3dc; background: linear-gradient(135deg, #f1faf6, #eef6fb); border-radius: 16px; padding: 12px 14px; }
+  .sem-ferias[hidden] { display: none; }
+  .sem-ferias .sf-tit { font: 800 15px var(--fonte); color: #14532d; text-align: center; }
+  .sem-ferias .sf-sub { font-size: 13px; color: var(--suave); text-align: center; margin-top: 2px; }
+  .folgas { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .folgas button { background: #fff; border: 1px solid #b9dccb; border-radius: 12px; padding: 7px 14px; cursor: pointer; font: 800 14px var(--fonte); color: #14532d; line-height: 1.2; text-align: center; transition: border-color .15s, box-shadow .15s; }
+  .folgas button:hover:not(.ativo) { border-color: #15803d; box-shadow: 0 2px 8px rgba(16,37,46,.08); }
+  .folgas button small { display: block; font-size: 12.5px; font-weight: 600; color: var(--suave); }
+  .folgas button.fds { border-width: 2px; }
+  .folgas button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; box-shadow: 0 3px 10px rgba(15,76,92,.3); }
+  .folgas button.ativo small { color: #fff; opacity: .85; }
+  @media (max-width: 699px) { .folgas button { flex: 1 1 40%; padding: 7px 8px; font-size: 13.5px; } }
   .grade-filtros { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
   @media (min-width: 600px) { .grade-filtros { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 900px) { .grade-filtros { grid-template-columns: repeat(3, 1fr); } }
@@ -374,7 +388,9 @@
   .card.cia-costa .c-topo { background: linear-gradient(180deg, #fff4dc, #fff 70%); }
   .card.cia-tem .c-topo { background: linear-gradient(180deg, #f6ebf8, #fff 70%); }
   .c-info { gap: 4px; justify-content: center; }
-  .navio .etiq { font-style: normal; font-size: 12px; letter-spacing: 1px; padding: 2px 8px; margin-right: 7px; vertical-align: 3px; }
+  .navio .etiq { font-style: normal; font-size: 12px; letter-spacing: 1px; padding: 3px 12px 3px 10px; gap: 8px; max-width: 100%; vertical-align: middle; }
+  .navio .etiq i { font-size: 18px; font-weight: 800; letter-spacing: -.2px; text-transform: none; opacity: 1; padding-left: 8px; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; }
+  .navio .etiq.costa i { border-left-color: rgba(16,37,46,.35); }
   .card.cia-msc .dia-bloco { background: #1d3f72; }
   .card.cia-tem .dia-bloco { background: #5b1a6b; }
   .card.cia-costa .dia-bloco { background: #6b4706; }
@@ -702,6 +718,7 @@
     .etiq { font-size: 11px; letter-spacing: .6px; padding: 2px 7px; }
     .c-topo .navio { font-size: 19px; }
     .c-topo .navio.evento { font-size: 15px; }
+    .navio .etiq i { font-size: 16px; }
     .c-topo .periodo { flex-wrap: nowrap; gap: 4px; }
     .c-topo .periodo .noites, .c-topo .periodo .volta { font-size: 13px; padding: 1px 7px; }
     /* Preço de hoje com "Sem mudança" saía 9 px da borda a 390 px (achado ao conferir, 23/11/2026). */
@@ -715,6 +732,7 @@
     .c-topo .periodo .noites, .c-topo .periodo .volta { padding: 1px 5px; }
     /* 360 px: "Bebidas só a bordo" e preço de hoje um pouco menor, para nada sair da borda (23/11/2026). */
     .detalhe h3 .sem-beb i.longo { display: none; }
+    .etiq.tem { letter-spacing: .1px; gap: 4px; padding: 2px 6px; } .etiq.tem i { letter-spacing: 0; padding-left: 4px; }
     .nivel:not(.esgotada) .hoje-v strong { font-size: 15px; }
     .extremos { gap: 2px; } .extremos span { padding: 3px 3px; letter-spacing: -.4px; }
   }
@@ -764,6 +782,11 @@
       </div>
       <div class="meses" id="quando"></div>
       <div class="festas" id="festas"></div>
+      <div class="sem-ferias" id="sem-ferias" hidden>
+        <div class="sf-tit">Sem gastar férias</div>
+        <div class="sf-sub">Fins de semana e feriadões: no máximo 2 dias de trabalho</div>
+        <div class="folgas" id="folgas"></div>
+      </div>
     </section>
     <div class="grade-filtros">
       <div class="cartao"><div class="cartao-tit">Noites</div><div class="pilulas opcoes c3" data-f="t">
@@ -879,7 +902,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261122h"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261123a"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -994,14 +1017,23 @@
     });
     $('quando').innerHTML = html;
     // Réveillon e Carnaval da temporada aberta, no meio (sem emoji: Leonardo, 21/11/2026, "ficou horrível com emojis")
-    var festas = '';
+    var festas = '', folgas = [];
     Object.keys(MV.CARNAVAL).forEach(function (k) {
       var n = contarSaidas(k), x = MV.CARNAVAL[k];
+      if (x.folga) {
+        if (n && MV.temporada(k) === temporadaAberta)
+          folgas.push([x.festa === 'fds' ? '' : x.de, '<button data-q="' + k + '" class="' + x.festa + '">' + x.curto +
+            '<small>' + (x.dia ? x.dia + ' · ' : '') + n + (n === 1 ? ' saída' : ' saídas') + '</small></button>']);
+        return;
+      }
       if (n && MV.temporada(k) === temporadaAberta)
         festas += '<button data-q="' + k + '" class="' + x.festa + '"><span>' + x.nome +
           '<small>' + n + (n === 1 ? ' saída' : ' saídas') + '</small></span></button>';
     });
     $('festas').innerHTML = festas;
+    folgas.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+    $('folgas').innerHTML = folgas.map(function (x) { return x[1]; }).join('');
+    $('sem-ferias').hidden = !folgas.length;
   }
   function clicarQuando(q) {
     var ps = MV.lerPeriodo(e.p).filter(function (x) { return !/^t/.test(x); });
@@ -1092,6 +1124,7 @@
     if (dados) montarQuando();
     [].forEach.call($('quando').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
     [].forEach.call($('festas').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
+    [].forEach.call($('folgas').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
     var soTemp = !datas && (!ps.length || (ps.length === 1 && /^t/.test(ps[0])));
     $('todas-datas').classList.toggle('ativo', soTemp);
     if (temporadaAberta) $('todas-datas').innerHTML = 'Todas as datas<span class="so-pc"> de ' + MV.nomeTemporada(temporadaAberta) + '</span>';
@@ -1240,7 +1273,9 @@
     if (!m) return '<span class="etiq tem">Temático<i>MSC Divina</i></span><span class="navio evento"' + dica + '>' + esc(s.navio).replace(/-(?=\S)/g, '‑') + '</span>';
     // Marca junto do nome, sem "Cruzeiros" (Leonardo, 23/11/2026: "tira o cruzeiros de MSC e de Costa e deixa junto o nome do
     // navio... vai voltar o card ao tamanho ideal"). ANTES: etiqueta "MSC Cruzeiros"/"Costa Cruzeiros" numa linha própria.
-    return '<span class="navio"' + dica + '><em class="etiq ' + m[1].toLowerCase() + '">' + m[1] + '</em>' + esc(m[2]) + '</span>';
+    // Marca e navio no mesmo selo, com a divisão do temático (Leonardo, 23/11/2026: "O nome da companhia e do navio pode ficar
+    // tudo com o mesmo fundo e com uma divisão, como você fez ali no temático"). ANTES: pílula "MSC" e o nome fora dela.
+    return '<span class="navio"' + dica + '><em class="etiq ' + m[1].toLowerCase() + '">' + m[1] + '<i>' + esc(m[2]) + '</i></em></span>';
   }
 
   // Linha com as paradas: bolinhas ligadas por um traço, Santos cheio nas pontas e o nome embaixo de cada uma.
