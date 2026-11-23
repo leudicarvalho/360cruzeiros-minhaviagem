@@ -943,7 +943,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261123a"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261123b"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -1311,7 +1311,7 @@
     var m = /^(MSC|Costa)\s+(.*)$/.exec(s.navio || '');
     var dica = ' title="' + esc(s.navio) + '"';   // nome inteiro ao passar o mouse (23/11/2026)
     // Hífen que não quebra ("alto-mar" desce inteiro para a 2ª linha, 23/11/2026).
-    if (!m) return '<span class="etiq tem">Temático<i>MSC Divina</i></span><span class="navio evento"' + dica + '>' + esc(s.navio).replace(/-(?=\S)/g, '‑') + '</span>';
+    if (!m) return '<span class="etiq tem">Temático<i>MSC Divina</i></span><span class="navio evento"' + dica + '>' + esc(MV.nomeCurto(s.navio)).replace(/-(?=\S)/g, '‑') + '</span>';
     // Marca junto do nome, sem "Cruzeiros" (Leonardo, 23/11/2026: "tira o cruzeiros de MSC e de Costa e deixa junto o nome do
     // navio... vai voltar o card ao tamanho ideal"). ANTES: etiqueta "MSC Cruzeiros"/"Costa Cruzeiros" numa linha própria.
     // Marca e navio no mesmo selo, com a divisão do temático (Leonardo, 23/11/2026: "O nome da companhia e do navio pode ficar

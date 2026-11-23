@@ -333,6 +333,18 @@
     return false;
   }
 
+  // Nome curto do temático no card (Leonardo, 23/11/2026: "Quando é muito grande, deixe só Léo Santana, por exemplo, a atração
+  // principal do navio"; o nome inteiro fica na dica do mouse). Só mexe em nome com mais de 24 letras: depois do travessão fica a
+  // atração ("Navio do Gigante 2027 - Léo Santana" = "Léo Santana"); antes dos dois-pontos ficam os artistas; "Navio X 2026" = "X".
+  // ANTES: nome inteiro cortado com reticências ("Navio do Gigante 20...").
+  function nomeCurto(n) {
+    n = String(n || "").trim();
+    if (n.length <= 24) return n;
+    var t = /\s[-–—]\s(.+)$/.exec(n); if (t) return t[1].trim();
+    var c = /^([^:]+):/.exec(n); if (c) return c[1].trim();
+    return n.replace(/^Navio\s+(d[aeo]s?\s+)?/i, "").replace(/\s+\d{4}$/, "").trim();
+  }
+
   // Total da cabine para os adultos, com o pacote: cabine + adultos x pacote por adulto (regra do termômetro).
   // undefined = sem preço de hoje para essa lotação/cabine; null = esgotada; pacote pedido que não existe = sem total.
   function total(s, a, cab, b) {
@@ -711,7 +723,7 @@
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
     lerIdades: lerIdades, textoIdades: textoIdades, lotacao: lotacao, gente: gente, msgIdades: msgIdades, msgSaida: msgSaida, PERGUNTAS_SAIDA: PERGUNTAS_SAIDA,
-    lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, rotaTexto: rotaTexto, paradas: paradas, paradasAlternam: paradasAlternam, total: total, precoOrdem: precoOrdem,
+    lerPesquisa: lerPesquisa, volta: volta, doTipo: doTipo, noPeriodo: noPeriodo, pacote: pacote, rotaTexto: rotaTexto, paradas: paradas, paradasAlternam: paradasAlternam, nomeCurto: nomeCurto, total: total, precoOrdem: precoOrdem,
     incluso: incluso,
     filtrar: filtrar, esgotadaNa: esgotadaNa, outraComPreco: outraComPreco, maisProximas: maisProximas, pesquisaDe: pesquisaDe, mesmaPesquisa: mesmaPesquisa, montarEnvio: montarEnvio,
     linkPesquisa: linkPesquisa, resumo: resumo, resumoBarra: resumoBarra, conferirWhats: conferirWhats, linhaDoTempo: linhaDoTempo };
