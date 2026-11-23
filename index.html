@@ -435,6 +435,22 @@
   .card.cia-tem .c-topo .dia-bloco { background: #4f1260; }
   .card.cia-costa .c-topo .dia-bloco { background: #a37410; }
   .card.cia-costa .c-topo .dia-bloco span { color: #fff1c4; }
+  /* Bloco até a borda do card com a estrela dentro (Leonardo, 23/11/2026: "Todos podem ir até o fim ali, daí a estrela fica
+     dentro do quadrado também"). As linhas de cima reservam 22 px de cada lado para a estrela não cobrir o nome. ANTES: bloco
+     parava 24 px antes da borda e a estrela ficava fora, no fundo do card. */
+  .card .c-topo .c-info { margin-right: 0; }
+  .card .c-topo .fav { top: 15px; right: 17px; z-index: 2; color: rgba(255,255,255,.8); padding: 0; font-size: 20px; }
+  .card .c-topo .fav.sim { color: var(--ouro); }
+  .card.cia-costa .c-topo .fav { color: rgba(16,37,46,.6); }
+  .card.cia-costa .c-topo .fav.sim { color: #10252e; }
+  .card .c-topo .c-info > .navio, .card .c-topo .c-info > .etiq { padding-right: 22px; padding-left: 22px; }
+  /* Resumo do temático sempre inteiro: nome mais longo em letra menor (Leonardo, 23/11/2026: "Não pode deixar encoberto nada"). */
+  .c-topo .c-info .navio.evento.m { font-size: 14.5px; }
+  .c-topo .c-info .navio.evento.p { font-size: 13px; letter-spacing: -.3px; }
+  @media (max-width: 699px) {
+    .card .c-topo .fav { top: 10px; right: 13px; }
+    .card .c-topo .c-info > .navio, .card .c-topo .c-info > .etiq { padding-right: 20px; padding-left: 20px; }
+  }
   /* Temático com a mesma altura dos outros no computador (Leonardo, 23/11/2026: "O a definir tá deixando o card um pouquinho
      maior do que os outros. Deixa alinhado"). O bloco do temático tem 3 linhas (etiqueta, evento, noites | volta) e ficava 9 px
      mais alto, descendo as paradas e os preços. ANTES: mesmo espaçamento interno dos outros. */
@@ -775,6 +791,44 @@
   .detalhe h3 .sem-beb i { font-style: normal; }
   .detalhe h3 .sem-beb i.curto { display: none; }
   @media (max-width: 374px) { .detalhe h3 .sem-beb i.curto { display: inline; } }
+  /* Cabines sempre da mesma altura, com preço, esgotada ou Melhor preço (Leonardo, 23/11/2026: "os cards não podem ter tamanhos
+     diferentes, tem que ser cada seção igual"). ANTES: preço 66 px, esgotada 60 px e Melhor preço 69 px, e o card mudava de
+     altura conforme a mistura de cabines. */
+  .cabs:not(.uma) .cab.cab { min-height: 69px; }
+  /* Celular: resumo longo do temático numa linha só, para o topo ficar igual nos cards (23/11/2026). */
+  @media (max-width: 699px) {
+    .c-topo .c-info .navio.evento { -webkit-line-clamp: 1; }
+    .c-topo .c-info .navio.evento.m { font-size: 13.5px; }
+    .c-topo .c-info .navio.evento.p { font-size: 12.5px; letter-spacing: -.4px; }
+    .card.cia-tem .c-topo .c-info > .navio.evento { padding-left: 4px; padding-right: 20px; }
+  }
+  /* Topo do card com a mesma altura em todos (Leonardo, 23/11/2026: "tem que ser cada seção igual"): bloco do navio com altura
+     mínima, temático mais apertado também no celular e linha de paradas sempre com espaço para 2 alturas. ANTES: no celular o
+     temático ficava ~10 px mais alto e o roteiro com nomes alternados ~13 px mais alto. */
+  .card .c-topo .c-info { min-height: 70px; }
+  .card.cia-tem .c-topo .c-info { padding-top: 5px; padding-bottom: 5px; }
+  .card.cia-tem .c-topo .c-info .navio.evento { margin-top: 0; }
+  .card.cia-tem .c-topo .c-info .periodo { margin-top: 3px; padding-top: 4px; }
+  @media (max-width: 699px) {
+    .card .c-topo .c-info { min-height: 68px; }
+    .paradas { min-height: 40px; }
+  }
+  /* Aviso de preço como bloco (sem a linha de texto invisível em volta), para o card com aviso ter a mesma altura (23/11/2026). */
+  .detalhe > .alerta-preco { display: flex; width: fit-content; }
+  /* Botões do pé na mesma linha em todos os cards: o detalhe ocupa o resto do card e os botões vão para o fim (23/11/2026). */
+  .card > .detalhe { flex: 1 1 auto; display: flex; flex-direction: column; }
+  .card > .detalhe > .acoes { margin-top: auto; }
+  .card > .detalhe > .graf-box { margin-bottom: 10px; }
+  /* Rota estilo passagem aérea (opção E, Leonardo 23/11/2026). */
+  .rota { flex: 1 0 100%; min-height: 40px; display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 0 4px; }
+  .rota-l1 { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--marca); }
+  .rota-l1 b { font-weight: 800; }
+  .rota-trilho { flex: 1; position: relative; height: 16px; display: flex; align-items: center; justify-content: center; }
+  .rota-trilho::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dotted #9fbfc8; }
+  .rota-trilho span { position: relative; background: #fff; padding: 0 7px; font-size: 11px; font-weight: 700; color: var(--suave); letter-spacing: .2px; white-space: nowrap; }
+  .rota-cid { font-size: 11.5px; color: var(--suave); text-align: center; line-height: 1.25; }
+  .rota-cid i { font-style: italic; }
+  @media (max-width: 374px) { .rota-cid { font-size: 11px; letter-spacing: -.35px; } }   /* 360 px: a rota mais longa numa linha */
 </style>
 </head>
 <body>
@@ -933,7 +987,7 @@
   </div>
 </div>
 
-<script src="mv.js?v=20261123b"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
+<script src="mv.js?v=20261123d"></script>  <!-- versão no endereço: o navegador não usa o mv.js antigo guardado (21/11/2026); mude a cada mudança no mv.js -->
 <script>
 (function () {
   "use strict";
@@ -1294,7 +1348,8 @@
     var m = /^(MSC|Costa)\s+(.*)$/.exec(s.navio || '');
     var dica = ' title="' + esc(s.navio) + '"';   // nome inteiro ao passar o mouse (23/11/2026)
     // Hífen que não quebra ("alto-mar" desce inteiro para a 2ª linha, 23/11/2026).
-    if (!m) return '<span class="etiq tem">Temático<i>MSC Divina</i></span><span class="navio evento"' + dica + '>' + esc(MV.nomeCurto(s.navio)).replace(/-(?=\S)/g, '‑') + '</span>';
+    var curto = MV.nomeCurto(s.navio), tam = curto.length > 23 ? ' p' : curto.length > 17 ? ' m' : '';   // letra menor no resumo longo
+    if (!m) return '<span class="etiq tem">Temático<i>MSC Divina</i></span><span class="navio evento' + tam + '"' + dica + '>' + esc(curto).replace(/-(?=\S)/g, '‑') + '</span>';
     // Marca junto do nome, sem "Cruzeiros" (Leonardo, 23/11/2026: "tira o cruzeiros de MSC e de Costa e deixa junto o nome do
     // navio... vai voltar o card ao tamanho ideal"). ANTES: etiqueta "MSC Cruzeiros"/"Costa Cruzeiros" numa linha própria.
     // Marca e navio no mesmo selo, com a divisão do temático (Leonardo, 23/11/2026: "O nome da companhia e do navio pode ficar
@@ -1305,17 +1360,20 @@
   // Linha com as paradas: bolinhas ligadas por um traço, Santos cheio nas pontas e o nome embaixo de cada uma.
   function linhaParadas(s) {
     var ps = MV.paradas(s.roteiro);
-    // Temático tem sempre uma parada que eles não divulgam (Leonardo, 22/11/2026: "É Santos, uma parada e coloque a definir").
-    // ANTES: só Santos nas pontas, sem parada no meio.
+    // Temático tem sempre uma parada que eles não divulgam (Leonardo, 22/11/2026: "É Santos, uma parada e coloque a definir";
+    // 23/11: "Sudeste" com "(a definir)").
     var indef = s.cia === 'Temático' && ps.length === 2;
-    // "Sudeste" com "(a definir)" na linha de baixo (Leonardo, 23/11/2026: "o a definir pode ser entre parênteses na linha
-    // de baixo, sudeste"). ANTES: só "A definir".
-    if (indef) ps = ['Santos', 'Sudeste', 'Santos'];
-    // Sem paradas (temáticos e minis "Santos, Santos": a API não diz): só Santos nas pontas, ligadas por um traço maior.
-    var lis = ps.map(function (p, i) { return '<li' + (i === 0 || i === ps.length - 1 ? ' class="ponta"' : indef ? ' class="indef"' : '') + '><span>' + esc(p) + (indef && i === 1 ? '<br><i>(a definir)</i>' : '') + '</span></li>'; });
-    if (ps.length === 2) lis.splice(1, 0, '<li class="mar"><span></span></li>');
-    return '<ol class="paradas' + (ps.length === 2 ? ' so-pontas' : MV.paradasAlternam(ps) ? ' alterna' : '') + '" aria-label="Roteiro: ' + esc(ps.join(', ')) + (indef ? ' (Sudeste a definir)' : '') + '">' + lis.join('') + '</ol>';
+    var mid = indef ? ['Sudeste'] : ps.slice(1, -1), n = mid.length;
+    // Rota estilo passagem aérea (Leonardo, 23/11/2026, escolheu a opção E: "não tá legal essa parte ainda, tem que ficar mais
+    // moderna, principalmente nessas de 7 noites, que tem muitas cidades"): Santos nas pontas, trilho com o navio e o número de
+    // paradas, e as cidades embaixo numa linha. ANTES: bolinhas com os nomes alternando em 2 alturas.
+    // Sem paradas ("Santos, Santos": a API não diz) = só o trilho com o navio, sem número.
+    var meio = '<span>⛴' + (n ? ' ' + n + (n > 1 ? ' paradas' : ' parada') : '') + '</span>';
+    var cidades = n ? '<div class="rota-cid">' + mid.map(esc).join(' · ') + (indef ? ' <i>(a definir)</i>' : '') + '</div>' : '';
+    return '<div class="rota" aria-label="Roteiro: Santos, ' + esc(mid.join(', ')) + (indef ? ' (a definir)' : '') + (n ? ', ' : '') + 'Santos">' +
+      '<div class="rota-l1"><b>Santos</b><div class="rota-trilho">' + meio + '</div><b>Santos</b></div>' + cidades + '</div>';
   }
+
 
   // Linha do tempo (abre ao tocar na saída): o preço de cada dia da cabine, para os adultos e o pacote escolhidos.
   function detalhe(s) {

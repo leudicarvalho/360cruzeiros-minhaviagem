@@ -333,16 +333,19 @@
     return false;
   }
 
-  // Nome curto do temático no card (Leonardo, 23/11/2026: "Quando é muito grande, deixe só Léo Santana, por exemplo, a atração
-  // principal do navio"; o nome inteiro fica na dica do mouse). Só mexe em nome com mais de 24 letras: depois do travessão fica a
-  // atração ("Navio do Gigante 2027 - Léo Santana" = "Léo Santana"); antes dos dois-pontos ficam os artistas; "Navio X 2026" = "X".
-  // ANTES: nome inteiro cortado com reticências ("Navio do Gigante 20...").
+  // Resumo do nome do temático no card (Leonardo, 23/11/2026: "Quando é muito grande, deixe só Léo Santana, por exemplo, a
+  // atração principal do navio"; "tem que ver para caber pelo menos as estrelas principais. Ter sempre um resumo. Não pode deixar
+  // encoberto nada"). O nome inteiro fica na dica do mouse. Regras, em ordem: depois do travessão fica a atração ("Navio do
+  // Gigante 2027 - Léo Santana" = "Léo Santana"); antes dos dois-pontos ficam os artistas; tira "Navio", o ano e "em alto-mar"
+  // (todo temático é em alto-mar). ANTES (até 23/11): nome inteiro cortado com reticências ("Navio do Gigante 20...").
   function nomeCurto(n) {
     n = String(n || "").trim();
-    if (n.length <= 24) return n;
-    var t = /\s[-–—]\s(.+)$/.exec(n); if (t) return t[1].trim();
-    var c = /^([^:]+):/.exec(n); if (c) return c[1].trim();
-    return n.replace(/^Navio\s+(d[aeo]s?\s+)?/i, "").replace(/\s+\d{4}$/, "").trim();
+    var t = /\s[-–—]\s(.+)$/.exec(n); if (t) n = t[1].trim();
+    var c = /^([^:]+):/.exec(n); if (c) n = c[1].trim();
+    n = n.replace(/^Navio\s+(d[aeo]s?\s+)?/i, "").replace(/\s+\d{4}$/, "").replace(/\s+em\s+alto[\s-]+mar\b/i, "").trim();
+    // Lista de artistas que não cabe: cada um pelo último nome ("Zeca, Alcione e Jorge Aragão" = "Zeca, Alcione e Aragão").
+    if (n.length > 23 && /,| e /.test(n)) n = n.split(/(,\s*|\s+e\s+)/).map(function (p) { return /^(,\s*|\s+e\s+)$/.test(p) ? p : p.trim().split(/\s+/).pop(); }).join("");
+    return n;
   }
 
   // Total da cabine para os adultos, com o pacote: cabine + adultos x pacote por adulto (regra do termômetro).
