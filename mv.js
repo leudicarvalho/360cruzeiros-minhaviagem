@@ -29,6 +29,47 @@
     rev28: { nome: "Réveillon 2028", de: "2028-01-01", ate: "2027-12-31", festa: "reveillon" },
     carn28: { nome: "Carnaval 2028", de: "2028-02-26", ate: "2028-03-01", festa: "carnaval" },
   };
+  // SEM GASTAR FÉRIAS (Leonardo, 23/11/2026: "cruzeiros em finais de semana e feriados... quando as pessoas não têm férias
+  // para tirar... feriados segunda, terça, quinta e sexta. Sábados também. Só não faz diferença alguma quando o feriado é
+  // quarta ou domingo"). Feriados nacionais (Carnaval e 1º/01 contam como folga, mas têm os botões próprios). Feriadão =
+  // os dias de folga em volta do feriado: seg = sáb a seg; ter = sáb a ter (emenda a segunda); qui = qui a dom (emenda a
+  // sexta); sex = sex a dom; sáb = sáb e dom. Entra a saída que pega algum dia do feriadão e faz faltar no máximo 2 dias
+  // de trabalho (dia útil do embarque até o da volta, os dois contados). "Fins de semana" (fds) = toda saída da temporada
+  // com no máximo 2 dias de trabalho (na prática, as de 3 noites que saem quinta, sexta ou sábado). ANTES: só Réveillon e
+  // Carnaval.
+  var FERIADOS = {
+    "2026-04-03": "Páscoa", "2026-04-21": "Tiradentes", "2026-05-01": "Dia do Trabalho", "2026-06-04": "Corpus Christi",
+    "2026-09-07": "Independência", "2026-10-12": "Nossa Senhora Aparecida", "2026-11-02": "Finados",
+    "2026-11-15": "Proclamação da República", "2026-11-20": "Consciência Negra", "2026-12-25": "Natal",
+    "2027-01-01": "", "2027-02-08": "", "2027-02-09": "", "2027-03-26": "Páscoa", "2027-04-21": "Tiradentes",
+    "2027-05-01": "Dia do Trabalho", "2027-05-27": "Corpus Christi", "2027-09-07": "Independência",
+    "2027-10-12": "Nossa Senhora Aparecida", "2027-11-02": "Finados", "2027-11-15": "Proclamação da República",
+    "2027-11-20": "Consciência Negra", "2027-12-25": "Natal",
+    "2028-01-01": "", "2028-02-28": "", "2028-02-29": "", "2028-04-14": "Páscoa", "2028-04-21": "Tiradentes",
+    "2028-05-01": "Dia do Trabalho", "2028-06-15": "Corpus Christi",
+  };
+  var MAX_DIAS_TRABALHO = 2;
+  function diaSemana(iso) { return new Date(iso + "T12:00:00Z").getUTCDay(); }
+  // Dias de trabalho que a saída faz faltar: seg a sex, sem feriado, do embarque à volta.
+  function diasDeTrabalho(s) {
+    var n = 0, fim = addDias(s.embarque, s.noites);
+    for (var d = s.embarque; d <= fim; d = addDias(d, 1)) { var w = diaSemana(d); if (w > 0 && w < 6 && !(d in FERIADOS)) n++; }
+    return n;
+  }
+  var JANELA_FERIADO = { 1: [-2, 0], 2: [-3, 0], 4: [0, 3], 5: [0, 2], 6: [0, 1] };   // dia da semana: [início, fim]
+  var DIA_CURTO = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+  Object.keys(FERIADOS).forEach(function (d) {
+    var j = JANELA_FERIADO[diaSemana(d)];
+    if (!FERIADOS[d] || !j) return;
+    var a = +d.slice(0, 4), m = +d.slice(5, 7);
+    CARNAVAL["fe" + d.slice(2, 4) + d.slice(5, 7) + d.slice(8, 10)] = { nome: FERIADOS[d] + " " + a, curto: FERIADOS[d],
+      dia: DIA_CURTO[diaSemana(d)] + " " + d.slice(8, 10) + "/" + d.slice(5, 7), de: addDias(d, j[0]), ate: addDias(d, j[1]),
+      festa: "feriado", folga: true, temp: String(m >= 7 ? a + 1 : a) };
+  });
+  [2027, 2028].forEach(function (a) {
+    CARNAVAL["fds" + String(a).slice(2)] = { nome: "Fins de semana " + (a - 2001) + "/" + String(a).slice(2), curto: "Fins de semana",
+      de: (a - 1) + "-07-01", ate: a + "-06-30", festa: "fds", folga: true, temp: String(a) };
+  });
   var ANTIGOS = { nd26: "m2611.m2612", jf27: "m2701.m2702", ma27: "m2703.m2704" };   // códigos do Lead Ads
   var MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
   function mesDe(iso) { return "m" + iso.slice(2, 4) + iso.slice(5, 7); }
@@ -134,6 +175,7 @@
     if (!ps.length) return true;
     return ps.some(function (x) {
       var c = CARNAVAL[x];
+      if (c && c.folga) return s.embarque <= c.ate && volta(s) >= c.de && diasDeTrabalho(s) <= MAX_DIAS_TRABALHO;
       return c ? (s.embarque <= c.ate && volta(s) >= c.de) : /^t/.test(x) ? temporada(mesDe(s.embarque)) === temporada(x) : mesDe(s.embarque) === x;
     });
   }
@@ -499,7 +541,7 @@
   // Temporada (Leonardo, 21/11/2026: "separar por 2027 ou 2028"): a temporada de Santos vai de novembro a abril e leva o
   // nome do ano do verão. nov/dez 2026 e jan a abr 2027 = "2027"; nov/dez 2027 e jan a abr 2028 = "2028".
   function temporada(x) {
-    if (CARNAVAL[x]) return CARNAVAL[x].de.slice(0, 4);
+    if (CARNAVAL[x]) return CARNAVAL[x].temp || CARNAVAL[x].de.slice(0, 4);
     if (/^t\d\d$/.test(x)) return "20" + x.slice(1);
     var a = 2000 + +x.slice(1, 3), m = +x.slice(3, 5);
     return String(m >= 7 ? a + 1 : a);
@@ -664,7 +706,7 @@
     return q.length ? "?" + q.join("&") : "";
   }
 
-  var api = { temAlerta: temAlerta, caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, criancasPagantes: criancasPagantes, temporada: temporada, temporadas: temporadas, lerCabines: lerCabines, cabinesDe: cabinesDe, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+  var api = { diasDeTrabalho: diasDeTrabalho, FERIADOS: FERIADOS, temAlerta: temAlerta, caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, criancasPagantes: criancasPagantes, temporada: temporada, temporadas: temporadas, lerCabines: lerCabines, cabinesDe: cabinesDe, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,
