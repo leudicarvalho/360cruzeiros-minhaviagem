@@ -409,11 +409,26 @@
   /* Noites e volta num selo só, com divisão, alinhado ao selo do navio (Leonardo, 23/11/2026: "tá muito espaçado. Talvez deixar
      eles juntos, ficar alinhado com a coisa de cima"). ANTES: duas pílulas separadas com 5 px entre elas. */
   .c-topo .periodo { display: inline-flex; align-self: flex-start; align-items: stretch; gap: 0; max-width: 100%; overflow: hidden; white-space: nowrap; font-size: 14px; background: #fff; border: 1px solid var(--linha); border-radius: 999px; }
-  .c-info > .etiq, .c-topo .c-info .periodo { align-self: center; }   /* centralizados (23/11/2026) */
-  .c-topo .c-info .navio:not(.evento) { padding-left: 26px; }   /* mesma folga dos 2 lados (a da direita é da estrela) */
   .c-topo .periodo .noites { display: inline-flex; align-items: center; font-size: 14px; padding: 2px 9px 2px 10px; border-radius: 0; }
   .c-topo .periodo .volta { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 700; color: #10252e; padding: 2px 12px 2px 9px; }
   .c-topo .periodo .volta i { font-weight: 500; color: var(--suave); }
+  /* Navio, noites e volta num bloco só (Leonardo, 23/11/2026: "deixe essas quatro informações, MSC, Divina, Três Noites e
+     Volta, assim separado, mas todas juntas no mesmo fundo... nesse formato mais arredondado"): um quadro arredondado na cor
+     da companhia, centralizado, com a marca e o navio em cima, uma linha fina e noites | volta embaixo. ANTES: dois selos
+     separados (navio na cor da marca e noites/volta em branco), encostados à esquerda. */
+  .c-topo .c-info { align-self: stretch; margin-right: 24px; border-radius: 16px; padding: 7px 7px; gap: 0; background: #1d3f72; color: #fff;
+    box-shadow: 0 3px 10px rgba(16,37,46,.16); --divisa: rgba(255,255,255,.35); }
+  .card.cia-costa .c-topo .c-info { background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro)); color: #10252e; --divisa: rgba(16,37,46,.3); }
+  .card.cia-tem .c-topo .c-info { background: #6a1b7a; }
+  .card .c-topo .c-info .navio { padding: 0; color: inherit; max-width: 100%; }
+  .c-topo .c-info .navio.evento { color: inherit; margin-top: 2px; }
+  .c-topo .c-info .etiq { background: none; padding: 0; color: inherit; max-width: 100%; border-radius: 0; }
+  .c-topo .c-info .etiq i { border-left-color: var(--divisa); }
+  .c-topo .c-info .periodo { align-self: stretch; justify-content: center; background: none; border: 0; border-top: 1px solid var(--divisa); border-radius: 0;
+    margin-top: 6px; padding-top: 5px; color: inherit; }
+  .c-topo .c-info .periodo .noites { background: none; color: inherit; font-weight: 800; padding: 0 7px 0 0; border-right: 1px solid var(--divisa); }
+  .c-topo .c-info .periodo .volta { color: inherit; padding: 0 0 0 7px; }
+  .c-topo .c-info .periodo .volta i { color: inherit; opacity: .8; }
   .cia { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .5px; padding: 1px 7px; border-radius: 999px; margin-right: 4px; vertical-align: 1px; }
   .cia.msc { background: #e3ecf8; color: #1d3f72; }
   .cia.costa { background: #fff3c7; color: #7a5a00; }
@@ -733,6 +748,9 @@
   }
   @media (max-width: 374px) {
     .c-topo .periodo { letter-spacing: -.2px; }
+    .c-topo .c-info { padding: 6px 5px; margin-right: 22px; }   /* 360 px: noites e volta cabem no bloco (23/11/2026) */
+    .c-topo .c-info .periodo .noites, .c-topo .c-info .periodo .volta { font-size: 12px; }
+    .c-topo .c-info .periodo .noites { padding-right: 5px; } .c-topo .c-info .periodo .volta { padding-left: 5px; }
     .c-topo .periodo .noites, .c-topo .periodo .volta { padding: 1px 6px; }
     /* 360 px: "Bebidas só a bordo" e preço de hoje um pouco menor, para nada sair da borda (23/11/2026). */
     .detalhe h3 .sem-beb i.longo { display: none; }
