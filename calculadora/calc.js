@@ -158,7 +158,10 @@
       // Tabela de preços avulsos Costa da habilidade. Média das marcas na conta: drink clássico 55 (ANTES 54, só a
       // caipirinha), drink premium 86 (de 81 a 90; ANTES 81), vinho 44 (taça 42, espumante 45; ANTES 42).
       itens: {
-        cerveja: { nome: "Chope", nivel: "basico", marcas: [{ nome: "Chope", v: 30 }] },
+        // Chope 32,32 = o mesmo por unidade do Pacote de Cerveja (20 chopes R$ 646,30), até ter o preço certo
+        // (Leonardo, 23/11/2026: "deixar igual até eu ter bem certo quanto vai ser o chopp"). ANTES: 30 (fonte única, vídeo).
+        // A conta arredonda: R$ 32 por chope.
+        cerveja: { nome: "Chope", nivel: "basico", marcas: [{ nome: "Chope", v: 32.32 }] },
         longneck: { nome: "Cerveja long neck", nivel: "basico", marcas: [{ nome: "Carlsberg, Corona ou Beck's", v: 39 }] },
         artesanal: { nome: "Cerveja premium", nivel: "premium", marcas: [{ nome: "Weissbier", v: 47 }] },
         vinho: { nome: "Vinho ou espumante (taça)", nivel: "basico", padrao: 0, marcas: [{ nome: "Vinho (taça)", v: 42 }, { nome: "Espumante (taça)", v: 45 }] },
