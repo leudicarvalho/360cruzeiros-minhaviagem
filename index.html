@@ -231,20 +231,15 @@
     .festas button { font-size: 13.5px; }
     .festas button .emo { font-size: 15px; letter-spacing: -3px; }
   }
-  /* SEM GASTAR FÉRIAS (Leonardo, 23/11/2026: fins de semana e feriadões numa seção só, abaixo do Réveillon e do Carnaval):
-     "Fins de semana" e um botão por feriadão da temporada, cada um com o dia e as saídas. */
-  .sem-ferias { margin-top: 14px; border: 1px solid #cfe3dc; background: linear-gradient(135deg, #f1faf6, #eef6fb); border-radius: 16px; padding: 12px 14px; }
-  .sem-ferias[hidden] { display: none; }
-  .sem-ferias .sf-tit { font: 800 15px var(--fonte); color: #14532d; text-align: center; }
-  .sem-ferias .sf-sub { font-size: 13px; color: var(--suave); text-align: center; margin-top: 2px; }
-  .folgas { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .folgas button { background: #fff; border: 1px solid #b9dccb; border-radius: 12px; padding: 7px 14px; cursor: pointer; font: 800 14px var(--fonte); color: #14532d; line-height: 1.2; text-align: center; transition: border-color .15s, box-shadow .15s; }
-  .folgas button:hover:not(.ativo) { border-color: #15803d; box-shadow: 0 2px 8px rgba(16,37,46,.08); }
-  .folgas button small { display: block; font-size: 12.5px; font-weight: 600; color: var(--suave); }
-  .folgas button.fds { border-width: 2px; }
-  .folgas button.ativo { background: var(--marca); border-color: var(--marca); color: #fff; box-shadow: 0 3px 10px rgba(15,76,92,.3); }
-  .folgas button.ativo small { color: #fff; opacity: .85; }
-  @media (max-width: 699px) { .folgas button { flex: 1 1 40%; padding: 7px 8px; font-size: 13.5px; } }
+  /* Fins de semana e feriadões na mesma linha do Réveillon e do Carnaval, no mesmo formato (Leonardo, 23/11/2026: "Pode deixar
+     tudo lá na mesma linha e não precisa pôr sem gastar férias... E deixe no mesmo padrão"). ANTES: quadro "Sem gastar férias"
+     abaixo, com título e botões quadrados. Ordem: Fins de semana e depois pela data (Natal, Réveillon, Carnaval, Páscoa). */
+  .festas button.fds { background: linear-gradient(135deg, #e3f5ea, #f4fbf0); color: #14532d; border-color: #bfe3cf; }
+  .festas button.feriado { background: linear-gradient(135deg, #e4f2f6, #f3f8ee); color: #0f4c5c; border-color: #c3dde4; }
+  @media (max-width: 699px) {
+    .festas { flex-wrap: wrap; }
+    .festas button { flex: 1 1 calc(50% - 4px); }
+  }
   .grade-filtros { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
   @media (min-width: 600px) { .grade-filtros { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 900px) { .grade-filtros { grid-template-columns: repeat(3, 1fr); } }
@@ -823,11 +818,6 @@
       </div>
       <div class="meses" id="quando"></div>
       <div class="festas" id="festas"></div>
-      <div class="sem-ferias" id="sem-ferias" hidden>
-        <div class="sf-tit">Sem gastar férias</div>
-        <div class="sf-sub">Fins de semana e feriadões: no máximo 2 dias de trabalho</div>
-        <div class="folgas" id="folgas"></div>
-      </div>
     </section>
     <div class="grade-filtros">
       <div class="cartao"><div class="cartao-tit">Noites</div><div class="pilulas opcoes c3" data-f="t">
@@ -1057,24 +1047,18 @@
         '<small>' + n + (n === 1 ? ' saída' : ' saídas') + '</small></button>';
     });
     $('quando').innerHTML = html;
-    // Réveillon e Carnaval da temporada aberta, no meio (sem emoji: Leonardo, 21/11/2026, "ficou horrível com emojis")
-    var festas = '', folgas = [];
+    // Réveillon, Carnaval, fins de semana e feriadões da temporada aberta, numa linha só (sem emoji: Leonardo, 21/11/2026,
+    // "ficou horrível com emojis"; fins de semana e feriadões juntos: Leonardo, 23/11/2026). Fins de semana primeiro, o resto pela data.
+    var festas = [];
     Object.keys(MV.CARNAVAL).forEach(function (k) {
       var n = contarSaidas(k), x = MV.CARNAVAL[k];
-      if (x.folga) {
-        if (n && MV.temporada(k) === temporadaAberta)
-          folgas.push([x.festa === 'fds' ? '' : x.de, '<button data-q="' + k + '" class="' + x.festa + '">' + x.curto +
-            '<small>' + (x.dia ? x.dia + ' · ' : '') + n + (n === 1 ? ' saída' : ' saídas') + '</small></button>']);
-        return;
-      }
-      if (n && MV.temporada(k) === temporadaAberta)
-        festas += '<button data-q="' + k + '" class="' + x.festa + '"><span>' + x.nome +
-          '<small>' + n + (n === 1 ? ' saída' : ' saídas') + '</small></span></button>';
+      if (!n || MV.temporada(k) !== temporadaAberta) return;
+      var ordem = x.festa === 'fds' ? '' : x.festa === 'reveillon' ? x.ate : x.de;
+      festas.push([ordem, '<button data-q="' + k + '" class="' + x.festa + '"' + (x.folga ? ' title="No máximo 2 dias de trabalho"' : '') + '><span>' +
+        (x.folga ? x.curto : x.nome) + '<small>' + (x.dia ? x.dia + ' · ' : '') + n + (n === 1 ? ' saída' : ' saídas') + '</small></span></button>']);
     });
-    $('festas').innerHTML = festas;
-    folgas.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
-    $('folgas').innerHTML = folgas.map(function (x) { return x[1]; }).join('');
-    $('sem-ferias').hidden = !folgas.length;
+    festas.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+    $('festas').innerHTML = festas.map(function (x) { return x[1]; }).join('');
   }
   function clicarQuando(q) {
     var ps = MV.lerPeriodo(e.p).filter(function (x) { return !/^t/.test(x); });
@@ -1165,7 +1149,6 @@
     if (dados) montarQuando();
     [].forEach.call($('quando').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
     [].forEach.call($('festas').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
-    [].forEach.call($('folgas').children, function (b) { b.classList.toggle('ativo', ps.indexOf(b.dataset.q) >= 0); });
     var soTemp = !datas && (!ps.length || (ps.length === 1 && /^t/.test(ps[0])));
     $('todas-datas').classList.toggle('ativo', soTemp);
     if (temporadaAberta) $('todas-datas').innerHTML = 'Todas as datas<span class="so-pc"> de ' + MV.nomeTemporada(temporadaAberta) + '</span>';
