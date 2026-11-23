@@ -745,7 +745,7 @@
       // "pago/pagos/paga/pagas" pelo gênero (unidade[2]) e pela quantidade.
       function pago(n, u) { return "pag" + u[2] + (n === 1 ? "" : "s"); }
       d.pacotes.forEach(function (p) {
-        linhas.push(el("div", { "class": "nota", texto: "1 " + p.nome + ": " + plural(p.qtd, p.unidade) + " já " + pago(p.qtd, p.unidade) + " · " + reaisJunto(p.valor) }));
+        linhas.push(el("div", { "class": "nota", texto: (p.n > 1 ? p.n + " " + p.nome.replace(/^Pacote/, "Pacotes") : "1 " + p.nome) + ": " + plural(p.qtd, p.unidade) + " já " + pago(p.qtd, p.unidade) + " · " + reaisJunto(p.valor) }));
         if (p.aMais > 0) linhas.push(el("div", { "class": "nota", texto: plural(p.aMais, p.unidade) + " a mais, " + pago(p.aMais, p.unidade) + " à parte · cerca de " + reaisJunto(p.aMaisValor) }));
       });
       if (Math.round(d.outras) > 0) linhas.push(el("div", { "class": "nota", texto: "Outras bebidas, pagas à parte · cerca de " + reaisJunto(d.outras) }));

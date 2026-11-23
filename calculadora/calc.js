@@ -349,21 +349,34 @@
 
   // Pacote para dividir (CIAS[cia].fixos): soma o consumo da cabine na viagem (adultos e crianças) por item e, onde o
   // consumo enche um pacote, usa o pacote e o resto avulso. Sem pacote que encha = null (a tela não mostra o cartão).
-  // Volta { pacotes: [{ nome, qtd, valor, unidade, aMais, aMaisValor }], outras (avulso do resto), total }.
-  function pacoteDividir(cia, perfis, criancas, noites, avulsoViagem) {
+  // ATÉ 1 PACOTE IGUAL POR ADULTO (Leonardo, 23/11/2026: "Sim, 1 por adulto"; no Visual Tour o pacote fixo é por hóspede e
+  // opcional): em cada grupo, até "adultos" pacotes, sempre o maior que o que falta ainda enche. ANTES: 1 por cabine.
+  // Volta { pacotes: [{ nome, n, qtd (unidades de todos), valor (de todos), unidade, aMais, aMaisValor }], outras, total }.
+  function pacoteDividir(cia, perfis, criancas, noites, avulsoViagem, adultos) {
     var c = CIAS[cia];
     if (!c.fixos) return null;
+    var maximo = Math.max(1, adultos || 1);
     var usados = [], total = 0, cobertoAvulso = 0;
     c.fixos.forEach(function (g) {
       var qtd = 0;
       perfis.forEach(function (p) { qtd += inteiro(p.consumo[g.item], 0, 50, 0) * p.pessoas * noites; });
       criancas.forEach(function (k) { qtd += inteiro(k[g.item], 0, 50, 0) * noites; });
-      var pk = g.pacotes.filter(function (x) { return qtd >= x.qtd; })[0];
-      if (!pk) return;
-      var it = c.itens[g.item], unit = it && it.marcas.length === 1 ? centavos(precoMarca(it.marcas[0])) : c.avulso[g.item], aMais = qtd - pk.qtd;
+      var resta = qtd, doGrupo = [];
+      for (var i = 0; i < maximo; i++) {
+        var pk = g.pacotes.filter(function (x) { return resta >= x.qtd; })[0];
+        if (!pk) break;
+        var ja = doGrupo.filter(function (u) { return u.nome === pk.nome; })[0];
+        if (ja) { ja.n++; ja.qtd += pk.qtd; ja.valor += pk.valor; }
+        else doGrupo.push({ nome: pk.nome, n: 1, item: g.item, qtd: pk.qtd, valor: pk.valor, unidade: g.unidade, aMais: 0, aMaisValor: 0 });
+        resta -= pk.qtd;
+      }
+      if (!doGrupo.length) return;
+      var it = c.itens[g.item], unit = it && it.marcas.length === 1 ? centavos(precoMarca(it.marcas[0])) : c.avulso[g.item];
+      var ult = doGrupo[doGrupo.length - 1];
+      ult.aMais = resta; ult.aMaisValor = unit * resta;
       cobertoAvulso += unit * qtd;
-      usados.push({ nome: pk.nome, item: g.item, qtd: pk.qtd, valor: pk.valor, unidade: g.unidade, aMais: aMais, aMaisValor: unit * aMais });
-      total += pk.valor + unit * aMais;
+      doGrupo.forEach(function (u) { total += u.valor; usados.push(u); });
+      total += unit * resta;
     });
     if (!usados.length) return null;
     var outras = Math.max(0, avulsoViagem - cobertoAvulso);
@@ -425,7 +438,7 @@
       // Pacote para dividir (só Costa, 23/11/2026): uma opção a mais no resultado; não muda a indicação acima.
       // Só aparece quando sai mais barato que o pacote por dia mais em conta (senão só confunde; Leonardo, 23/11/2026:
       // "Não pode ficar muito confuso").
-      dividir: (function () { var d = pacoteDividir(cia, perfis, criancas, noites, avulsoViagem); return d && d.total < melhor.total ? d : null; })(),
+      dividir: (function () { var d = pacoteDividir(cia, perfis, criancas, noites, avulsoViagem, adultos); return d && d.total < melhor.total ? d : null; })(),
     };
   }
 
