@@ -867,6 +867,13 @@
   .card .faixa { margin-top: 22px; }
   .card .extremos { margin-top: 6px; }
   .rota { height: 34px; min-height: 0; }
+  /* Hoje esgotada numa linha só, da altura do "Preço de hoje" (Leonardo, 23/11/2026: "Quebrou o layout quando está esgotada
+     hoje. Pode ficar menor ali"). ANTES: 3 linhas (Hoje / Esgotada / último preço R$ ... em dd/mm), card mais alto que os outros. */
+  .nivel.esgotada { padding-top: 7px; padding-bottom: 7px; }
+  .nivel.esgotada .hoje-v { display: flex; align-items: center; gap: 8px; width: 100%; }
+  .nivel.esgotada .hoje-v small { white-space: nowrap; font-size: 12px; }
+  .nivel.esgotada .hoje-v strong { flex: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 18px; }
+  .nivel.esgotada .hoje-v strong em { display: inline; margin: 0; font-size: 12px; color: #7a3a33; }
 </style>
 </head>
 <body>
@@ -1487,7 +1494,7 @@
     // quadro vermelho claro, "Esgotada" no lugar do valor e o último preço com o dia. ANTES: só um selo cinza "Esgotada".
     var html = '<div class="nivel ' + fx.nivel + '">' + (fx.hoje ? '<span class="hoje-v"><span class="nv-topo"><small>Preço de hoje</small><b>' + txt + '</b></span><strong>' +
       reais(fx.hoje.v) + '<em>por pessoa</em></strong></span>' : fx.ultimo ? '<span class="hoje-v"><span class="nv-topo"><small>Hoje</small></span><strong>Esgotada<em>' +
-      'último preço ' + reais(fx.ultimo.v) + ' em ' + dm(fx.ultimo.dia) + '</em></strong></span>' : '<b>' + txt + '</b>') + '</div>';
+      'último ' + reais(fx.ultimo.v) + ' · ' + dm(fx.ultimo.dia) + '</em></strong></span>' : '<b>' + txt + '</b>') + '</div>';
     // Marcas na barra (Leonardo, 21/11/2026, 6ª rodada: "não é para ter a linha tracejada... é para só marcar lá em cima...
     // o mais barato, um risco ali no verde, e o mais caro no vermelho. Se o hoje for igual a qualquer um dos dois, as
     // linhas vão ficar sobrepostas. E vai ter um alerta"). ANTES: só a marca Hoje na barra e riscos tracejados no gráfico.
@@ -1543,6 +1550,9 @@
     // histórico ou maior preço do histórico, as barras do gráfico podem ficar um pouco maiores"): +40 na altura (~34 px na
     // tela, o tamanho do selo), e o card fica da mesma altura dos outros. ANTES: um selo invisível guardava o lugar.
     if (!semLegenda) H += 40;
+    // Hoje esgotada não tem a faixa colorida em cima: as barras ganham o lugar dela, para o card ter a mesma altura dos outros
+    // (Leonardo, 23/11/2026: "Quebrou o layout quando está esgotada hoje"). ANTES: card mais baixo (ou mais alto, com 3 linhas).
+    if (fx.pos === null) H += 37;
     var mn = fx.min.v, mx = fx.max.v, igual = mn === mx, base = mn * (igual ? 0.8 : 0.85);
     var n = pts.length, slot = (W - e - d) / n, bw = Math.max(3, Math.min(34, slot * 0.72)), hoje = n - 1;
     function X(i) { return e + slot * (i + 0.5); }
