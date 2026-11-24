@@ -874,6 +874,13 @@
   .nivel.esgotada .hoje-v small { white-space: nowrap; font-size: 12px; }
   .nivel.esgotada .hoje-v strong { flex: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 18px; }
   .nivel.esgotada .hoje-v strong em { display: inline; margin: 0; font-size: 12px; color: #7a3a33; }
+  /* Todos os cards da mesma altura, inclusive a cabine com poucos dias de preço (Leonardo, 23/11/2026: "Sim, ajustar"): os
+     cards esticam à altura do maior (hoje variam no máximo 3 px, sem vão) e o aviso vira um quadro no lugar do gráfico, com os
+     botões no pé. ANTES: card sem histórico com 423 px (no celular, o aviso nem aparecia); desde 21/11 cada card tinha a
+     própria altura. */
+  .grade { align-items: stretch; }
+  .card > .detalhe > .legenda.poucos { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center;
+    margin: 8px 0 10px; padding: 14px; border: 1px dashed var(--linha); border-radius: 12px; background: #f7fafb; font-size: 13px; color: var(--suave); }
 </style>
 </head>
 <body>
@@ -1440,7 +1447,7 @@
       else pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(porPessoa);
       var fx = MV.faixaPreco(pts);
       if (fx) fx.desde = pts[0][0];
-      corpo = (!fx ? '<p class="legenda">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx, MV.temAlerta(fx))) + (comPk || MV.incluso(s, a, cab) ? '' : linhaPacote(s, a));   // cabine com bebida inclusa: sem a linha do pacote (22/11/2026)
+      corpo = (!fx ? '<p class="legenda poucos">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx, MV.temAlerta(fx))) + (comPk || MV.incluso(s, a, cab) ? '' : linhaPacote(s, a));   // cabine com bebida inclusa: sem a linha do pacote (22/11/2026)
     }
     // Selo do pacote ao lado de "Histórico" e sem a palavra "pacote" no celular (Leonardo, 21/11/2026: "o histórico pode
     // sempre ficar com aquele pacote premium extra bem ao lado... pode tirar a palavra pacote. Vai ficar só direto o nome
