@@ -309,7 +309,8 @@
   .prefs.salva .prefs-acoes { display: none; }
   .prefs.nova { background: var(--ouro-claro); border: 2px solid var(--ouro-escuro); }
   .prefs.nova b { color: var(--ouro-texto); }
-  .prefs-acoes { flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px; }
+  .prefs-acoes { flex: 1 1 260px; display: flex; gap: 8px; }   /* 2 botões lado a lado (25/11/2026); ANTES: coluna com o link embaixo */
+  .prefs-acoes .btn { flex: 1 1 0; white-space: nowrap; }
   .prefs-acoes .btn { margin: 0; }
   .volta-prefs { background: none; border: 0; color: var(--marca); font: 600 14px var(--fonte); text-decoration: underline; padding: 6px; cursor: pointer; }
   .btn { display: block; text-align: center; text-decoration: none; background: var(--verde-btn); color: #fff; font-weight: 700; font-size: 14px; padding: 11px; border-radius: 8px; border: 0; cursor: pointer; font-family: inherit; width: 100%; }
@@ -964,13 +965,13 @@
   <div class="prefs" id="prefs">
     <div class="prefs-txt"><b id="prefs-titulo"></b><span id="prefs-sub"></span></div>
     <div class="prefs-acoes" id="prefs-acoes">
-      <button class="btn" id="salvar">Salvar como minha preferência</button>
-      <button class="volta-prefs" id="voltar">Voltar à minha preferência</button>
+      <button class="btn" id="salvar">Salvar esta pesquisa</button>
+      <button class="btn contorno" id="voltar">Voltar à salva</button>
     </div>
   </div>
 
   <div class="ordem" id="topo-lista"><h2 id="titulo-lista">Saídas</h2>
-    <div class="pilulas" id="ordem"><button data-v="preco" class="ativo">Mais barato primeiro</button><button data-v="data">Por data</button></div></div>
+    <div class="pilulas" id="ordem"><button data-v="preco" class="ativo">Menor preço primeiro</button><button data-v="data">Por data</button></div></div>
   <p class="dica" id="dica">Arraste para o lado para ver as outras saídas <span class="seta">→</span></p>
   <div id="lista"></div>
   <p class="contagem" id="contagem"></p>
@@ -1285,15 +1286,19 @@
     // Caixa das preferências: azul quando a tela mostra a pesquisa salva; dourada, com Salvar e Voltar, quando não.
     // Sem link (sem preferências salvas): só aparece depois de pesquisar, com o Salvar (que leva ao WhatsApp).
     var igualSalva = temPref && igual && !f.navio && f.cia === 'todas';
-    $('prefs').hidden = !pesquisou || semResultado() || igualSalva;   // sem nada não vira preferência; salva = aviso na barra
+    // Só companhia ou navio filtrados (o resto igual à salva): sem caixa (Leonardo, 25/11/2026: "acho que não precisa ter essa
+    // mensagem. Isso daí vai só confundir mais"). ANTES: "Você filtrou a companhia ou o navio, que não ficam salvos..." e Voltar.
+    var soCiaNavio = temPref && igual && !igualSalva;
+    $('prefs').hidden = !pesquisou || semResultado() || igualSalva || soCiaNavio;   // sem nada não vira preferência; salva = aviso na barra
     $('mudar').classList.toggle('salva', pesquisou && igualSalva);
     $('m-rot').textContent = pesquisou && igualSalva ? 'Salva' : '';   // numa linha só (21/11/2026); ANTES: 'Sua preferência salva' : 'Sua pesquisa'
     $('ordem').hidden = semResultado();
     $('prefs').className = 'prefs ' + (igualSalva ? 'salva' : 'nova');
-    $('prefs-titulo').textContent = igualSalva ? 'Você está vendo a sua preferência salva' : 'Esta pesquisa ainda não é a sua preferência';
-    $('prefs-sub').textContent = !temPref ? 'Salve como sua preferência: da próxima vez, a página já abre nela.' :
-      igual ? 'Você filtrou a companhia ou o navio, que não ficam salvos; o resto é igual à sua preferência.' :
-      'Gostou? Salve como sua preferência: da próxima vez, a página já abre nela. Ou volte à sua preferência.';
+    // Menos texto e "Voltar" como botão (Leonardo, 25/11/2026: "deixar menos escrito, explicando mais fácil, e voltar à minha
+    // preferência pode virar um botão"). ANTES: "Esta pesquisa ainda não é a sua preferência" / "Gostou? Salve como sua
+    // preferência: da próxima vez, a página já abre nela. Ou volte à sua preferência." e "Voltar à minha preferência" em link.
+    $('prefs-titulo').textContent = igualSalva ? 'Você está vendo a sua pesquisa salva' : !temPref ? 'Quer salvar esta pesquisa?' : 'Esta pesquisa não está salva';
+    $('prefs-sub').textContent = 'Salve e a página abre sempre nela.';
     $('salvar').hidden = temPref && igual;
     $('voltar').hidden = !temPref || igualSalva;
     $('convite-calc').classList.toggle('forte', salva.b === 'entender');
