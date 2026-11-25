@@ -653,8 +653,45 @@
   // dia lido), o menor e o maior (com o dia; empate = o dia mais recente), onde o de hoje fica entre eles (pos 0 a 1) e o
   // nível: baixo (terço de baixo), medio, alto (terço de cima) ou estavel (sempre o mesmo). Esgotada hoje = hoje null.
   // Alerta de menor/maior preço: hoje igual ao menor ou ao maior, com preços diferentes no histórico.
+  // Só o selo verde "Menor preço do histórico" (Leonardo, 25/11/2026: aprovou esconder o vermelho; no fim da Black 183 de
+  // 287 cabines de 2 adultos mostravam "Maior preço do histórico", lembrando que antes estava mais barato). ANTES: hoje
+  // no menor OU no maior preço acendia o selo (verde ou vermelho).
   function temAlerta(fx) {
-    return !!(fx && fx.hoje && !fx.hoje.inc && fx.min.v !== fx.max.v && (fx.hoje.v === fx.min.v || fx.hoje.v === fx.max.v));
+    return !!(fx && fx.hoje && !fx.hoje.inc && fx.min.v !== fx.max.v && fx.hoje.v === fx.min.v);
+  }
+
+  // Dias que o gráfico de barras mostra (Leonardo, 25/11/2026: "podem ser 20 datas"; barras do mesmo tamanho, as datas
+  // variam de cartão para cartão). Até max dias: todos. Mais: sempre o 1º dia, hoje, o ÚLTIMO dia do menor e do maior preço;
+  // depois os dias em que o preço mudou (os maiores saltos primeiro); sobrando lugar, dias repetidos espalhados (o mais
+  // longe dos já escolhidos). Conta no próprio navegador, só sobre os pontos do cartão aberto. ANTES: um dia por barra,
+  // todos os dias lidos (31 barras em 25/11).
+  function escolherDias(pts, max) {
+    max = max || 20;
+    var n = (pts || []).length;
+    if (n <= max) return pts || [];
+    var sel = {}, qt = 0, mn = null, mx = null, lMin = -1, lMax = -1, i;
+    function pega(k) { if (k >= 0 && !sel[k]) { sel[k] = true; qt++; } }
+    pts.forEach(function (p) { if (p[1] !== null && !p[3]) { if (mn === null || p[1] < mn) mn = p[1]; if (mx === null || p[1] > mx) mx = p[1]; } });
+    pts.forEach(function (p, k) { if (!p[3] && p[1] !== null && p[1] === mn) lMin = k; if (!p[3] && p[1] !== null && p[1] === mx) lMax = k; });
+    pega(0); pega(n - 1); pega(lMin); pega(lMax);
+    var mud = [];
+    for (i = 1; i < n; i++) {
+      var a = pts[i - 1][1], b = pts[i][1];
+      if (a !== b || !!pts[i - 1][3] !== !!pts[i][3]) mud.push([i, a === null || b === null ? 1 : Math.abs(b - a) / Math.max(a, b)]);
+    }
+    mud.sort(function (x, y) { return y[1] - x[1] || x[0] - y[0]; });
+    for (i = 0; i < mud.length && qt < max; i++) pega(mud[i][0]);
+    while (qt < max) {
+      var melhor = -1, dist = -1;
+      for (i = 0; i < n; i++) {
+        if (sel[i]) continue;
+        var d = n;
+        for (var s in sel) d = Math.min(d, Math.abs(i - s));
+        if (d > dist) { dist = d; melhor = i; }
+      }
+      pega(melhor);
+    }
+    return pts.filter(function (p, k) { return sel[k]; });
   }
 
   function faixaPreco(pts) {
@@ -721,7 +758,7 @@
     return q.length ? "?" + q.join("&") : "";
   }
 
-  var api = { diasDeTrabalho: diasDeTrabalho, FERIADOS: FERIADOS, temAlerta: temAlerta, caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, criancasPagantes: criancasPagantes, temporada: temporada, temporadas: temporadas, lerCabines: lerCabines, cabinesDe: cabinesDe, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
+  var api = { diasDeTrabalho: diasDeTrabalho, FERIADOS: FERIADOS, temAlerta: temAlerta, escolherDias: escolherDias, caminhoSuave: caminhoSuave, pacoteNoHistorico: pacoteNoHistorico, faixaPreco: faixaPreco, conviteCalc: conviteCalc, linkCalc: linkCalc, criancasPagantes: criancasPagantes, temporada: temporada, temporadas: temporadas, lerCabines: lerCabines, cabinesDe: cabinesDe, nomeTemporada: nomeTemporada, mesesDaTemporada: mesesDaTemporada, periodoLink: periodoLink, paginar: paginar, mascaraData: mascaraData, lerDataBR: lerDataBR, dataBR: dataBR,
     semanasDoMes: semanasDoMes, somaMes: somaMes, tocarDia: tocarDia, diaDaSemana: diaDaSemana, nomeMesCurto: nomeMesCurto, MESES: MESES,
     LISTAS: LISTAS, PADRAO: PADRAO, CARNAVAL: CARNAVAL, lerPeriodo: lerPeriodo, lerData: lerData, nomeMes: nomeMes,
     nomePeriodo: nomePeriodo, janela: janela, mesesComSaida: mesesComSaida, CABINES: CABINES, NOME_CABINE: NOME_CABINE, NOME_NIVEL: NOME_NIVEL,

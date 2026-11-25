@@ -1447,7 +1447,7 @@
       else pts = MV.linhaDoTempo(hist, s.id, a, cab, 'sem').map(porPessoa);
       var fx = MV.faixaPreco(pts);
       if (fx) fx.desde = pts[0][0];
-      corpo = (!fx ? '<p class="legenda poucos">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(pts, fx, MV.temAlerta(fx))) + (comPk || MV.incluso(s, a, cab) ? '' : linhaPacote(s, a));   // cabine com bebida inclusa: sem a linha do pacote (22/11/2026)
+      corpo = (!fx ? '<p class="legenda poucos">Ainda temos poucos dias de preço desta cabine para mostrar o histórico.</p>' : faixa(fx) + grafico(MV.escolherDias(pts, 20), fx, MV.temAlerta(fx))) + (comPk || MV.incluso(s, a, cab) ? '' : linhaPacote(s, a));   // cabine com bebida inclusa: sem a linha do pacote (22/11/2026)
     }
     // Selo do pacote ao lado de "Histórico" e sem a palavra "pacote" no celular (Leonardo, 21/11/2026: "o histórico pode
     // sempre ficar com aquele pacote premium extra bem ao lado... pode tirar a palavra pacote. Vai ficar só direto o nome
@@ -1561,7 +1561,7 @@
     // (Leonardo, 23/11/2026: "Quebrou o layout quando está esgotada hoje"). ANTES: card mais baixo (ou mais alto, com 3 linhas).
     if (fx.pos === null) H += 37;
     var mn = fx.min.v, mx = fx.max.v, igual = mn === mx, base = mn * (igual ? 0.8 : 0.85);
-    var n = pts.length, slot = (W - e - d) / n, bw = Math.max(3, Math.min(34, slot * 0.72)), hoje = n - 1;
+    var n = pts.length, slot = (W - e - d) / n, bw = Math.max(3, Math.min(10.5, slot * 0.7))   /* barras do mesmo tamanho e mais próximas, opção B (Leonardo, 25/11/2026); ANTES: Math.min(34, slot * 0.72) */, hoje = n - 1;
     function X(i) { return e + slot * (i + 0.5); }
     function y(v) { return t + (H - t - b) * (1 - (v - base) / (mx - base)); }
     // Todos os dias com o menor preço em verde e todos com o maior em vermelho (Leonardo, 21/11/2026, opção B). ANTES: só
